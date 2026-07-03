@@ -5877,21 +5877,16 @@ test('desert entry props use visible atlas art instead of weak placeholders', ()
   assert.doesNotMatch(storyProps, /sectionId:\s*'desert-entry'[\s\S]{0,220}type:\s*'mural'/);
 });
 
-test('restored Desert Entry atmosphere props use real image assets', () => {
+test('retired Desert Entry restored edge props stay deleted from generated overrides', () => {
   [
     'desert-entry-restored-ravine-exit-rubble-edge-1',
     'desert-entry-restored-mural-base-edge-1',
+    'desert-entry-restored-scribe-route-buried-blocks-1',
   ].forEach((propId) => {
     const prop = journeyPlacementOverrides.props.find(item => item.id === propId);
-    assert.equal(prop?.sectionId, 'desert-entry');
-    assert.ok(prop.assetPath || prop.imageAssetKey || prop.atmosphereAssetKey);
-    assert.notEqual(prop.shadowOpacity, undefined);
+    assert.equal(prop, undefined);
+    assert.ok(journeyPlacementOverrides.deletedPropIds.includes(propId));
   });
-  assert.equal(
-    journeyPlacementOverrides.props.find(item => item.id === 'desert-entry-restored-scribe-route-buried-blocks-1'),
-    undefined,
-  );
-  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-restored-scribe-route-buried-blocks-1'));
 });
 
 test('atlas story props default to opaque rendering unless explicitly edited', () => {

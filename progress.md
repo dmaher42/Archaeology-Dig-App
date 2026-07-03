@@ -294,6 +294,13 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Verified `node --test src\utils\gameLogic.training.test.js`, `npm.cmd run lint`, `npm.cmd run build`, and a browser Training flow from Start Training through Survey, Grid, and Excavate.
 - Browser check confirmed no console errors and no horizontal layout overflow in the checked Training flow.
 
+2026-07-03 combat air-attack slice:
+- Added an airborne J attack profile to the existing Journey combat system instead of creating a new combat path.
+- Airborne J now uses quicker timing, a taller downward hitbox, a small forward/downward commitment, and an air-hit result that does not prime the grounded K heavy follow-up.
+- Landing an air strike refunds its small Endurance cost and gives Asha a slight lift, so jump becomes a combat answer without replacing dodge/parry/ground combos.
+- Verified focused combat tests, Journey source guards, enemy sprite/combat guards, lint, and a production build.
+- Next tuning target: playtest whether air J feels useful against wisps and committed enemies without making scorpion anti-air irrelevant.
+
 2026-05-25 update:
 - Completed the UI makeover for the "Archeologist Training" screen (Training Phase).
 - Implemented the "Vintage Explorer Journal" aesthetic, featuring parchment textures, leather stitched borders, and classic serif typography.
