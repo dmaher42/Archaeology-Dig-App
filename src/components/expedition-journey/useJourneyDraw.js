@@ -167,7 +167,6 @@ export function useJourneyDraw({
   drawOpeningPyramidMasonryBack,
   drawOpeningSphinxEncounter,
   drawOpeningThresholdScene,
-  drawParticles,
   drawPlatform,
   drawPlayerFeedbackOverlays,
   drawPlayerSprite,
@@ -198,6 +197,7 @@ export function useJourneyDraw({
   getActiveHiddenRoutes,
   getActiveSecretCollectibles,
   getCombatMode,
+  getDesertEntryEnemyFootLift,
   getDesertEntryVisualGroundOffsetY,
   getDoorwayGateStatus,
   getEditedMiniBoss,
@@ -490,7 +490,6 @@ export function useJourneyDraw({
       WORLD_CONTINUITY_LANDMARKS.forEach((landmark) => drawWorldContinuityLandmark(ctx, landmark, cameraX, now));
       WORLD_TRANSITION_STORY_MARKERS.forEach((marker) => drawWorldTransitionMarker(ctx, marker, cameraX, now));
       getZIndexSortedRenderableStoryProps(current).forEach((prop) => drawStoryProp(ctx, prop, cameraX, now, 'background'));
-      drawParticles(ctx, atmosphere, cameraX, now);
       if (desertJourneyScenePanelsDrawn) drawDesertJourneySceneMasks(ctx, current, cameraX, now);
     }
 
@@ -803,7 +802,10 @@ export function useJourneyDraw({
       if (!enemy.defeated && isNormalEnemyInsideBossFocus(enemy, activeBossDomain)) return;
       const ex = worldToScreenX(enemy.x, cameraX);
       if (!isHorizontallyVisible(enemy.x, enemy.width, cameraX, 50)) return;
-      const enemyGroundPlaneRenderY = getGroundPlaneEntityRenderY(enemy, current);
+      const enemyFootLift = typeof getDesertEntryEnemyFootLift === 'function'
+        ? getDesertEntryEnemyFootLift(enemy, current)
+        : 0;
+      const enemyGroundPlaneRenderY = getGroundPlaneEntityRenderY(enemy, current) - enemyFootLift;
       const renderEnemy = Number.isFinite(enemyGroundPlaneRenderY) && enemyGroundPlaneRenderY !== enemy.y
         ? { ...enemy, y: enemyGroundPlaneRenderY }
         : enemy;
@@ -1217,7 +1219,7 @@ export function useJourneyDraw({
     ctx.restore();
 
     drawCinematicCards(ctx, current);
-  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdDoorwayOccluder, drawArrivalThresholdScene, drawArrivalThresholdTrial, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryGroundLane, drawDesertEntryGroundMotionCues, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawTempleThresholdHallInterior, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawParticles, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDesertEntryVisualGroundOffsetY, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getGroundPlaneEntityRenderY, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, drawPlayerSprite, drawFieldNoteLabel]);
+  }, [backgroundPackId, drawAncientRouteGround, drawArrivalThresholdDoorwayOccluder, drawArrivalThresholdScene, drawArrivalThresholdTrial, drawAttackArc, drawCinematicCards, drawCollectible, drawCombatEffects, drawConnectedWorldAmbientLife, drawChinaRiverValleyBackground, drawDebugPlatformOverlay, drawDesertEntryGroundLane, drawDesertEntryGroundMotionCues, drawDesertEntryBackground, drawDesertForegroundAtmosphere, drawDesertJourneySceneMasks, drawDesertJourneyScenePanels, drawDiscoveryEntrance, drawDynamicEnvironmentEvent, drawEgyptAmbientLife, drawEnemyAttackTell, drawEnvironmentInteraction, drawForegroundDepthLayer, drawForegroundOccluderProps, drawTempleThresholdHallInterior, drawMummificationChamberInterior, drawForgottenMuralChamberInterior, drawForgottenMuralChamberTransition, drawHazard, drawHiddenRouteHint, drawLinkedEnemySprite, drawLostBridgeRavineDepth, drawLostBridgeRavineForegroundVoid, drawLostBridgeStructure, drawMiniBoss, drawMissingObjectiveMarker, drawOpeningCinematic, drawOpeningPyramidMasonryBack, drawOpeningSphinxEncounter, drawOpeningThresholdScene, drawPlatform, drawPlayerFeedbackOverlays, drawPremiumEgyptianChamberDoor, drawPropPlacementEditorOverlay, drawRouteGate, drawScarabQueenLairOpeningProp, drawScribeLockedChamberInterior, drawSectionParallaxBackground, drawSectionParallaxForeground, drawSectionTransitionBlend, drawSmallEnemySprite, drawStageEntranceFeature, drawStageEntranceForegroundOccluder, drawStoryProp, drawTempleBackdrop, drawTempleThresholdTransition, drawTrapProjectile, drawWorldContinuityLandmark, drawWorldTransitionMarker, getActiveHiddenRoutes, getActiveSecretCollectibles, getCombatMode, getDesertEntryVisualGroundOffsetY, getDoorwayGateStatus, getEditedMiniBoss, getEditedNestParams, getGateGuidance, getGroundPlaneEntityRenderY, getPlayerAttackState, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getZIndexSortedRenderableStoryProps, getRouteGateDoorwayEntries, getScarabQueenLairPlacement, isRouteRewardAccessible, resolveChamberEntryTrigger, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, drawPlayerSprite, drawFieldNoteLabel]);
 
   return { draw };
 }

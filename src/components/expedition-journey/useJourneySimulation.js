@@ -11,8 +11,17 @@ import {
   ENEMY_AGGRO_MEMORY_SECONDS,
   ENEMY_AGGRO_PATROL_PADDING,
   ENEMY_DEFEATED_VISIBLE_SECONDS,
+  getEnemyCombatIntent,
+  getEnemyFacingDirectionToPlayer,
+  getEnemyIntentTuning,
+  getEnemyVenomPressureTuning,
+  resolveEnemyCombatSide,
+  shouldVaultScarabCharge,
+  getScarabVaultOutcome,
   MISSED_ATTACK_EXTRA_STAMINA_COST,
   openEnemyCounterWindow,
+  PLAYER_AIR_ATTACK_TYPE,
+  PLAYER_AIR_ATTACK_DAMAGE,
   PLAYER_ATTACK_BACK_REACH,
   PLAYER_ATTACK_FINISHER_DAMAGE,
   PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST,
@@ -31,11 +40,16 @@ import {
   PLAYER_HEAVY_FOLLOWUP_CUE_DURATION,
   PLAYER_HEAVY_FOLLOWUP_HIT_REFUND,
   PLAYER_HIT_SCREEN_SHAKE_DURATION,
+  getPlayerAttackProfile,
   PROTECTED_HIT_EXTRA_STAMINA_COST,
+  SCORPION_ANTI_AIR_ATTACK_PATTERN,
   SCORPION_CHASE_SPEED_MULTIPLIER,
   SCORPION_VENOM_SLOW_DURATION,
   SCORPION_VENOM_SLOW_MULTIPLIER,
+  SCORPION_VENOM_STAMINA_DAMAGE,
   SCORPION_VENOM_SPIT_RANGE,
+  shouldUseScorpionAntiAirSting,
+  shouldUseScorpionVenomSpit,
   suppressEnemyForBossFocus,
   updateEnemyCombatTimers,
   updateEnemyDefeatedVisibility,
@@ -151,6 +165,7 @@ import {
   getCollectibleHitbox,
   getHazardHitbox,
   getPlayerBodyHitbox,
+  getPlatformSurfaceYAtX,
   getSectionForX,
   isLandingOnPlatform,
   isMummificationChamberComplete,
@@ -265,7 +280,6 @@ export function useJourneySimulation({
   getOpeningCameraRevealTarget,
   getPlayerAttackNearMissTarget,
   getPlayerAttackState,
-  getPlayerAttackTiming,
   getRenderableCheckpoints,
   getRenderableHazards,
   getRenderablePlatforms,
@@ -1279,7 +1293,7 @@ export function useJourneySimulation({
     available.forEach(p => {
       if (isLandingOnPlatform(player, previousPlayer, p)) {
         const landingImpact = Math.max(0, previousPlayer.vy || player.vy || 0);
-        player.y = p.y - player.height;
+        player.y = getPlatformSurfaceYAtX(p, player.x + player.width / 2) - player.height;
         player.vy = 0;
         player.onGround = true;
         player.coyoteTimer = COYOTE_TIME;
@@ -2725,17 +2739,25 @@ export function useJourneySimulation({
         : PLAYER_ATTACK_TYPES.LIGHT;
       const isHeavyAttack = queuedAttackType === PLAYER_ATTACK_TYPES.HEAVY;
       const heavyFollowupPrimed = isHeavyAttack && finisherAllowed && (current.attackQueuedHeavyFollowupPrimed || (current.attackComboWindowTimer > 0 && current.attackComboLanded));
-      const nextAttackSequenceIndex = heavyFollowupPrimed
-        ? PLAYER_COMBO_MAX_STEP
-        : isHeavyAttack
-          ? 2
-          : 1;
+      const attackProfile = getPlayerAttackProfile({
+        queuedAttackType,
+        player,
+        heavyFollowupPrimed,
+      });
+      const nextAttackSequenceIndex = attackProfile.sequenceIndex;
       const isFinisher = nextAttackSequenceIndex === PLAYER_COMBO_MAX_STEP;
-      const attackTiming = getPlayerAttackTiming(nextAttackSequenceIndex);
+      const isAirAttack = attackProfile.attackType === PLAYER_AIR_ATTACK_TYPE;
+      const activeAttackType = attackProfile.attackType;
+      const attackTiming = attackProfile.timing;
       current.attackQueued = false;
       current.attackQueuedType = PLAYER_ATTACK_TYPES.LIGHT;
       current.attackQueuedHeavyFollowupPrimed = false;
-      current.attackType = queuedAttackType;
+      current.attackType = activeAttackType;
+      current.attackRange = attackProfile.range;
+      current.attackHeight = attackProfile.height;
+      current.attackBackReach = attackProfile.backReach;
+      current.attackYOffset = attackProfile.yOffset;
+      current.attackDamage = attackProfile.damage;
       current.attackWindupDuration = attackTiming.windup;
       current.attackSwingDuration = attackTiming.swing;
       current.attackRecoilDuration = attackTiming.recoil;
@@ -2755,29 +2777,33 @@ export function useJourneySimulation({
       current.attackRewarded = false;
       current.lastAttackResult = 'started';
       current.shieldedHitFeedback = '';
-      applyAttackStaminaCost(PLAYER_ATTACK_STAMINA_COST, 'Attack swing');
-      if (isHeavyAttack && !heavyFollowupPrimed) applyAttackStaminaCost(PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST, 'Heavy swing');
-      if (isFinisher) applyAttackStaminaCost(PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST, 'Finisher swing');
+      applyAttackStaminaCost(attackProfile.staminaCost ?? PLAYER_ATTACK_STAMINA_COST, isAirAttack ? 'Air strike' : 'Attack swing');
+      if (!isAirAttack && isHeavyAttack && !heavyFollowupPrimed) applyAttackStaminaCost(PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST, 'Heavy swing');
+      if (!isAirAttack && isFinisher) applyAttackStaminaCost(PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST, 'Finisher swing');
+      if (isAirAttack) {
+        player.vy = Math.max(player.vy || 0, attackProfile.downwardVelocity || 0);
+        player.vx += (player.direction || 1) * (attackProfile.forwardBoost || 0);
+      }
       addCombatEffect(current, {
         type: 'attack-burst',
         x: player.x + player.width / 2 + player.direction * 12,
-        y: player.y + 23,
+        y: isAirAttack ? player.y + player.height * 0.66 : player.y + 23,
         direction: player.direction,
-        color: isFinisher ? '#fbbf24' : '#fde68a',
-        timer: isFinisher ? 0.32 : 0.22,
-        maxTimer: isFinisher ? 0.32 : 0.22,
+        color: isAirAttack ? '#7dd3fc' : (isFinisher ? '#fbbf24' : '#fde68a'),
+        timer: isAirAttack ? 0.2 : (isFinisher ? 0.32 : 0.22),
+        maxTimer: isAirAttack ? 0.2 : (isFinisher ? 0.32 : 0.22),
       });
-      audioControls?.playExpeditionSfx?.(isFinisher ? 'attackFinisher' : isHeavyAttack ? 'attackSwing2' : 'attackSwing1');
+      audioControls?.playExpeditionSfx?.(isAirAttack ? 'attackSwing2' : isFinisher ? 'attackFinisher' : isHeavyAttack ? 'attackSwing2' : 'attackSwing1', isAirAttack ? { volume: 0.82, playbackRate: 1.16 } : undefined);
       audioControls?.playAction?.();
     }
     if (current.attackTimer > 0) {
       attackRect = getAttackBox(
         player,
-        PLAYER_ATTACK_RANGE,
-        PLAYER_ATTACK_HEIGHT,
+        current.attackRange || PLAYER_ATTACK_RANGE,
+        current.attackHeight || PLAYER_ATTACK_HEIGHT,
         player.direction,
-        0,
-        PLAYER_ATTACK_BACK_REACH,
+        current.attackYOffset || 0,
+        current.attackBackReach ?? PLAYER_ATTACK_BACK_REACH,
       );
       current.playerAttackBox = attackRect;
     } else {
@@ -2882,10 +2908,14 @@ export function useJourneySimulation({
     });
 
     const applyPlayerVenomSlow = (sourceEnemy, pattern) => {
+      const damageDirection = ((player.x + player.width / 2) >= (sourceEnemy.x + sourceEnemy.width / 2)) ? 1 : -1;
+      applyPlayerDamage(pattern.staminaDamage || SCORPION_VENOM_STAMINA_DAMAGE, `${sourceEnemy.name} venom hit Asha`, damageDirection, sourceEnemy.name, {
+        knockbackMultiplier: 0.35,
+      });
       player.venomSlowTimer = Math.max(player.venomSlowTimer || 0, pattern.slowDuration || SCORPION_VENOM_SLOW_DURATION);
       player.venomSlowMultiplier = pattern.slowMultiplier || SCORPION_VENOM_SLOW_MULTIPLIER;
       player.vx *= player.venomSlowMultiplier;
-      current.notice = `${sourceEnemy.name} venom slowed Asha. Fight through it.`;
+      current.notice = `${sourceEnemy.name} venom clipped Asha. -${pattern.staminaDamage || SCORPION_VENOM_STAMINA_DAMAGE} Endurance and movement slowed.`;
       current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.25);
       current.lastAttackResult = 'player-slowed';
       addCombatEffect(current, {
@@ -2935,6 +2965,51 @@ export function useJourneySimulation({
       current.notice = `${enemy.name} bounced away. Use J or K to defeat it.`;
     };
 
+    const applyScarabVault = (enemy) => {
+      const vaultOutcome = getScarabVaultOutcome({ jumpSpeed: JUMP_SPEED });
+      enemy.stunTimer = Math.max(enemy.stunTimer || 0, vaultOutcome.enemyStunTimer);
+      enemy.hitFlash = Math.max(enemy.hitFlash || 0, 0.24);
+      enemy.attackWindup = 0;
+      enemy.attackTimer = 0;
+      enemy.attackReady = false;
+      enemy.attackCooldown = Math.max(enemy.attackCooldown || 0, vaultOutcome.attackCooldown);
+      enemy.attackRecovery = Math.max(enemy.attackRecovery || 0, vaultOutcome.attackRecovery);
+      enemy.vulnerabilityTimer = Math.max(enemy.vulnerabilityTimer || 0, vaultOutcome.vulnerabilityTimer);
+      enemy.shieldTimer = 0;
+      enemy.knockbackTimer = 0.2;
+      enemy.knockbackDirection = player.direction;
+      enemy.selectedAbility = 'vaulted-charge';
+      enemy.selectedAbilityReason = 'Asha vaulted the charge';
+      enemy.targetReason = enemy.selectedAbilityReason;
+      player.vy = vaultOutcome.playerVy;
+      player.onGround = false;
+      player.coyoteTimer = 0;
+      player.jumpBufferTimer = 0;
+      current.hitStopTimer = Math.max(current.hitStopTimer, vaultOutcome.hitStopTimer);
+      current.cameraShakeTimer = Math.max(current.cameraShakeTimer, vaultOutcome.cameraShakeTimer);
+      current.cameraShakeStrength = Math.max(current.cameraShakeStrength, vaultOutcome.cameraShakeStrength);
+      current.lastAttackResult = vaultOutcome.lastAttackResult;
+      current.notice = vaultOutcome.notice;
+      current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.2);
+      addCombatEffect(current, {
+        type: 'combat-impact',
+        x: enemy.x + enemy.width / 2,
+        y: enemy.y,
+        direction: player.direction,
+        color: '#facc15',
+      });
+      addCombatEffect(current, {
+        type: 'sand-skid',
+        x: enemy.x + enemy.width / 2,
+        y: enemy.y + enemy.height,
+        direction: -(enemy.attackDirection || enemy.direction || 1),
+        color: 'rgba(202, 138, 4, 0.45)',
+        timer: 0.34,
+        maxTimer: 0.34,
+      });
+      audioControls?.playExpeditionSfx?.('jump', { volume: 0.82, playbackRate: 1.16 });
+    };
+
     // Enemies
     if (enemiesDisabled) {
       current.enemies.forEach(e => {
@@ -2967,9 +3042,12 @@ export function useJourneySimulation({
         // The swing just ended, so the in-flight timers are already zero — resolve the
         // heavy pattern by id here so heavies open their longer counter windows.
         const endedHeavyPattern = HEAVY_ATTACK_PATTERNS[e.type];
-        const pattern = endedHeavyPattern && e.attackPattern === endedHeavyPattern.id
+        const endedScorpionAntiAirPattern = e.type === 'scorpion' && e.attackPattern === SCORPION_ANTI_AIR_ATTACK_PATTERN.id
+          ? SCORPION_ANTI_AIR_ATTACK_PATTERN
+          : null;
+        const pattern = endedScorpionAntiAirPattern || (endedHeavyPattern && e.attackPattern === endedHeavyPattern.id
           ? endedHeavyPattern
-          : getEnemyPatternConfig(e);
+          : getEnemyPatternConfig(e));
         openEnemyCounterWindow(e, pattern);
         addCombatEffect(current, {
           type: 'enemy-counter-window',
@@ -2989,11 +3067,20 @@ export function useJourneySimulation({
       }
 
       const distanceToPlayer = (player.x + player.width / 2) - (e.x + e.width / 2);
+      e.direction = getEnemyFacingDirectionToPlayer(e, player, e.direction || 1);
       const tacticalPattern = getEnemyPatternConfig(e);
-      const pressureReachBonus = e.encounterRole ? 26 : 0;
-      const awarenessMultiplier = tacticalPattern.awarenessMultiplier || 1;
+      const combatIntent = getEnemyCombatIntent(e);
+      const intentTuning = getEnemyIntentTuning(e, combatIntent);
+      const playerIsVenomSlowed = (player.venomSlowTimer || 0) > 0;
+      const venomPressureTuning = getEnemyVenomPressureTuning(e, player.venomSlowTimer || 0);
+      e.combatIntent = combatIntent.id;
+      e.combatIntentLabel = combatIntent.label;
+      e.combatIntentReason = combatIntent.reason;
+      const pressureReachBonus = (intentTuning.pressureReachBonus ?? (e.encounterRole ? 26 : 0)) + venomPressureTuning.aggroReachBonus;
+      const awarenessMultiplier = (tacticalPattern.awarenessMultiplier || 1) * (intentTuning.awarenessMultiplier || 1);
       const baseNearPlayerX = (e.type === 'bat' || e.flying ? 240 : 210) + pressureReachBonus;
-      const nearPlayer = Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier) && Math.abs(player.y - e.y) < 104 + (e.encounterRole ? 14 : 0);
+      const verticalAwareness = intentTuning.verticalAwareness ?? (104 + (e.encounterRole ? 14 : 0));
+      const nearPlayer = Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier) && Math.abs(player.y - e.y) < verticalAwareness;
       const scorpionVenomCanReach = e.type === 'scorpion'
         && Math.abs(distanceToPlayer) <= SCORPION_VENOM_SPIT_RANGE
         && Math.abs((player.y + player.height / 2) - (e.y + e.height / 2)) < 96;
@@ -3002,15 +3089,35 @@ export function useJourneySimulation({
         getAttackBox(e, ENEMY_ATTACK_TRIGGER_REACH, tacticalPattern.height, attackDirectionToPlayer, tacticalPattern.yOffset || 0, 0),
         getPlayerBodyHitbox(player),
       );
-      const playerIsVenomSlowed = (player.venomSlowTimer || 0) > 0;
-      const shouldUseVenomSpit = e.type === 'scorpion' && !meleeReachesPlayer && scorpionVenomCanReach && !playerIsVenomSlowed;
+      const shouldUseScorpionAntiAir = shouldUseScorpionAntiAirSting({
+        enemy: e,
+        player,
+        distanceToPlayer,
+        baseNearPlayerX,
+        awarenessMultiplier,
+        verticalAwareness,
+      });
+      const shouldUseVenomSpit = shouldUseScorpionVenomSpit({
+        enemy: e,
+        meleeReachesPlayer,
+        scorpionVenomCanReach,
+        shouldUseScorpionAntiAir,
+        venomSlowTimer: player.venomSlowTimer || 0,
+      });
       const scarabPoisonChargeCanReach = e.type === 'scarab'
         && playerIsVenomSlowed
         && nearPlayer
         && Math.abs(distanceToPlayer) <= (ENEMY_ATTACK_TRIGGER_REACH + SCARAB_POISONED_CHARGE_START_BONUS);
-      const enemyCanStartAttack = (nearPlayer && meleeReachesPlayer) || shouldUseVenomSpit || scarabPoisonChargeCanReach;
-      if (nearPlayer || shouldUseVenomSpit || scarabPoisonChargeCanReach || (e.type === 'scorpion' && playerIsVenomSlowed && scorpionVenomCanReach)) {
-        e.aggroMemoryTimer = Math.max(e.aggroMemoryTimer || 0, ENEMY_AGGRO_MEMORY_SECONDS * (tacticalPattern.aggroMemoryMultiplier || 1));
+      const airborneIntentCanReach = Boolean(intentTuning.airborneAggro)
+        && !player.onGround
+        && Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier * 1.35)
+        && Math.abs((player.y + player.height / 2) - (e.y + e.height / 2)) < verticalAwareness + 34;
+      const enemyCanStartAttack = (nearPlayer && meleeReachesPlayer) || shouldUseScorpionAntiAir || shouldUseVenomSpit || scarabPoisonChargeCanReach;
+      if (nearPlayer || shouldUseVenomSpit || scarabPoisonChargeCanReach || airborneIntentCanReach || (e.type === 'scorpion' && playerIsVenomSlowed && scorpionVenomCanReach)) {
+        e.aggroMemoryTimer = Math.max(
+          e.aggroMemoryTimer || 0,
+          ENEMY_AGGRO_MEMORY_SECONDS * (tacticalPattern.aggroMemoryMultiplier || 1) * venomPressureTuning.aggroMemoryMultiplier,
+        );
       }
       if (!current.seenEnemyTypeNoticeIds) current.seenEnemyTypeNoticeIds = new Set();
       const stakeMessage = ENEMY_TYPE_STAKE_MESSAGES[e.type];
@@ -3033,13 +3140,26 @@ export function useJourneySimulation({
           HEAVY_ATTACK_PATTERNS[e.type]
           && heavyInterval
           && e.attackCount % heavyInterval === 0
-          && !shouldUseVenomSpit,
+          && !shouldUseVenomSpit
+          && !shouldUseScorpionAntiAir
         );
-        const pattern = shouldUseVenomSpit
-          ? SCORPION_VENOM_ATTACK_PATTERN
-          : isHeavyAttack
-            ? HEAVY_ATTACK_PATTERNS[e.type]
-            : tacticalPattern;
+        const pattern = shouldUseScorpionAntiAir
+          ? SCORPION_ANTI_AIR_ATTACK_PATTERN
+          : shouldUseVenomSpit
+            ? SCORPION_VENOM_ATTACK_PATTERN
+            : isHeavyAttack
+              ? HEAVY_ATTACK_PATTERNS[e.type]
+              : tacticalPattern;
+        const selectedAbilityReason = shouldUseScorpionAntiAir
+          ? 'anti-air jump punish'
+          : shouldUseVenomSpit
+            ? 'venom control'
+            : isHeavyAttack
+              ? 'heavy cadence'
+              : 'standard pressure';
+        e.selectedAbility = pattern.id;
+        e.selectedAbilityReason = selectedAbilityReason;
+        e.targetReason = selectedAbilityReason;
         // Depth pressure: enemies deeper in the site attack more frequently
         const deepZone = e.x > scaleJourneyX(1480);
         const deepZoneCooldownMultiplier = deepZone
@@ -3079,13 +3199,26 @@ export function useJourneySimulation({
             maxTimer: venomTravelTime,
           });
         }
+        if (pattern.id === SCORPION_ANTI_AIR_ATTACK_PATTERN.id) {
+          addCombatEffect(current, {
+            type: 'enemy-pressure',
+            x: e.x + e.width / 2,
+            y: e.y,
+            color: 'rgba(245, 158, 11, 0.52)',
+            timer: 0.42,
+            maxTimer: 0.42,
+          });
+        }
         if (isHeavyAttack) {
           current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.14);
           current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.18);
         }
         const scarabPoisonedChargeNotice = e.type === 'scarab' && playerIsVenomSlowed;
         const isUnblockableAttack = isHeavyAttack && pattern.protectedDuringWindup;
-        if (scarabPoisonedChargeNotice) {
+        if (shouldUseScorpionAntiAir) {
+          current.notice = `${e.name} raises its tail. Jump is unsafe - land away or counter after the sting.`;
+          current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.6);
+        } else if (scarabPoisonedChargeNotice) {
           current.notice = 'Scarab charges faster while venom slows Asha. Dodge behind it.';
         } else if ((current.itemPurposeNoticeTimer || 0) <= 0 && (current.damageNoticeTimer || 0) <= 0) {
           if (isUnblockableAttack) {
@@ -3117,6 +3250,15 @@ export function useJourneySimulation({
         const contact = resolveEnemyContact(player, previousPlayer, e);
         const playerBodyHitbox = getPlayerBodyHitbox(player);
         if (contact.type === 'stomp') {
+          const scarabVaultCharge = shouldVaultScarabCharge({
+            enemy: e,
+            contact,
+            pattern,
+          });
+          if (scarabVaultCharge) {
+            applyScarabVault(e);
+            return;
+          }
           applyEnemyStomp(e);
           return;
         }
@@ -3191,19 +3333,20 @@ export function useJourneySimulation({
 
       if (e.stunTimer <= 0 && e.attackWindup <= 0 && e.attackTimer <= 0 && e.attackRecovery <= 0) {
         const isAggroChasing = (e.aggroMemoryTimer || 0) > 0;
-        const sameCombatPlane = Math.abs(player.y - e.y) < 118 + (e.encounterRole ? 16 : 0);
+        const sameCombatPlane = Math.abs(player.y - e.y) < Math.max(intentTuning.verticalAwareness || 0, 118 + (e.encounterRole ? 16 : 0));
         const isPressingPlayer = isAggroChasing
           || (
             Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier * 1.55)
             && sameCombatPlane
           );
-        const slowPursuitBoost = e.type === 'scorpion' && playerIsVenomSlowed ? 1.48 : 1;
+        const venomPursuitBoost = venomPressureTuning.chaseSpeedMultiplier;
         const chaseSpeedMultiplier = isAggroChasing
-          ? (tacticalPattern.chaseMultiplier || 1.65) * (e.type === 'scorpion' ? SCORPION_CHASE_SPEED_MULTIPLIER * slowPursuitBoost : 1)
+          ? (tacticalPattern.chaseMultiplier || 1.65) * (intentTuning.chaseMultiplier || 1) * venomPursuitBoost * (e.type === 'scorpion' ? SCORPION_CHASE_SPEED_MULTIPLIER : 1)
           : 1;
         const patrolSpeed = (e.baseSpeed || e.speed) * updateHostileStepMultiplier(e, dt) * chaseSpeedMultiplier;
-        const movementMin = isAggroChasing ? e.patrolMin - ENEMY_AGGRO_PATROL_PADDING : e.patrolMin;
-        const movementMax = isAggroChasing ? e.patrolMax + ENEMY_AGGRO_PATROL_PADDING : e.patrolMax;
+        const pursuitPadding = ENEMY_AGGRO_PATROL_PADDING + (intentTuning.pursuitPaddingBonus || 0);
+        const movementMin = isAggroChasing ? e.patrolMin - pursuitPadding : e.patrolMin;
+        const movementMax = isAggroChasing ? e.patrolMax + pursuitPadding : e.patrolMax;
 
         if (isPressingPlayer && sameCombatPlane) {
           // Hold a consistent standoff slot just in front of or behind Asha
@@ -3211,12 +3354,8 @@ export function useJourneySimulation({
           // approached from so the choice can't flip-flop frame to frame (that
           // flip-flop is what looked like the enemy spinning on top of her).
           const playerCenter = player.x + player.width / 2;
-          const enemyCenter = e.x + e.width / 2;
-          if (!e.combatSide) {
-            const rawSide = enemyCenter - playerCenter;
-            e.combatSide = Math.abs(rawSide) > 1 ? Math.sign(rawSide) : -(e.direction || 1);
-          }
-          const standoffDistance = e.width / 2 + player.width / 2 + ENEMY_COMBAT_STANDOFF_GAP;
+          e.combatSide = resolveEnemyCombatSide({ enemy: e, player, currentSide: e.combatSide });
+          const standoffDistance = e.width / 2 + player.width / 2 + ENEMY_COMBAT_STANDOFF_GAP + (intentTuning.standoffGapBonus || 0);
           let targetX = playerCenter + e.combatSide * standoffDistance - e.width / 2;
           targetX = Math.min(movementMax, Math.max(movementMin, targetX));
           const step = patrolSpeed * dt;
@@ -3296,20 +3435,29 @@ export function useJourneySimulation({
           && (e.parried || (e.attackTimer > 0 && e.attackTimer <= PARRY_WINDOW_DURATION));
         const isFinisher = current.attackComboFinisherActive;
         const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;
+        const isAirAttack = current.attackType === PLAYER_AIR_ATTACK_TYPE;
         e.parried = false;
-        e.health -= isFinisher ? PLAYER_ATTACK_FINISHER_DAMAGE : (isParry ? PLAYER_ATTACK_PARRY_DAMAGE : (isHeavyAttack ? PLAYER_ATTACK_SHOVE_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE));
+        e.health -= isFinisher
+          ? PLAYER_ATTACK_FINISHER_DAMAGE
+          : isParry
+            ? PLAYER_ATTACK_PARRY_DAMAGE
+            : isAirAttack
+              ? (current.attackDamage || PLAYER_AIR_ATTACK_DAMAGE)
+              : isHeavyAttack
+                ? PLAYER_ATTACK_SHOVE_DAMAGE
+                : PLAYER_ATTACK_LIGHT_DAMAGE;
         if (!current.attackRewarded) {
-          const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isParry ? 8 : (isHeavyAttack ? 0 : 1));
+          const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isParry ? 8 : (isAirAttack ? 2 : (isHeavyAttack ? 0 : 1)));
           current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + heavyFollowupRefund);
           current.attackRewarded = true;
         }
-        const primesHeavyFollowup = !isFinisher && !isHeavyAttack;
+        const primesHeavyFollowup = !isFinisher && !isHeavyAttack && !isAirAttack;
         current.attackComboLanded = primesHeavyFollowup;
         current.attackComboWindowTimer = primesHeavyFollowup ? PLAYER_COMBO_WINDOW_DURATION : 0;
         current.heavyFollowupReadyTimer = primesHeavyFollowup ? PLAYER_COMBO_WINDOW_DURATION : 0;
         current.heavyFollowupCueTimer = primesHeavyFollowup ? PLAYER_HEAVY_FOLLOWUP_CUE_DURATION : 0;
         current.attackComboStep = primesHeavyFollowup ? current.attackSequenceIndex : 0;
-        current.lastAttackResult = isFinisher ? 'finisher' : (isParry ? 'parry' : (e.vulnerabilityTimer > 0 || e.attackRecovery > 0 ? 'counter-hit' : 'hit'));
+        current.lastAttackResult = isFinisher ? 'finisher' : (isParry ? 'parry' : (isAirAttack ? 'air-hit' : (e.vulnerabilityTimer > 0 || e.attackRecovery > 0 ? 'counter-hit' : 'hit')));
         current.shieldedHitFeedback = '';
         if (primesHeavyFollowup) {
           addCombatEffect(current, {
@@ -3323,14 +3471,18 @@ export function useJourneySimulation({
           });
         }
         const exhausted = current.resources.stamina > 0 && current.resources.stamina < 25;
-        e.stunTimer = isFinisher ? 1.55 : (isParry ? 1.4 : (isHeavyAttack ? 1.1 : (exhausted ? 0.38 : 0.8)));
+        e.stunTimer = isFinisher ? 1.55 : (isParry ? 1.4 : (isHeavyAttack ? 1.1 : (isAirAttack ? 0.72 : (exhausted ? 0.38 : 0.8))));
         e.attackWindup = 0;
         e.attackTimer = 0;
         e.attackReady = false;
-        e.attackCooldown = Math.max(e.attackCooldown, isFinisher ? 1.55 : (isParry ? 1.4 : (isHeavyAttack ? 0.95 : (exhausted ? 0.32 : 0.6))));
-        e.attackRecovery = isFinisher ? 0.72 : (isParry ? 0.6 : (isHeavyAttack ? 0.55 : (exhausted ? 0.22 : 0.45)));
+        e.attackCooldown = Math.max(e.attackCooldown, isFinisher ? 1.55 : (isParry ? 1.4 : (isHeavyAttack ? 0.95 : (isAirAttack ? 0.62 : (exhausted ? 0.32 : 0.6)))));
+        e.attackRecovery = isFinisher ? 0.72 : (isParry ? 0.6 : (isHeavyAttack ? 0.55 : (isAirAttack ? 0.4 : (exhausted ? 0.22 : 0.45))));
         e.vulnerabilityTimer = isFinisher ? 0.62 : (isParry ? 0.55 : 0.35);
         e.shieldTimer = 0;
+        if (isAirAttack) {
+          player.vy = Math.min(player.vy || 0, -JUMP_SPEED * 0.16);
+          player.onGround = false;
+        }
         const combatHitImpactType = isFinisher
           ? 'finisher'
             : e.health <= 0
@@ -3357,8 +3509,8 @@ export function useJourneySimulation({
           direction: player.direction,
           targetKind: 'enemy',
           color: isFinisher ? '#fbbf24' : (e.health <= 0 ? '#b8943c' : (combatHitImpactType === 'shove' ? '#b8c4d0' : '#7dd3fc')),
-          sparkColor: current.lastAttackResult === 'finisher' ? '#fbbf24' : (current.lastAttackResult === 'parry' ? '#fde68a' : (current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : (combatHitImpactType === 'shove' ? '#cdd8e0' : '#e2d5c0'))),
-          sparkFill: current.lastAttackResult === 'finisher' ? 'rgba(251, 191, 36, 0.38)' : (current.lastAttackResult === 'parry' ? 'rgba(251, 191, 36, 0.32)' : (current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : (combatHitImpactType === 'shove' ? 'rgba(176, 196, 214, 0.2)' : 'rgba(190, 168, 128, 0.18)'))),
+          sparkColor: current.lastAttackResult === 'finisher' ? '#fbbf24' : (current.lastAttackResult === 'parry' ? '#fde68a' : (current.lastAttackResult === 'air-hit' ? '#7dd3fc' : (current.lastAttackResult === 'counter-hit' ? '#bbf7d0' : (combatHitImpactType === 'shove' ? '#cdd8e0' : '#e2d5c0')))),
+          sparkFill: current.lastAttackResult === 'finisher' ? 'rgba(251, 191, 36, 0.38)' : (current.lastAttackResult === 'parry' ? 'rgba(251, 191, 36, 0.32)' : (current.lastAttackResult === 'air-hit' ? 'rgba(125, 211, 252, 0.22)' : (current.lastAttackResult === 'counter-hit' ? 'rgba(34, 197, 94, 0.18)' : (combatHitImpactType === 'shove' ? 'rgba(176, 196, 214, 0.2)' : 'rgba(190, 168, 128, 0.18)')))),
           sfxKey: isParry ? 'parryClash' : (combatHitImpactType === 'light' ? getEnemyHitSfxKey(e) : undefined),
           sfxOptions: isParry
             ? { volume: 1.0 }
@@ -3391,7 +3543,7 @@ export function useJourneySimulation({
           if (defeatEnduranceGained > 0) current.notice = `${current.notice} +${defeatEnduranceGained} Endurance.`;
           current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 1.8);
         } else {
-          current.notice = isFinisher ? `${e.name} thrown back by Asha's finisher.` : (isParry ? 'Parried! Asha deflected the blow.' : (isHeavyAttack ? `${e.name} shoved back. Land J first for a heavy.` : `${e.name} stunned.`));
+          current.notice = isFinisher ? `${e.name} thrown back by Asha's finisher.` : (isParry ? 'Parried! Asha deflected the blow.' : (isAirAttack ? `Asha clipped ${e.name} from above.` : (isHeavyAttack ? `${e.name} shoved back. Land J first for a heavy.` : `${e.name} stunned.`)));
         }
       }
     });
@@ -3712,27 +3864,30 @@ export function useJourneySimulation({
         }
         const isFinisher = current.attackComboFinisherActive;
         const isHeavyAttack = current.attackType === PLAYER_ATTACK_TYPES.HEAVY;
+        const isAirAttack = current.attackType === PLAYER_AIR_ATTACK_TYPE;
         const bossWasVulnerable = b.vulnerabilityTimer > 0 || b.attackRecovery > 0;
         // Bosses take the same typed damage as regular enemies so finishers and the
         // light -> primed-heavy loop stay meaningful in boss fights.
         const bossHitDamage = isFinisher
           ? PLAYER_ATTACK_FINISHER_DAMAGE
-          : isHeavyAttack
-            ? PLAYER_ATTACK_SHOVE_DAMAGE
-            : PLAYER_ATTACK_LIGHT_DAMAGE;
+          : isAirAttack
+            ? (current.attackDamage || PLAYER_AIR_ATTACK_DAMAGE)
+            : isHeavyAttack
+              ? PLAYER_ATTACK_SHOVE_DAMAGE
+              : PLAYER_ATTACK_LIGHT_DAMAGE;
         b.health -= (b.playerDamageMultiplier || 1) * bossHitDamage;
         if (!current.attackRewarded) {
-          const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isHeavyAttack ? 0 : 1);
+          const heavyFollowupRefund = isFinisher ? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : (isAirAttack ? 2 : (isHeavyAttack ? 0 : 1));
           current.resources.stamina = Math.min(current.upgradeEffects?.maxStamina || 100, current.resources.stamina + heavyFollowupRefund);
           current.attackRewarded = true;
         }
-        const primesHeavyFollowup = !isFinisher && !isHeavyAttack;
+        const primesHeavyFollowup = !isFinisher && !isHeavyAttack && !isAirAttack;
         current.attackComboLanded = primesHeavyFollowup;
         current.attackComboWindowTimer = primesHeavyFollowup ? PLAYER_COMBO_WINDOW_DURATION : 0;
         current.heavyFollowupReadyTimer = primesHeavyFollowup ? PLAYER_COMBO_WINDOW_DURATION : 0;
         current.heavyFollowupCueTimer = primesHeavyFollowup ? PLAYER_HEAVY_FOLLOWUP_CUE_DURATION : 0;
         current.attackComboStep = primesHeavyFollowup ? current.attackSequenceIndex : 0;
-        current.lastAttackResult = isFinisher ? 'finisher' : (b.vulnerabilityTimer > 0 || b.attackRecovery > 0 ? 'counter-hit' : 'hit');
+        current.lastAttackResult = isFinisher ? 'finisher' : (isAirAttack ? 'air-hit' : (b.vulnerabilityTimer > 0 || b.attackRecovery > 0 ? 'counter-hit' : 'hit'));
         current.shieldedHitFeedback = '';
         // Punishing the boss's vulnerable opening restores a chunk of Endurance — once per opening.
         let bossStaggerEnduranceGain = 0;
@@ -3761,6 +3916,10 @@ export function useJourneySimulation({
         b.attackRecovery = 0.75;
         b.vulnerabilityTimer = 0.55;
         b.shieldTimer = 0;
+        if (isAirAttack) {
+          player.vy = Math.min(player.vy || 0, -JUMP_SPEED * 0.14);
+          player.onGround = false;
+        }
         const hitSfx = scopedJourneyAssetPacks.isRomeJourney ? 'romeBossHit' : scopedJourneyAssetPacks.isChinaJourney ? 'chinaBossHit' : 'bossHit';
         const bossHitImpactType = current.attackComboFinisherActive
           ? 'finisher'

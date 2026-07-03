@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft, Compass, FlaskConical, Volume2, VolumeX } from 'lucide-react';
+import { Pickaxe, MapPin, FileText, Dice5, ChevronLeft, Compass, FlaskConical, Volume2, VolumeX, BookOpen } from 'lucide-react';
 import { SCENARIOS } from '../data';
 import { WorldMap } from './WorldMap';
 
@@ -35,6 +35,7 @@ export function ActivityMenu({
   onStartBureau, 
   onStartExpedition,
   onStartMummificationQuest,
+  onStartNaidocExploration,
   onQuickPlay = () => {},
   savedGames,
   onResumeInvestigation, 
@@ -59,7 +60,8 @@ export function ActivityMenu({
     `${import.meta.env.BASE_URL}assets/menu/mode_investigation_art.png`,
     `${import.meta.env.BASE_URL}assets/menu/mode_bureau_art.png`,
     `${import.meta.env.BASE_URL}assets/mummification-quest/backgrounds/mummification-lab-briefing.png`,
-    `${import.meta.env.BASE_URL}assets/menu/mode_expedition_art.png`
+    `${import.meta.env.BASE_URL}assets/menu/mode_expedition_art.png`,
+    `${import.meta.env.BASE_URL}assets/menu/mode_training_art.png`
   ];
 
   useEffect(() => {
@@ -352,6 +354,26 @@ export function ActivityMenu({
                   Dev: Skip to Desert Entry
                 </button>
               )}
+            </div>
+        </article>
+
+        {/* NAIDOC Exploration */}
+        <article data-index={5} className={`activity-card activity-card--naidoc glass-card ${focusedModeIndex === 5 ? 'is-focused' : ''}`} style={{ '--card-bg': `url(${modeArtworks[5]})` }} onMouseEnter={() => setFocusedModeIndex(5)}>
+          <div className="activity-card-header">
+            <div className="activity-card-icon activity-card-icon--naidoc">
+              <BookOpen size={24} />
+            </div>
+            <div className="activity-time-tag">45-60 MINS | CLASSROOM EXPLORATION</div>
+          </div>
+          <div className="activity-card-copy">
+            <h3>50 Years of Deadly</h3>
+            <div className="activity-mode-label">NAIDOC Week</div>
+            <p>Explore culture, Country, archaeology, story and NAIDOC milestones in a calm side-scrolling lesson.</p>
+          </div>
+            <div className="activity-card-button-group">
+              <button type="button" className="premium-action-btn" onClick={onStartNaidocExploration}>
+                Start NAIDOC Game
+              </button>
             </div>
         </article>
       </div>

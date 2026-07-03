@@ -327,6 +327,78 @@ export function JourneyPlacementEditorPanel({
                 </div>
                 </div>
                 {renderEditorSectionHeader('shortcuts', '⌨ Keyboard shortcuts')}
+                {propEditorUi.selectedProp && (
+                  <div
+                    className="journey-prop-editor-quick-controls"
+                    aria-label="Selected prop quick controls"
+                    onPointerDown={(event) => event.stopPropagation()}
+                  >
+                    <label>
+                      <span>X</span>
+                      <input
+                        type="number"
+                        step="1"
+                        value={propEditorUi.selectedProp.x}
+                        onChange={(event) => {
+                          const nextX = Number(event.target.value);
+                          if (Number.isFinite(nextX)) updateSelectedPropEditorTransform({ x: Math.round(nextX) });
+                        }}
+                      />
+                    </label>
+                    <label>
+                      <span>Y</span>
+                      <input
+                        type="number"
+                        step="1"
+                        value={propEditorUi.selectedProp.y}
+                        onChange={(event) => {
+                          const nextY = Number(event.target.value);
+                          if (Number.isFinite(nextY)) updateSelectedPropEditorTransform({ y: Math.round(nextY) });
+                        }}
+                      />
+                    </label>
+                    <label>
+                      <span>Scale</span>
+                      <input
+                        type="number"
+                        min="0.1"
+                        max="6"
+                        step="0.05"
+                        value={Number((propEditorUi.selectedProp.scale ?? 1).toFixed(2))}
+                        onChange={(event) => {
+                          const nextScale = clamp(Number(event.target.value), 0.1, 6);
+                          if (Number.isFinite(nextScale)) updateSelectedPropEditorTransform({ scale: Number(nextScale.toFixed(2)) });
+                        }}
+                      />
+                    </label>
+                    <label>
+                      <span>Width</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={propEditorUi.selectedProp.sourceWidth ?? propEditorUi.selectedProp.width ?? ''}
+                        onChange={(event) => {
+                          const nextWidth = Number(event.target.value);
+                          if (Number.isFinite(nextWidth)) updateSelectedPropEditorTransform({ width: Math.max(1, Math.round(nextWidth)) });
+                        }}
+                      />
+                    </label>
+                    <label>
+                      <span>Height</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={propEditorUi.selectedProp.sourceHeight ?? propEditorUi.selectedProp.height ?? ''}
+                        onChange={(event) => {
+                          const nextHeight = Number(event.target.value);
+                          if (Number.isFinite(nextHeight)) updateSelectedPropEditorTransform({ height: Math.max(1, Math.round(nextHeight)) });
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
                 {!collapsedPanelSections['shortcuts'] && (
                   <div className="journey-prop-editor-shortcuts" style={{ fontSize: 11, lineHeight: 1.7, opacity: 0.85, margin: '2px 0 8px', padding: '0 2px' }}>
                     <div><strong>Shift+E</strong> — toggle editor</div>
@@ -2042,7 +2114,10 @@ export function JourneyPlacementEditorPanel({
                       <span className="journey-prop-palette-recent-label">Categories</span>
                 <div className="journey-prop-palette-tabs">
                   {[
-                    ['prop', 'Props'],
+                    ['arch-prop', 'Architecture'],
+                    ['env-prop', 'Atmosphere'],
+                    ['bridge-floor-prop', 'Bridges & Floors'],
+                    ['sacred-prop', 'Camp & Sacred'],
                     ['ledge', 'Ledges'],
                     ['ground-detail', 'Ground Details'],
                     ['foreground-detail', 'Foreground Details'],

@@ -107,6 +107,7 @@ const indexCssSource = [
   readFileSync(new URL('../../index.css', import.meta.url), 'utf8'),
   readFileSync(new URL('../../styles/lost-site-expedition.css', import.meta.url), 'utf8'),
 ].join('\n');
+const mainCanvasCssSource = readFileSync(new URL('../../styles/main-canvas.css', import.meta.url), 'utf8');
 const journeyPropPaletteDrawerCssSource = readFileSync(new URL('../../styles/journey-prop-palette-drawer.css', import.meta.url), 'utf8');
 const journeyCombatContractSource = journeyCombatSource.replace(/\bexport const\b/g, 'const');
 const journeyGameplayContractSource = [
@@ -219,6 +220,9 @@ const mummificationChamberInteractionAtlas = JSON.parse(
 );
 const desertEntryBackgroundAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.json', import.meta.url), 'utf8'),
+);
+const desertEntryV3CandidateBackgroundAtlas = JSON.parse(
+  readFileSync(new URL('../../../public/assets/expedition/backgrounds/desert-entry/_review-parallax-layers-2026-06-29/desert-entry-v3-production-parallax-pack.json', import.meta.url), 'utf8'),
 );
 const anubisBossAtlas = JSON.parse(
   readFileSync(new URL('../../../public/assets/expedition/bosses/anubis-sprites.json', import.meta.url), 'utf8'),
@@ -1102,6 +1106,18 @@ test('journey prop editor opens layer controls when clicking the ritual building
   assert.match(journeyEditorPointerHandlersSource, /layerKey:\s*'ritualPyramid'/);
   assert.match(desertLayerTuningPanelSource, /addEventListener\('journey:open-desert-layer-tuning'/);
   assert.match(desertLayerTuningPanelSource, /focusedLayerKey === layer\.key/);
+  assert.match(desertLayerTuningPanelSource, /LAYER_PANEL_Z_INDEX = 48/);
+  assert.match(desertLayerTuningPanelSource, /zIndex: LAYER_PANEL_Z_INDEX/);
+});
+
+test('journey prop editor keeps selected prop transform controls reachable in the sticky header', () => {
+  assert.match(journeyComponentSource, /journey-prop-editor-quick-controls/);
+  assert.match(journeyComponentSource, /aria-label="Selected prop quick controls"/);
+  assert.match(journeyComponentSource, /updateSelectedPropEditorTransform\(\{ x: Math\.round\(nextX\) \}\)/);
+  assert.match(journeyComponentSource, /updateSelectedPropEditorTransform\(\{ y: Math\.round\(nextY\) \}\)/);
+  assert.match(journeyComponentSource, /updateSelectedPropEditorTransform\(\{ scale: Number\(nextScale\.toFixed\(2\)\) \}\)/);
+  assert.match(mainCanvasCssSource, /\.journey-prop-editor-header\s*\{[^}]*position:\s*sticky;/);
+  assert.match(mainCanvasCssSource, /\.journey-prop-editor-quick-controls\s*\{[^}]*grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)/);
 });
 
 test('journey prop editor overlay does not wash selected assets', () => {
@@ -1236,11 +1252,14 @@ test('desert entry ground collision uses the integrated painted route instead of
   assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1'/);
   assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'necropolis-route-ground-world-locked-2026-06-25'/);
   // Backing/lane geometry now lives in the dev-tunable store; defaults hold the look.
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.y, 600);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.height, 124);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.parallax, 0.98);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.y, 545);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.height, 105);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.y, 500);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.height, 150);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.parallax, 0.72);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.y, 558);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.height, 174);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundRubble.parallax, 1.12);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundDepth.parallax, 1.24);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundDepth.alpha, 0.14);
   assert.match(useJourneyRendererSource, /desertEntryCausewayVisualMode\s*=\s*ROUTE_GROUND_VISUAL_MODE/);
   assert.match(useJourneyRendererSource, /desertEntryGroundBodyFill\s*=\s*'painted-into-background-no-separate-floor-strip'/);
   assert.doesNotMatch(journeyComponentSource, /const drawHeight = 96;\s*const drawY = platform\.y - 42;/);
@@ -1679,7 +1698,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.doesNotMatch(storyProps, /id:\s*'forgotten-mural-alcove-panel'/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-climb-structure'/);
   assert.match(journeyComponentSource, /drawForgottenMuralGeneratedAsset/);
-  assert.match(journeyComponentSource, /const visibilityWidth = Math\.max\(isPrimaryBackgroundPlate \? CANVAS_WIDTH \* 1\.6 : 440, Number\(prop\.width\) \|\| 0\);/);
+  assert.match(journeyComponentSource, /const visibilityWidth = Math\.max\(440, Number\(prop\.width\) \|\| 0\);/);
   assert.match(journeyComponentSource, /ctx\.drawImage\(structureAsset\.image/);
   assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStructure/);
   assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStair/);
@@ -3333,7 +3352,7 @@ test('Asha Reference Warrior remains available as a separate character-loader at
     'asha-reference-warrior-dodge-backstep-tone-matched-2026-06-05',
   );
   assert.match(journeyGameplayContractSource, /PLAYER_ATTACK_FINISHER_ROW\s*=\s*'attack_pick_swing_sweep'/);
-  assert.match(journeyComponentSource, /getPlayerAttackTiming\(nextAttackSequenceIndex\)/);
+  assert.match(journeyComponentSource, /const attackTiming = attackProfile\.timing;/);
   assert.match(journeyComponentSource, /current\.attackSwingDuration\s*=\s*attackTiming\.swing/);
 });
 
@@ -4320,9 +4339,7 @@ test('necropolis rebuild retires standalone ravine bridge visuals and preserves 
   assert.match(journeyComponentSource, /Asha fell into the ravine\. Field rescue required\./);
   assert.match(journeyComponentSource, /The bridge drops into a ravine here\. Climb to the bridge deck before crossing\./);
   const editorDeckPlatform = journeyPlacementOverrides.platforms.find(entry => entry.id === 'desert-entry-platform-9');
-  assert.equal(editorDeckPlatform?.y, 121, 'editor high bridge platform should now anchor the ravine crossing deck');
-  assert.equal(editorDeckPlatform?.width, 1311);
-  assert.equal(editorDeckPlatform?.invisible, true, 'high bridge deck data should stay archived for a future bridge rebuild');
+  assert.equal(editorDeckPlatform, undefined, 'archived bridge deck should stay out of the active override list while the layered necropolis owns the ravine route');
   assert.ok(
     journeyPlacementOverrides.deletedPlatformIds.includes('desert-entry-platform-9'),
     'archived bridge deck should not remain in current playable collision',
@@ -4678,7 +4695,6 @@ test('dynamic world events add mystery and atmosphere without new level systems'
   [
     'rockfall',
     'dust-gust',
-    'birds-scatter',
     'moving-fog',
     'ruin-collapse',
     'shrine-glow',
@@ -4704,6 +4720,12 @@ test('dynamic world events add mystery and atmosphere without new level systems'
   ].forEach((label) => {
     assert.match(storyProps, new RegExp(label));
   });
+});
+
+test('Desert Entry avoids bird-scatter sky chevrons', () => {
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+
+  assert.doesNotMatch(events, /sectionId:\s*'desert-entry'[\s\S]*?type:\s*'birds-scatter'/);
 });
 
 test('Discovery Entrance upgrades the final Journey handoff without replacing Base Camp', () => {
@@ -4794,7 +4816,7 @@ test('Egypt atmosphere prop pack is registered and drawn through existing story 
 });
 
 test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, and atlas regions', () => {
-  assert.equal(lostSitePropRegistry.length, 103);
+  assert.equal(lostSitePropRegistry.length, 109);
   const registryIds = new Set(lostSitePropRegistry.map(entry => entry.id));
   assert.equal(registryIds.has('standingPillar'), false, 'removed weak standing column should not be available in the prop editor');
   assert.equal(registryIds.has('stoneDoorFrame'), false, 'removed weak temple arch should not be available in the prop editor');
@@ -4807,8 +4829,39 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   assert.ok(registryIds.has('ledgeHelperRopeLadderScaffold'), 'rope ladder ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('ledgeHelperBuriedRampBlocks'), 'buried ramp ledge helper should be available in the prop editor');
   assert.ok(registryIds.has('templeApproachGatehouseRampV2'), 'Temple Approach gatehouse ramp should be available in the prop editor');
+  assert.ok(registryIds.has('ritualChamberBuilding'), 'Ritual Chamber building should be available in the prop editor');
+  assert.ok(registryIds.has('duatFallenTrespasser'), 'Duat fallen trespasser should be available in the prop editor');
+  assert.ok(registryIds.has('duatDroppedMirrorCompass'), 'Duat dropped mirror compass should be available in the prop editor');
+  assert.ok(registryIds.has('duatCrawlMarks'), 'Duat crawl marks should be available in the prop editor');
+  assert.ok(registryIds.has('duatEmptyReliquaryBox'), 'Duat empty reliquary box should be available in the prop editor');
+  assert.ok(registryIds.has('duatBrokenAnubisMarker'), 'Duat broken Anubis marker should be available in the prop editor');
   assert.equal(registryIds.has('openingPyramidClimbPack'), false, 'full opening pyramid sheet should not be exposed as one editor prop');
   const editorPalette = createJourneyPropPalette([], lostSitePropRegistry);
+  const fallenTrespasserPaletteItem = editorPalette.find(item => item.imageAssetKey === 'duatFallenTrespasser');
+  assert.equal(fallenTrespasserPaletteItem?.label, 'Duat Fallen Trespasser');
+  assert.equal(fallenTrespasserPaletteItem?.category, 'Desert Atmosphere');
+  assert.equal(fallenTrespasserPaletteItem?.template?.type, 'image-prop');
+  assert.equal(fallenTrespasserPaletteItem?.template?.depth, 'grounded');
+  assert.equal(fallenTrespasserPaletteItem?.template?.layer, 'foreground');
+  assert.equal(fallenTrespasserPaletteItem?.template?.assetPath, 'assets/expedition/environment/egypt-atmosphere/props/desert-entry/duat-fallen-trespasser-2026-06-30.png');
+  assert.equal(fallenTrespasserPaletteItem?.template?.width, 152);
+  assert.equal(fallenTrespasserPaletteItem?.template?.height, 108);
+  [
+    ['duatDroppedMirrorCompass', 'Duat Dropped Mirror Compass', 'assets/expedition/environment/egypt-atmosphere/props/desert-entry/duat-dropped-mirror-compass-2026-06-30.png', 74, 74],
+    ['duatCrawlMarks', 'Duat Crawl Marks', 'assets/expedition/environment/egypt-atmosphere/props/desert-entry/duat-crawl-marks-2026-06-30.png', 166, 108],
+    ['duatEmptyReliquaryBox', 'Duat Empty Reliquary Box', 'assets/expedition/environment/egypt-atmosphere/props/desert-entry/duat-empty-reliquary-box-2026-06-30.png', 90, 90],
+    ['duatBrokenAnubisMarker', 'Duat Broken Anubis Marker', 'assets/expedition/environment/egypt-atmosphere/props/desert-entry/duat-broken-anubis-marker-2026-06-30.png', 72, 112],
+  ].forEach(([imageAssetKey, label, assetPath, width, height]) => {
+    const item = editorPalette.find(entry => entry.imageAssetKey === imageAssetKey);
+    assert.equal(item?.label, label);
+    assert.equal(item?.category, 'Desert Atmosphere');
+    assert.equal(item?.template?.type, 'image-prop');
+    assert.equal(item?.template?.depth, 'grounded');
+    assert.equal(item?.template?.layer, 'foreground');
+    assert.equal(item?.template?.assetPath, assetPath);
+    assert.equal(item?.template?.width, width);
+    assert.equal(item?.template?.height, height);
+  });
   const templeApproachRampPaletteItem = editorPalette.find(item => item.imageAssetKey === 'templeApproachGatehouseRampV2');
   assert.equal(templeApproachRampPaletteItem?.label, 'Temple Approach Gatehouse Ramp');
   assert.equal(templeApproachRampPaletteItem?.category, 'Temple Approach');
@@ -4827,6 +4880,24 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
   assert.equal(templeApproachRampPaletteItem?.template?.sandOverlapHeight, 0);
   assert.equal(templeApproachRampPaletteItem?.template?.sandMoundWidth, 0);
   assert.equal(templeApproachRampPaletteItem?.template?.sandMoundHeight, 0);
+  const ritualBuildingPaletteItem = editorPalette.find(item => item.imageAssetKey === 'ritualChamberBuilding');
+  assert.equal(ritualBuildingPaletteItem?.label, 'Ritual Chamber Building');
+  assert.equal(ritualBuildingPaletteItem?.category, 'Temple Approach');
+  assert.equal(ritualBuildingPaletteItem?.template?.type, 'image-prop');
+  assert.equal(ritualBuildingPaletteItem?.template?.depth, 'grounded');
+  assert.equal(ritualBuildingPaletteItem?.template?.layer, 'grounded');
+  assert.equal(ritualBuildingPaletteItem?.template?.zIndex, -10);
+  assert.equal(ritualBuildingPaletteItem?.template?.assetPath, 'assets/expedition/backgrounds/desert-entry/desert-entry-ritual-ascending-ruin-2026-06-29.png');
+  assert.equal(ritualBuildingPaletteItem?.template?.width, 1672);
+  assert.equal(ritualBuildingPaletteItem?.template?.height, 865);
+  assert.equal(ritualBuildingPaletteItem?.template?.sceneBlend, 'desert-entry-sand');
+  assert.equal(ritualBuildingPaletteItem?.template?.colorGradeFilter, 'sepia(12%) saturate(88%) brightness(84%) contrast(104%)');
+  assert.equal(ritualBuildingPaletteItem?.template?.shadowWidth, 1040);
+  assert.equal(ritualBuildingPaletteItem?.template?.shadowHeight, 18);
+  assert.equal(ritualBuildingPaletteItem?.template?.shadowOpacity, 0.18);
+  assert.equal(ritualBuildingPaletteItem?.template?.sandOverlapHeight, 0);
+  assert.equal(ritualBuildingPaletteItem?.template?.sandMoundWidth, 0);
+  assert.equal(ritualBuildingPaletteItem?.template?.sandMoundHeight, 0);
   assert.equal(templeApproachRampPaletteItem?.template?.assetContactYRatio, 1);
   assert.equal(templeApproachRampPaletteItem?.template?.widthScale, 1);
   assert.equal(templeApproachRampPaletteItem?.template?.collidable, false);
@@ -4969,7 +5040,7 @@ test('Lost Site Expedition prop asset pack has editor registry entries, PNGs, an
         : 'assets/expedition/environment/egypt-atmosphere/props';
       if (!bridgeLostBridgeAsset) {
         const expectedCategoryAssetPath = entry.category === 'Temple Approach'
-          ? /^assets\/expedition\/environment\/egypt-opening\/temple-approach-gatehouse-ramp-v2-2026-06-19\.png$/
+          ? /^(assets\/expedition\/environment\/egypt-opening\/temple-approach-gatehouse-ramp-v2-2026-06-19\.png|assets\/expedition\/backgrounds\/desert-entry\/desert-entry-ritual-ascending-ruin-2026-06-29\.png)$/
           : new RegExp(`^${categoryPathRoot}/${categoryFolder}/.+\\.png$`);
         assert.match(entry.assetPath, expectedCategoryAssetPath);
       }
@@ -5143,16 +5214,20 @@ test('conservative sign cleanup moves route signs onto atlas-backed props', () =
 
 test('desert entry asset manifest records the layered necropolis gameplay-background rebuild', () => {
   assert.equal(desertEntryBackgroundAtlas.runtimeMode, 'layered-necropolis-playable-route');
-  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-egypt-true-sky-light-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.visualPass, 'processional-road-and-ruin-props-refresh-2026-07-03');
+  assert.match(desertEntryBackgroundAtlas.notes, /processional-road gameplay lane refresh/);
+  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-v4-hybrid-open-sky-2026-07-02.png');
   assert.equal(desertEntryBackgroundAtlas.imageWidth, 2172);
   assert.equal(desertEntryBackgroundAtlas.imageHeight, 724);
-  assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-egypt-true-sky-light-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-v4-hybrid-open-sky-2026-07-02.png');
   assert.equal(desertEntryBackgroundAtlas.regions.farPyramids.image, 'desert-entry-egypt-true-far-pyramids-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.distantCliffs.image, 'desert-entry-egypt-true-distant-cliffs-2026-06-27.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-necropolis-stitched-2026-07-01.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.image, 'desert-entry-necropolis-floor-2026-07-01.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-necropolis-groundlane-2026-07-01.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.foregroundRubble.image, 'desert-entry-egypt-true-foreground-rubble-2026-06-27.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-v4-hybrid-mid-necropolis-soft-depth-2026-07-02.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.image, 'desert-entry-generated-dry-plaza-ground-backing-2026-07-02.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.dustHaze.image, 'desert-entry-dust-haze-tile-2026-07-03.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-processional-road-groundlane-2026-07-03.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.desertSphinx.image, 'desert-entry-landmark-sphinx-fragment-2026-07-03.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.foregroundRubble.image, 'desert-entry-dust-haze-tile-2026-07-03.png');
   assert.equal(desertEntryBackgroundAtlas.regions.foregroundDepth.image, 'desert-entry-egypt-true-foreground-depth-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.skyPlate, undefined);
   assert.match(journeyBackgroundAssetsSource, /'skyLight'/);
@@ -5160,12 +5235,45 @@ test('desert entry asset manifest records the layered necropolis gameplay-backgr
   assert.match(journeyBackgroundAssetsSource, /'distantCliffs'/);
   assert.match(journeyBackgroundAssetsSource, /'midNecropolisRuins'/);
   assert.match(journeyBackgroundAssetsSource, /'groundBacking'/);
+  assert.match(journeyBackgroundAssetsSource, /'dustHaze'/);
+  assert.match(journeyBackgroundAssetsSource, /'desertSphinx'/);
   assert.match(journeyBackgroundAssetsSource, /'foregroundRubble'/);
   assert.match(journeyBackgroundAssetsSource, /desert-entry-necropolis-layered-playable-route-v1/);
   assert.doesNotMatch(JSON.stringify(desertEntryBackgroundAtlas.regions), /underworld|floatingPyramids|foregroundCorruption/);
   assert.doesNotMatch(journeyComponentSource, /'groundingOverlay'/);
   assert.doesNotMatch(journeyComponentSource, /'dustOverlay'/);
   assert.doesNotMatch(journeyComponentSource, /'foregroundParallax'/);
+});
+
+test('desert entry V3 background candidate is dev-gated and does not replace the live manifest', () => {
+  assert.match(journeyBackgroundAssetsSource, /DESERT_ENTRY_V3_CANDIDATE_URL_PARAM = 'desertEntryBg'/);
+  assert.match(journeyBackgroundAssetsSource, /params\.get\(DESERT_ENTRY_V3_CANDIDATE_URL_PARAM\) === 'v3'/);
+  assert.match(journeyBackgroundAssetsSource, /'desert-entry': getDesertEntryBackgroundPack\(\)/);
+  assert.match(journeyBackgroundAssetsSource, /desert-entry-v3-production-parallax-pack\.json/);
+  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-v4-hybrid-open-sky-2026-07-02.png');
+  assert.notEqual(desertEntryBackgroundAtlas.image, desertEntryV3CandidateBackgroundAtlas.image);
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.runtimeMode, 'layered-necropolis-playable-route');
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.devCandidateMode, 'v3-production-layers-test');
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.devCandidateLabel, 'DEV V3 production layers test');
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.regions.skyLight.image, 'desert-entry-v3-generated-far-sky-terrain-pyramids.png');
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.regions.farPyramids.image, 'desert-entry-v3-coherent-production-empty.png');
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.regions.distantCliffs.image, 'desert-entry-v3-generated-cool-distance-ridge-clean.png');
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-v3-coherent-balanced-mid-ravine-temple-depth.png');
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.regions.groundBacking.image, 'desert-entry-v3-natural-embankment-ground-backing.png');
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.regions.groundLane.image, 'desert-entry-v3-coherent-balanced-walkable-bridge-road.png');
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.candidateDepthFillDrawY, 190);
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.candidateDepthFillAlpha, 0);
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.candidateMidLayerDrawY, 210);
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.candidateGroundBackingDrawY, 492);
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.candidateGroundLaneDrawY, 520);
+  assert.equal(desertEntryV3CandidateBackgroundAtlas.regions.foregroundRubble.image, 'desert-entry-v3-coherent-production-empty.png');
+  assert.match(useJourneyRendererSource, /drawSinglePanoramaLayer/);
+  assert.match(useJourneyRendererSource, /drawSingleGroundLayer/);
+  assert.match(useJourneyRendererSource, /v3-production-layers-test/);
+  assert.match(useJourneyRendererSource, /candidateSkyLayerHeight/);
+  assert.match(useJourneyRendererSource, /candidateDepthFillDrawY/);
+  assert.match(useJourneyRendererSource, /candidateMidLayerDrawY/);
+  assert.match(useJourneyRendererSource, /assets\.atlas\?\.devCandidateLabel/);
 });
 
 test('Desert Entry old active panorama prop no longer owns the rebuild background', () => {
@@ -5223,11 +5331,12 @@ test('desert entry manifest explains the necropolis path and final rebuild targe
   [
     /layered necropolis rebuild/i,
     /Valley of the Kings cliffs crossed with Memphite Necropolis ruins/i,
-    /split into full-width scene strips for sky\/light, far pyramids, distant cliffs, and mid necropolis ruins/i,
+    /split into full-width scene strips for sky\/light, far pyramids, distant cliffs, mid necropolis ruins, a low dust-haze band, and a dedicated world-locked processional road/i,
     /must not be replaced by single-object cutout plates/i,
-    /playable stone path is a dedicated world-locked route layer/i,
+    /processional road is visual only/i,
+    /clean flat platform data remains the gameplay source for collision/i,
     /ground backing layer is non-colliding visual support/i,
-    /painted route pixels must stay fully opaque/i,
+    /painted curb and chipped underside are visual only/i,
     /skyLight carries the warm sunset and base haze/i,
     /draw at a different camera speed/i,
     /groundBacking sits directly behind and under the gameplay floor/i,
@@ -5673,7 +5782,7 @@ test('desert entry ground uses the painted background route and never paints a s
   assert.match(drawPlayerSpriteSource, /desertEntryPlayerFootContact = 'warm-plaza-foot-shadow-v1'/);
   assert.match(useJourneyRendererSource, /desertGroundStyle = 'integrated-background-painted-route'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface\(ctx, platform, x, cameraX, Date\.now\(\)\)/);
-  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-necropolis-groundlane-2026-07-01.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-processional-road-groundlane-2026-07-03.png');
   assert.equal(desertEntryBackgroundAtlas.regions.integratedGameplayBackground, undefined);
   assert.equal(desertEntryBackgroundAtlas.regions.playableFloor, undefined);
   assert.equal(desertEntryBackgroundAtlas.regions.floorRubbleMask, undefined);
@@ -5772,13 +5881,17 @@ test('restored Desert Entry atmosphere props use real image assets', () => {
   [
     'desert-entry-restored-ravine-exit-rubble-edge-1',
     'desert-entry-restored-mural-base-edge-1',
-    'desert-entry-restored-scribe-route-buried-blocks-1',
   ].forEach((propId) => {
     const prop = journeyPlacementOverrides.props.find(item => item.id === propId);
     assert.equal(prop?.sectionId, 'desert-entry');
     assert.ok(prop.assetPath || prop.imageAssetKey || prop.atmosphereAssetKey);
     assert.notEqual(prop.shadowOpacity, undefined);
   });
+  assert.equal(
+    journeyPlacementOverrides.props.find(item => item.id === 'desert-entry-restored-scribe-route-buried-blocks-1'),
+    undefined,
+  );
+  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-restored-scribe-route-buried-blocks-1'));
 });
 
 test('atlas story props default to opaque rendering unless explicitly edited', () => {
@@ -5987,11 +6100,62 @@ test('regular enemy families use distinct combat role timings without a new AI s
   assert.match(journeyComponentSource, /if \(e\.attackTimer > 0\) \{[\s\S]*?const scarabPoisonChargeBoost = e\.type === 'scarab' && playerIsVenomSlowed \? SCARAB_POISONED_CHARGE_SPEED_MULTIPLIER : 1[\s\S]*?e\.x \+= e\.attackDirection \* pattern\.speed \* scarabPoisonChargeBoost \* dt/);
   assert.match(journeyComponentSource, /openEnemyCounterWindow\(e, pattern\);/);
   assert.match(journeyCombatContractSource, /const openEnemyCounterWindow = \(enemy, pattern\) => \{[\s\S]*?enemy\.attackRecovery = pattern\.recovery;[\s\S]*?enemy\.vulnerabilityTimer = pattern\.vulnerableAfter;/);
-  assert.match(journeyComponentSource, /e\.aggroMemoryTimer = Math\.max\(e\.aggroMemoryTimer \|\| 0, ENEMY_AGGRO_MEMORY_SECONDS \* \(tacticalPattern\.aggroMemoryMultiplier \|\| 1\)\)/);
+  assert.match(journeyGameplayContractSource, /const ENEMY_VENOM_PRESSURE_CHASE_SPEED_MULTIPLIER = 1\.42/);
+  assert.match(journeyGameplayContractSource, /const ENEMY_VENOM_PRESSURE_AGGRO_REACH_BONUS = 120/);
+  assert.match(journeyGameplayContractSource, /const getEnemyVenomPressureTuning = \(enemy = \{\}, venomSlowTimer = 0\) => \{/);
+  assert.match(journeyComponentSource, /const venomPressureTuning = getEnemyVenomPressureTuning\(e, player\.venomSlowTimer \|\| 0\)/);
+  assert.match(journeyComponentSource, /pressureReachBonus[\s\S]*?\+ venomPressureTuning\.aggroReachBonus/);
+  assert.match(journeyComponentSource, /ENEMY_AGGRO_MEMORY_SECONDS \* \(tacticalPattern\.aggroMemoryMultiplier \|\| 1\) \* venomPressureTuning\.aggroMemoryMultiplier/);
   assert.match(journeyComponentSource, /const isAggroChasing = \(e\.aggroMemoryTimer \|\| 0\) > 0/);
-  assert.match(journeyComponentSource, /const slowPursuitBoost = e\.type === 'scorpion' && playerIsVenomSlowed \? 1\.48 : 1/);
-  assert.match(journeyComponentSource, /const chaseSpeedMultiplier = isAggroChasing[\s\S]*?\? \(tacticalPattern\.chaseMultiplier \|\| 1\.65\) \* \(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER \* slowPursuitBoost : 1\)[\s\S]*?: 1/);
-  assert.match(journeyComponentSource, /const movementMin = isAggroChasing \? e\.patrolMin - ENEMY_AGGRO_PATROL_PADDING : e\.patrolMin/);
+  assert.match(journeyComponentSource, /const venomPursuitBoost = venomPressureTuning\.chaseSpeedMultiplier/);
+  assert.match(journeyComponentSource, /const chaseSpeedMultiplier = isAggroChasing[\s\S]*?\? \(tacticalPattern\.chaseMultiplier \|\| 1\.65\) \* \(intentTuning\.chaseMultiplier \|\| 1\) \* venomPursuitBoost \* \(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER : 1\)[\s\S]*?: 1/);
+  assert.match(journeyComponentSource, /const pursuitPadding = ENEMY_AGGRO_PATROL_PADDING \+ \(intentTuning\.pursuitPaddingBonus \|\| 0\)/);
+  assert.match(journeyComponentSource, /const movementMin = isAggroChasing \? e\.patrolMin - pursuitPadding : e\.patrolMin/);
+});
+
+test('combat intent slice maps battlefield jobs into live enemy pursuit and snapshots', () => {
+  assert.match(journeyCombatContractSource, /const ENEMY_COMBAT_INTENTS = Object\.freeze\(\{/);
+  assert.match(journeyCombatContractSource, /const getEnemyCombatIntent = \(enemy = \{\}\) => \{/);
+  assert.match(journeyCombatContractSource, /const getEnemyIntentTuning = \(enemy = \{\}, intent = getEnemyCombatIntent\(enemy\)\) => \{/);
+  assert.match(journeyComponentSource, /getEnemyCombatIntent,\s*[\s\S]*?getEnemyIntentTuning,/);
+  assert.match(journeyComponentSource, /const combatIntent = getEnemyCombatIntent\(e\)/);
+  assert.match(journeyComponentSource, /const intentTuning = getEnemyIntentTuning\(e, combatIntent\)/);
+  assert.match(journeyComponentSource, /e\.combatIntent = combatIntent\.id/);
+  assert.match(journeyComponentSource, /const airborneIntentCanReach = Boolean\(intentTuning\.airborneAggro\)/);
+  assert.match(journeyComponentSource, /const pursuitPadding = ENEMY_AGGRO_PATROL_PADDING \+ \(intentTuning\.pursuitPaddingBonus \|\| 0\)/);
+  assert.match(journeyComponentSource, /ENEMY_COMBAT_STANDOFF_GAP \+ \(intentTuning\.standoffGapBonus \|\| 0\)/);
+  assert.match(journeyComponentSource, /combatIntent:\s*enemy\.combatIntent \|\| getEnemyCombatIntent\(enemy\)\.id/);
+  assert.match(journeyComponentSource, /combatIntentLabel:\s*enemy\.combatIntentLabel \|\| getEnemyCombatIntent\(enemy\)\.label/);
+});
+
+test('scorpion anti-air slice makes careless jumps a readable combat threat', () => {
+  assert.match(journeyCombatContractSource, /const SCORPION_ANTI_AIR_ATTACK_PATTERN = \{/);
+  assert.match(journeyCombatContractSource, /id:\s*'anti-air-sting'/);
+  assert.match(journeyCombatContractSource, /airbornePunish:\s*true/);
+  assert.match(journeyCombatContractSource, /const shouldUseScorpionAntiAirSting = \(\{/);
+  assert.match(journeyComponentSource, /SCORPION_ANTI_AIR_ATTACK_PATTERN/);
+  assert.match(journeyComponentSource, /enemy\.type === 'scorpion' && enemy\.attackPattern === SCORPION_ANTI_AIR_ATTACK_PATTERN\.id/);
+  assert.match(journeyComponentSource, /const shouldUseScorpionAntiAir = shouldUseScorpionAntiAirSting\(\{/);
+  assert.match(journeyComponentSource, /const enemyCanStartAttack =[\s\S]*?shouldUseScorpionAntiAir/);
+  assert.match(journeyComponentSource, /const pattern = shouldUseScorpionAntiAir[\s\S]*?SCORPION_ANTI_AIR_ATTACK_PATTERN[\s\S]*?shouldUseVenomSpit/);
+  assert.match(journeyComponentSource, /selectedAbility:\s*enemy\.selectedAbility \|\| enemy\.attackPattern \|\| null/);
+  assert.match(journeyComponentSource, /selectedAbilityReason:\s*enemy\.selectedAbilityReason \|\| null/);
+  assert.match(journeyComponentSource, /raises its tail/);
+});
+
+test('scarab vault slice lets Asha jump-answer an active charge without stomp damage', () => {
+  assert.match(journeyCombatContractSource, /const SCARAB_VAULT_OUTCOME = Object\.freeze\(\{/);
+  assert.match(journeyCombatContractSource, /lastAttackResult:\s*'scarab-vault'/);
+  assert.match(journeyCombatContractSource, /const shouldVaultScarabCharge = \(\{/);
+  assert.match(journeyCombatContractSource, /const getScarabVaultOutcome = \(\{/);
+  assert.match(journeyComponentSource, /shouldVaultScarabCharge,\s*[\s\S]*?getScarabVaultOutcome,/);
+  assert.match(journeyComponentSource, /const applyScarabVault = \(enemy\) => \{/);
+  assert.match(journeyComponentSource, /const vaultOutcome = getScarabVaultOutcome\(\{ jumpSpeed: JUMP_SPEED \}\)/);
+  assert.match(journeyComponentSource, /current\.lastAttackResult = vaultOutcome\.lastAttackResult/);
+  assert.match(journeyComponentSource, /current\.notice = vaultOutcome\.notice/);
+  assert.match(journeyComponentSource, /const scarabVaultCharge = shouldVaultScarabCharge\(\{/);
+  assert.match(journeyComponentSource, /if \(scarabVaultCharge\) \{[\s\S]*?applyScarabVault\(e\);[\s\S]*?return;/);
+  assert.doesNotMatch(journeyComponentSource, /applyScarabVault[\s\S]*?enemy\.health -=/);
 });
 
 test('scorpion and scarab combo creates tactical poison and armor pressure', () => {
@@ -6016,7 +6180,7 @@ test('scorpion and scarab combo creates tactical poison and armor pressure', () 
   assert.ok(nestOverride.y < 650, 'The opening scorpion nest must remain visible in the combat arena');
 });
 
-test('scorpion nest becomes the post-Mummification destroy-to-pass obstacle', () => {
+test('scorpion nest is a non-blocking opening spawner before the Mummification Chamber', () => {
   const mummificationRoute = HIDDEN_ROUTES.find(route => route.id === 'mummification-chamber-route');
   const muralRoute = HIDDEN_ROUTES.find(route => route.id === 'desert-upper-survey-route');
   const nestOverride = journeyPlacementOverrides.enemies.find(enemy => enemy.id === 'desert-entry-scorpion-nest-1');
@@ -6024,19 +6188,22 @@ test('scorpion nest becomes the post-Mummification destroy-to-pass obstacle', ()
 
   assert.ok(mummificationRoute, 'Mummification Chamber route should exist');
   assert.ok(muralRoute, 'Forgotten Mural route should exist as the next major route');
-  assert.ok(nestOverride, 'The existing scorpion nest should be moved through its generated placement override');
-  assert.ok(nestData, 'The existing scorpion nest enemy row should remain the canonical implementation');
+  assert.ok(nestOverride, 'The scorpion nest should keep its generated placement override');
+  assert.ok(nestData, 'The scorpion nest enemy row should remain the canonical implementation');
 
-  const routeProgress = (nestOverride.x - mummificationRoute.x) / (muralRoute.x - mummificationRoute.x);
-  assert.ok(routeProgress >= 0.25 && routeProgress <= 0.45, 'Nest should sit after the Mummification Chamber before the mural structure');
-  assert.ok(nestOverride.x > mummificationRoute.x, 'Nest should be after the Mummification Chamber route');
-  assert.ok(nestOverride.x < muralRoute.x, 'Nest should be before the Forgotten Mural route');
+  // The nest now lives in the opening combat stretch (at/just before the Mummification Chamber),
+  // not as the post-chamber destroy-to-pass gate it used to be.
+  assert.ok(nestOverride.x < mummificationRoute.x, 'Nest should sit in the opening, before the Mummification Chamber route');
+  assert.ok(nestOverride.x < muralRoute.x, 'Nest should be well before the Forgotten Mural route');
+  assert.equal(nestData.routeBlocker, false, 'Opening nest must not hard-block the route (fight-or-ignore spawner)');
   assert.equal(nestData.type, 'scorpion-nest');
   assert.equal(nestData.combatRole, 'destructible spawner');
   assert.match(nestData.pressureHint, /Destroy the nest to stop the swarm/);
   assert.equal(nestOverride.widthScale, 0.3);
 
+  // Blocker plumbing stays in code but is now gated behind routeBlocker !== false.
   assert.match(journeyComponentSource, /const getLiveScorpionNestBlockers = useCallback/);
+  assert.match(journeyComponentSource, /enemy\.routeBlocker !== false/);
   assert.match(journeyComponentSource, /enemy\.type === 'scorpion-nest'[\s\S]*?!enemy\.defeated[\s\S]*?getEditedNestParams\(enemy\)/);
   assert.match(journeyComponentSource, /The scorpion nest blocks the route\. Destroy it to clear the path\./);
   assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\('gateBlocked'\)/);
@@ -6114,10 +6281,10 @@ test('fast fluid combat slice adds dodge-cancel and flow combo contracts', () =>
   assert.match(journeyComponentSource, /const dodgeFacingDirection = -dodgeDirection;/);
   assert.match(journeyComponentSource, /current\.dodgeFacingDirection = dodgeFacingDirection;/);
   assert.match(journeyComponentSource, /player\.direction = dodgeFacingDirection;/);
-  assert.match(journeyComponentSource, /e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? PLAYER_ATTACK_PARRY_DAMAGE : \(isHeavyAttack \? PLAYER_ATTACK_SHOVE_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)\)/);
+  assert.match(journeyComponentSource, /e\.health -= isFinisher[\s\S]{0,90}PLAYER_ATTACK_FINISHER_DAMAGE[\s\S]{0,120}isParry[\s\S]{0,90}PLAYER_ATTACK_PARRY_DAMAGE[\s\S]{0,120}isAirAttack[\s\S]{0,120}PLAYER_AIR_ATTACK_DAMAGE[\s\S]{0,120}isHeavyAttack[\s\S]{0,90}PLAYER_ATTACK_SHOVE_DAMAGE[\s\S]{0,90}PLAYER_ATTACK_LIGHT_DAMAGE/);
   assert.match(journeyComponentSource, /const heavyFollowupPrimed = isHeavyAttack && finisherAllowed && \(current\.attackQueuedHeavyFollowupPrimed \|\| \(current\.attackComboWindowTimer > 0 && current\.attackComboLanded\)\);/);
   assert.match(journeyComponentSource, /if \(current\.attackComboWindowTimer <= 0 && current\.attackSequenceIndex > 0 && current\.attackPhase === 'ready'\) resetPlayerCombo\(current\);/);
-  assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(isFinisher \? 'attackFinisher' : isHeavyAttack \? 'attackSwing2' : 'attackSwing1'\)/);
+  assert.match(journeyComponentSource, /audioControls\?\.playExpeditionSfx\?\.\(isAirAttack \? 'attackSwing2' : isFinisher \? 'attackFinisher' : isHeavyAttack \? 'attackSwing2' : 'attackSwing1'/);
   assert.match(appSource, /dodgeStep:\s*\{/);
   assert.match(appSource, /attackSwing1:\s*\{/);
   assert.match(appSource, /attackSwing2:\s*\{/);
@@ -6260,7 +6427,7 @@ test('unprimed heavy K is a shove: chip damage, strong knockback, reliable stagg
   // Chip damage constant (~30% of a light hit on the combat scale), distinct from light
   assert.match(journeyGameplayContractSource, /const PLAYER_ATTACK_SHOVE_DAMAGE = Math\.round\(0\.3 \* COMBAT_DAMAGE_SCALE\)/);
   // Unprimed heavy deals shove damage, not light or finisher damage
-  assert.match(journeyComponentSource, /isParry \? PLAYER_ATTACK_PARRY_DAMAGE : \(isHeavyAttack \? PLAYER_ATTACK_SHOVE_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)/);
+  assert.match(journeyComponentSource, /isAirAttack[\s\S]{0,120}\(current\.attackDamage \|\| PLAYER_AIR_ATTACK_DAMAGE\)[\s\S]{0,160}isHeavyAttack[\s\S]{0,80}PLAYER_ATTACK_SHOVE_DAMAGE[\s\S]{0,80}PLAYER_ATTACK_LIGHT_DAMAGE/);
   // Dedicated shove impact profile: strong knockback / near-finisher spacing, big dust kick
   assert.match(journeyGameplayContractSource, /shove:\s*\{[\s\S]*?targetKnockback:\s*0\.6[\s\S]*?targetShift:\s*96[\s\S]*?dustWidth:\s*50/);
   // Unprimed heavy routes through the shove impact, not combo2
@@ -6268,7 +6435,7 @@ test('unprimed heavy K is a shove: chip damage, strong knockback, reliable stagg
   // Longer, reliable interrupt stagger than a light hit (light = 0.8s)
   assert.match(journeyComponentSource, /e\.stunTimer = isFinisher \? 1\.55 : \(isParry \? 1\.4 : \(isHeavyAttack \? 1\.1 :/);
   // Shove still primes nothing and earns no Endurance refund (it is a survival tool, not a payoff)
-  assert.match(journeyComponentSource, /heavyFollowupRefund = isFinisher \? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : \(isParry \? 8 : \(isHeavyAttack \? 0 : 1\)\)/);
+  assert.match(journeyComponentSource, /heavyFollowupRefund = isFinisher \? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND : \(isParry \? 8 : \(isAirAttack \? 2 : \(isHeavyAttack \? 0 : 1\)\)\)/);
 });
 
 test('step 3 earned-Endurance rewards: defeat +4 and boss stagger +10', () => {
@@ -6300,14 +6467,33 @@ test('combat uses explicit J light and K heavy follow-up instead of hidden same-
   assert.match(journeyComponentSource, /const queuedAttackType = current\.attackQueuedType === PLAYER_ATTACK_TYPES\.HEAVY[\s\S]*?const isHeavyAttack = queuedAttackType === PLAYER_ATTACK_TYPES\.HEAVY/);
   assert.match(journeyComponentSource, /const finisherAllowed = !current\.enduranceExhausted;/);
   assert.match(journeyComponentSource, /const heavyFollowupPrimed = isHeavyAttack && finisherAllowed && \(current\.attackQueuedHeavyFollowupPrimed \|\| \(current\.attackComboWindowTimer > 0 && current\.attackComboLanded\)\);/);
-  assert.match(journeyComponentSource, /const nextAttackSequenceIndex = heavyFollowupPrimed[\s\S]*?PLAYER_COMBO_MAX_STEP[\s\S]*?isHeavyAttack[\s\S]*?2[\s\S]*?1/);
+  assert.match(journeyGameplayContractSource, /const getPlayerAttackProfile = \(\{[\s\S]*?queuedAttackType = PLAYER_ATTACK_TYPES\.LIGHT[\s\S]*?heavyFollowupPrimed = false/);
+  assert.match(journeyComponentSource, /const attackProfile = getPlayerAttackProfile\(\{[\s\S]*?queuedAttackType,[\s\S]*?player,[\s\S]*?heavyFollowupPrimed,[\s\S]*?\}\);/);
+  assert.match(journeyComponentSource, /const nextAttackSequenceIndex = attackProfile\.sequenceIndex;/);
   assert.match(journeyComponentSource, /current\.attackComboFinisherActive = heavyFollowupPrimed;/);
-  assert.match(journeyComponentSource, /if \(isHeavyAttack && !heavyFollowupPrimed\) applyAttackStaminaCost\(PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST, 'Heavy swing'\);/);
+  assert.match(journeyComponentSource, /if \(!isAirAttack && isHeavyAttack && !heavyFollowupPrimed\) applyAttackStaminaCost\(PLAYER_ATTACK_FINISHER_EXTRA_STAMINA_COST, 'Heavy swing'\);/);
 
   assert.match(journeyComponentSource, /current\.heavyFollowupReadyTimer = primesHeavyFollowup \? PLAYER_COMBO_WINDOW_DURATION : 0;/);
   assert.match(journeyComponentSource, /type:\s*'heavy-ready-cue'/);
   assert.match(journeyComponentSource, /const heavyFollowupRefund = isFinisher \? PLAYER_HEAVY_FOLLOWUP_HIT_REFUND/);
   assert.match(journeyComponentSource, /current\.resources\.stamina = Math\.min\(current\.upgradeEffects\?\.maxStamina \|\| 100, current\.resources\.stamina \+ heavyFollowupRefund\);/);
+});
+
+test('airborne J becomes a risky air strike instead of a grounded combo starter', () => {
+  assert.match(journeyGameplayContractSource, /const PLAYER_AIR_ATTACK_TYPE = 'air-light';/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_AIR_ATTACK_TIMING = Object\.freeze\(\{[\s\S]*?windup:\s*0\.08[\s\S]*?swing:\s*0\.24[\s\S]*?recoil:\s*0\.22[\s\S]*?cooldown:\s*0\.32/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_AIR_ATTACK_STAMINA_COST = 2;/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_AIR_ATTACK_HEIGHT = 66;/);
+  assert.match(journeyGameplayContractSource, /const PLAYER_AIR_ATTACK_Y_OFFSET = 12;/);
+  assert.match(journeyGameplayContractSource, /const isAirLightAttack = queuedAttackType === PLAYER_ATTACK_TYPES\.LIGHT && !player\.onGround;/);
+  assert.match(journeyComponentSource, /const isAirAttack = attackProfile\.attackType === PLAYER_AIR_ATTACK_TYPE;/);
+  assert.match(journeyComponentSource, /current\.attackType = activeAttackType;/);
+  assert.match(journeyComponentSource, /current\.attackRange = attackProfile\.range;/);
+  assert.match(journeyComponentSource, /current\.attackYOffset = attackProfile\.yOffset;/);
+  assert.match(journeyComponentSource, /applyAttackStaminaCost\(attackProfile\.staminaCost \?\? PLAYER_ATTACK_STAMINA_COST, isAirAttack \? 'Air strike' : 'Attack swing'\);/);
+  assert.match(journeyComponentSource, /player\.vy = Math\.max\(player\.vy \|\| 0, attackProfile\.downwardVelocity \|\| 0\);/);
+  assert.match(journeyComponentSource, /const primesHeavyFollowup = !isFinisher && !isHeavyAttack && !isAirAttack;/);
+  assert.match(journeyComponentSource, /current\.lastAttackResult = isFinisher \? 'finisher' : \(isParry \? 'parry' : \(isAirAttack \? 'air-hit'/);
 });
 
 test('heavy follow-up window is readable through HUD and physical cue feedback', () => {
@@ -6581,7 +6767,7 @@ test('jump contact only bounces enemies while attacks defeat them through weapon
   assert.match(journeyComponentSource, /current\.notice = `\$\{enemy\.name\} bounced away\. Use J or K to defeat it\.`/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?enemy\.health -= 1[\s\S]*?\};/);
   assert.doesNotMatch(journeyComponentSource, /const applyEnemyStomp = \(enemy\) => \{[\s\S]*?current\.defeatedEnemies\.add\(enemy\.id\)[\s\S]*?\};/);
-  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= isFinisher \? PLAYER_ATTACK_FINISHER_DAMAGE : \(isParry \? PLAYER_ATTACK_PARRY_DAMAGE : \(isHeavyAttack \? PLAYER_ATTACK_SHOVE_DAMAGE : PLAYER_ATTACK_LIGHT_DAMAGE\)\)/);
+  assert.match(journeyComponentSource, /if \(attackRect && !current\.attackHitIds\.has\(e\.id\) && rectsOverlap\(attackRect, getAttackHurtbox\(e\)\)\) \{[\s\S]*?e\.health -= isFinisher[\s\S]{0,90}PLAYER_ATTACK_FINISHER_DAMAGE[\s\S]{0,120}isParry[\s\S]{0,90}PLAYER_ATTACK_PARRY_DAMAGE[\s\S]{0,120}isAirAttack[\s\S]{0,120}PLAYER_AIR_ATTACK_DAMAGE[\s\S]{0,120}isHeavyAttack[\s\S]{0,90}PLAYER_ATTACK_SHOVE_DAMAGE[\s\S]{0,90}PLAYER_ATTACK_LIGHT_DAMAGE/);
   assert.match(journeyUtilsSource, /if\s*\(enemy\.firstSealRouteRamp\)\s*\{[\s\S]*?const tunedHealth = Math\.max\(3, enemy\.health\) \* COMBAT_DAMAGE_SCALE/);
   assert.match(journeyUtilsSource, /const tunedHealth = clamp\(Math\.max\(enemy\.health \+ bonus, Math\.ceil\(enemy\.health \* 1\.55\)\), 3, 5\) \* COMBAT_DAMAGE_SCALE/);
   assert.match(journeyUtilsSource, /if \(enemy\.type === 'scorpion'\) return Math\.ceil\(tunedHealth \* 1\.5\)/);

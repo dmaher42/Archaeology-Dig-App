@@ -2,6 +2,9 @@ import { ROME_SECTION_BACKGROUND_PACKS } from './rome/romeBackgroundAssets.js';
 
 export const DESERT_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/desert-entry/';
 export const DESERT_BACKGROUND_ATLAS_JSON = `${DESERT_BACKGROUND_ATLAS_BASE_PATH}desert-entry-parallax-pack.json`;
+export const DESERT_ENTRY_V3_CANDIDATE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/desert-entry/_review-parallax-layers-2026-06-29/';
+export const DESERT_ENTRY_V3_CANDIDATE_BACKGROUND_ATLAS_JSON = `${DESERT_ENTRY_V3_CANDIDATE_BACKGROUND_ATLAS_BASE_PATH}desert-entry-v3-production-parallax-pack.json`;
+export const DESERT_ENTRY_V3_CANDIDATE_URL_PARAM = 'desertEntryBg';
 export const CATACOMBS_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/catacombs/';
 export const CATACOMBS_BACKGROUND_ATLAS_JSON = `${CATACOMBS_BACKGROUND_ATLAS_BASE_PATH}catacombs-parallax-pack.json`;
 export const RUINED_TEMPLE_BACKGROUND_ATLAS_BASE_PATH = 'assets/expedition/backgrounds/ruined-temple/';
@@ -24,6 +27,12 @@ export const EXPECTED_DESERT_BACKGROUND_KEYS = [
   'foregroundDepth',
 ];
 
+export const EXPECTED_DESERT_ENTRY_REFRESH_BACKGROUND_KEYS = [
+  ...EXPECTED_DESERT_BACKGROUND_KEYS,
+  'dustHaze',
+  'desertSphinx',
+];
+
 export const DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-necropolis-layered-playable-route-v1';
 export const JOURNEY_BACKGROUND_DEPTH_MODE = 'journey-section-parallax-v2';
 
@@ -42,12 +51,31 @@ export const CHINA_RIVER_VALLEY_BACKGROUND_PACK = {
   expectedKeys: EXPECTED_CHINA_RIVER_VALLEY_BACKGROUND_KEYS,
 };
 
-export const SECTION_BACKGROUND_PACKS = {
-  'desert-entry': {
-    basePath: DESERT_BACKGROUND_ATLAS_BASE_PATH,
-    atlasPath: DESERT_BACKGROUND_ATLAS_JSON,
+export const isDesertEntryV3CandidateEnabled = () => {
+  if (!import.meta.env?.DEV || typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  return params.get(DESERT_ENTRY_V3_CANDIDATE_URL_PARAM) === 'v3';
+};
+
+export const getDesertEntryBackgroundPack = () => {
+  if (!isDesertEntryV3CandidateEnabled()) {
+    return {
+      basePath: DESERT_BACKGROUND_ATLAS_BASE_PATH,
+      atlasPath: DESERT_BACKGROUND_ATLAS_JSON,
+      expectedKeys: EXPECTED_DESERT_ENTRY_REFRESH_BACKGROUND_KEYS,
+    };
+  }
+
+  return {
+    basePath: DESERT_ENTRY_V3_CANDIDATE_BACKGROUND_ATLAS_BASE_PATH,
+    atlasPath: DESERT_ENTRY_V3_CANDIDATE_BACKGROUND_ATLAS_JSON,
     expectedKeys: EXPECTED_DESERT_BACKGROUND_KEYS,
-  },
+    devCandidate: true,
+  };
+};
+
+export const SECTION_BACKGROUND_PACKS = {
+  'desert-entry': getDesertEntryBackgroundPack(),
   'ruined-temple': {
     basePath: RUINED_TEMPLE_BACKGROUND_ATLAS_BASE_PATH,
     atlasPath: RUINED_TEMPLE_BACKGROUND_ATLAS_JSON,
@@ -245,6 +273,8 @@ export const drawDesertBackgroundLayer = (ctx, assets, key, dest, options = {}) 
     cameraX = 0,
     parallax = 0,
     alpha = 1,
+    filter = null,
+    compositeOperation = null,
   } = options;
   const { y, height } = dest;
   if (!canvasWidth || height <= 0) return false;
@@ -257,6 +287,8 @@ export const drawDesertBackgroundLayer = (ctx, assets, key, dest, options = {}) 
 
   ctx.save();
   ctx.globalAlpha = alpha;
+  if (filter) ctx.filter = filter;
+  if (compositeOperation) ctx.globalCompositeOperation = compositeOperation;
   while (x > 0) x -= drawWidth - 1;
   for (; x < canvasWidth; x += drawWidth - 1) {
     ctx.drawImage(image, region.x, region.y, region.w, region.h, x, y, drawWidth + 1, drawHeight);

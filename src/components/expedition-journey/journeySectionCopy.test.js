@@ -6,6 +6,7 @@ import {
   getJourneyToolsForCivilisation,
   JOURNEY_TOOLS,
   ROUTE_GATES,
+  SECTION_ATMOSPHERES,
   SECTION_COPY,
   SECTION_OBJECTIVES,
   setExpeditionJourneyCiv,
@@ -57,4 +58,29 @@ test('China journey start briefing is not the Egypt Lost Map Tablet briefing', (
   assert.match(journeyHudOverlaysSource, /isChinaBriefing/);
   assert.match(journeyHudOverlaysSource, /Follow the Yellow River frontier/);
   assert.match(journeyHudOverlaysSource, /Restore the dynasty line at the Imperial Gate/);
+});
+
+test('Journey sections do not carry old full-screen ambient particle overlay settings', () => {
+  [
+    'Ancient Egypt',
+    'Ancient China',
+    'Ancient Rome',
+  ].forEach((civilisation) => {
+    setExpeditionJourneyCiv(civilisation);
+
+    Object.entries(SECTION_ATMOSPHERES).filter(([, atmosphere]) => atmosphere).forEach(([sectionId, atmosphere]) => {
+      assert.equal(
+        Object.hasOwn(atmosphere, 'particle'),
+        false,
+        `${civilisation} ${sectionId} should not draw section-wide ambient particles`,
+      );
+      assert.equal(
+        Object.hasOwn(atmosphere, 'particleColor'),
+        false,
+        `${civilisation} ${sectionId} should not configure section-wide ambient particle colour`,
+      );
+    });
+  });
+
+  setExpeditionJourneyCiv('Ancient Egypt');
 });

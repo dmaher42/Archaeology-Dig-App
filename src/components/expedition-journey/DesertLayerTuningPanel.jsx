@@ -21,6 +21,7 @@ const formatValue = (value, step) => {
 
 const PANEL_BG = 'rgba(15,12,10,0.92)';
 const ACCENT = 'rgba(212,184,120,0.4)';
+const LAYER_PANEL_Z_INDEX = 48;
 
 export default function DesertLayerTuningPanel() {
   const [open, setOpen] = useState(false);
@@ -72,7 +73,7 @@ export default function DesertLayerTuningPanel() {
         type="button"
         onClick={() => setOpen(true)}
         style={{
-          ...buttonStyle, position: 'absolute', top: 6, right: 6, zIndex: 41, pointerEvents: 'auto',
+          ...buttonStyle, position: 'absolute', top: 6, right: 6, zIndex: LAYER_PANEL_Z_INDEX, pointerEvents: 'auto',
         }}
       >
         Layers
@@ -86,7 +87,7 @@ export default function DesertLayerTuningPanel() {
       onKeyUp={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
       style={{
-        position: 'absolute', top: 6, right: 6, zIndex: 41, pointerEvents: 'auto',
+        position: 'absolute', top: 6, right: 6, zIndex: LAYER_PANEL_Z_INDEX, pointerEvents: 'auto',
         width: 260, maxHeight: '86%', overflowY: 'auto',
         padding: '8px 10px', borderRadius: 8,
         background: PANEL_BG, border: `1px solid ${ACCENT}`,

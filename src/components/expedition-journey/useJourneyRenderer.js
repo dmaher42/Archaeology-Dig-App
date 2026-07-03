@@ -2257,6 +2257,9 @@ export function drawPlatformFrame(ctx, platform, cameraX, current, deps) {
     const visualY = platform.y + unstableShift;
     const platformX = x - 2;
     const platformWidth = platform.width + 4;
+    const hasSlopeSurface = Number.isFinite(platform.slopeStartY)
+      && Number.isFinite(platform.slopeEndY)
+      && platform.slopeStartY !== platform.slopeEndY;
     const desertSetPiecePlatform = section.id === 'desert-entry' && !isGround;
     const embeddedOpeningPyramidPlatform = desertSetPiecePlatform
       && !platform.assetKey
@@ -2266,6 +2269,39 @@ export function drawPlatformFrame(ctx, platform, cameraX, current, deps) {
       && !platform.assetKey
       && platform.x < scaleJourneyX(720)
       && openingPyramidFacadeRef.current.loaded;
+    if (hasSlopeSurface) {
+      const startY = platform.slopeStartY + unstableShift;
+      const endY = platform.slopeEndY + unstableShift;
+      const lowerY = Math.max(startY, endY) + Math.max(platform.height, 18);
+      const endX = worldToScreenX(platform.x + platform.width, cameraX);
+      ctx.save();
+      ctx.fillStyle = section.id === 'desert-entry' ? 'rgba(104, 68, 36, 0.92)' : 'rgba(74, 55, 32, 0.92)';
+      ctx.beginPath();
+      ctx.moveTo(x, startY);
+      ctx.lineTo(endX, endY);
+      ctx.lineTo(endX, lowerY);
+      ctx.lineTo(x, lowerY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255, 224, 159, 0.16)';
+      ctx.beginPath();
+      ctx.moveTo(x + 4, startY - 1);
+      ctx.lineTo(endX - 4, endY - 1);
+      ctx.lineTo(endX - 4, endY + 5);
+      ctx.lineTo(x + 4, startY + 5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = reactiveActive ? `rgba(255, 196, 120, ${0.45 + reactivePulse * 0.2})` : 'rgba(37, 25, 14, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+      drawGroundDustLip(ctx, (x + endX) / 2, lowerY + 1, platform.width * 0.72, 'rgba(178, 117, 54, 0.18)');
+      ctx.restore();
+      ctx.restore();
+      return;
+    }
     if (platform.variant === 'lost-bridge') {
       const bridgeStructureReady = Boolean(lostBridgeAssetsRef.current?.structure?.naturalWidth);
       if (bridgeStructureReady && isLostBridgeStructureDeckPlatform(platform)) {
@@ -3829,28 +3865,89 @@ function drawDesertEntryAtmosphericGrade(ctx, canvasWidth, canvasHeight, options
   ctx.globalCompositeOperation = 'source-over';
 
   const horizonHaze = ctx.createLinearGradient(0, 130, 0, groundY);
-  horizonHaze.addColorStop(0, `rgba(244, 187, 104, ${0.03 * intensity})`);
-  horizonHaze.addColorStop(0.34, `rgba(229, 155, 76, ${0.12 * intensity})`);
-  horizonHaze.addColorStop(0.7, `rgba(143, 83, 34, ${0.1 * intensity})`);
+  horizonHaze.addColorStop(0, `rgba(255, 205, 128, ${0.02 * intensity})`);
+  horizonHaze.addColorStop(0.34, `rgba(239, 159, 74, ${0.075 * intensity})`);
+  horizonHaze.addColorStop(0.7, `rgba(133, 69, 26, ${0.065 * intensity})`);
   horizonHaze.addColorStop(1, 'rgba(82, 45, 18, 0)');
   ctx.fillStyle = horizonHaze;
   ctx.fillRect(0, 130, canvasWidth, Math.max(1, groundY - 130));
 
   const skyWeight = ctx.createLinearGradient(0, 0, 0, 210);
-  skyWeight.addColorStop(0, `rgba(25, 14, 10, ${0.2 * intensity})`);
-  skyWeight.addColorStop(0.62, `rgba(72, 34, 15, ${0.06 * intensity})`);
+  skyWeight.addColorStop(0, `rgba(34, 14, 9, ${0.24 * intensity})`);
+  skyWeight.addColorStop(0.62, `rgba(83, 34, 12, ${0.07 * intensity})`);
   skyWeight.addColorStop(1, 'rgba(72, 34, 15, 0)');
   ctx.fillStyle = skyWeight;
   ctx.fillRect(0, 0, canvasWidth, 220);
 
   const leftFocus = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-  leftFocus.addColorStop(0, `rgba(255, 217, 143, ${0.05 * intensity})`);
+  leftFocus.addColorStop(0, `rgba(255, 220, 142, ${0.075 * intensity})`);
   leftFocus.addColorStop(0.34, 'rgba(255, 217, 143, 0)');
   leftFocus.addColorStop(0.72, 'rgba(35, 18, 8, 0)');
-  leftFocus.addColorStop(1, `rgba(35, 18, 8, ${0.08 * intensity})`);
+  leftFocus.addColorStop(1, `rgba(35, 18, 8, ${0.12 * intensity})`);
   ctx.fillStyle = leftFocus;
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
+  ctx.restore();
+}
+
+function drawDesertEntryLayerCohesionGrade(ctx, canvasWidth, canvasHeight, options = {}) {
+  const {
+    groundY = 558,
+    intensity = 1,
+  } = options;
+  if (intensity <= 0) return;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  const horizonDust = ctx.createLinearGradient(0, 255, 0, groundY + 26);
+  horizonDust.addColorStop(0, 'rgba(225, 166, 94, 0)');
+  horizonDust.addColorStop(0.42, `rgba(240, 176, 88, ${0.04 * intensity})`);
+  horizonDust.addColorStop(0.72, `rgba(214, 128, 47, ${0.055 * intensity})`);
+  horizonDust.addColorStop(1, `rgba(116, 55, 20, ${0.025 * intensity})`);
+  ctx.fillStyle = horizonDust;
+  ctx.fillRect(0, 255, canvasWidth, Math.max(1, groundY + 26 - 255));
+
+  const groundDustShelf = ctx.createLinearGradient(0, groundY - 128, 0, groundY + 18);
+  groundDustShelf.addColorStop(0, 'rgba(226, 174, 110, 0)');
+  groundDustShelf.addColorStop(0.58, `rgba(245, 188, 106, ${0.05 * intensity})`);
+  groundDustShelf.addColorStop(1, `rgba(166, 78, 27, ${0.028 * intensity})`);
+  ctx.fillStyle = groundDustShelf;
+  ctx.fillRect(0, groundY - 128, canvasWidth, 146);
+
+  const sunsetGlow = ctx.createLinearGradient(0, 150, canvasWidth, groundY);
+  sunsetGlow.addColorStop(0, `rgba(255, 206, 106, ${0.13 * intensity})`);
+  sunsetGlow.addColorStop(0.38, `rgba(240, 124, 43, ${0.08 * intensity})`);
+  sunsetGlow.addColorStop(1, 'rgba(236, 135, 49, 0)');
+  ctx.fillStyle = sunsetGlow;
+  ctx.fillRect(0, 150, canvasWidth, Math.max(1, groundY - 130));
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const lowSunRake = ctx.createRadialGradient(0, 160, 24, 0, 170, canvasWidth * 0.68);
+  lowSunRake.addColorStop(0, `rgba(255, 214, 132, ${0.13 * intensity})`);
+  lowSunRake.addColorStop(0.34, `rgba(255, 151, 58, ${0.07 * intensity})`);
+  lowSunRake.addColorStop(1, 'rgba(255, 151, 58, 0)');
+  ctx.fillStyle = lowSunRake;
+  ctx.fillRect(0, 0, canvasWidth, Math.max(1, groundY));
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  const skyDepth = ctx.createLinearGradient(0, 0, 0, Math.min(canvasHeight, 340));
+  skyDepth.addColorStop(0, `rgba(34, 12, 8, ${0.24 * intensity})`);
+  skyDepth.addColorStop(0.58, `rgba(86, 32, 9, ${0.075 * intensity})`);
+  skyDepth.addColorStop(1, 'rgba(255, 255, 255, 1)');
+  ctx.fillStyle = skyDepth;
+  ctx.fillRect(0, 0, canvasWidth, Math.min(canvasHeight, 340));
+
+  const depthVignette = ctx.createLinearGradient(0, 0, canvasWidth, 0);
+  depthVignette.addColorStop(0, `rgba(70, 34, 13, ${0.14 * intensity})`);
+  depthVignette.addColorStop(0.2, 'rgba(255, 255, 255, 1)');
+  depthVignette.addColorStop(0.78, 'rgba(255, 255, 255, 1)');
+  depthVignette.addColorStop(1, `rgba(51, 23, 9, ${0.15 * intensity})`);
+  ctx.fillStyle = depthVignette;
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   ctx.restore();
 }
 
@@ -3970,7 +4067,12 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     // base-anchored to the canvas bottom so raising it lifts the peaks while the
     // base stays pinned behind the ground layers.
     const cliffsDest = { y: CANVAS_HEIGHT - T.distantCliffs.height, height: T.distantCliffs.height };
-    drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', cliffsDest, { ...layerOptions, parallax: T.distantCliffs.parallax, alpha: T.distantCliffs.alpha });
+    drawDesertBackgroundLayer(ctx, assets, 'distantCliffs', cliffsDest, {
+      ...layerOptions,
+      parallax: T.distantCliffs.parallax,
+      alpha: T.distantCliffs.alpha,
+      filter: 'sepia(6%) saturate(102%) brightness(98%) contrast(106%)',
+    });
 
     // Imposing pyramids drawn ONCE (non-tiling, world-anchored) so the
     // distinctive shapes never repeat as the player scrolls. Grounded in the art
@@ -3988,20 +4090,44 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
       const pyrWorldX = section.start + sectionWidth * PYR_SECTION_FRACTION;
       const pyrWidth = PYR_HEIGHT * (pyrRegion.w / pyrRegion.h);
       const pyrX = (pyrWorldX - cameraX) * PYR_PARALLAX + CANVAS_WIDTH / 2 - pyrWidth / 2;
+      ctx.save();
+      ctx.globalAlpha = T.farPyramids.alpha ?? 1;
+      ctx.filter = 'sepia(5%) saturate(112%) brightness(100%) contrast(112%)';
       ctx.drawImage(
         pyrImage,
         pyrRegion.x, pyrRegion.y, pyrRegion.w, pyrRegion.h,
         Math.round(pyrX), PYR_BASE_Y - PYR_HEIGHT, Math.round(pyrWidth), PYR_HEIGHT,
       );
+      ctx.restore();
     }
-    drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', { y: T.midNecropolisRuins.baseY - T.midNecropolisRuins.height, height: T.midNecropolisRuins.height }, { ...layerOptions, parallax: T.midNecropolisRuins.parallax, alpha: T.midNecropolisRuins.alpha });
+    drawDesertBackgroundLayer(ctx, assets, 'midNecropolisRuins', { y: T.midNecropolisRuins.baseY - T.midNecropolisRuins.height, height: T.midNecropolisRuins.height }, {
+      ...layerOptions,
+      parallax: T.midNecropolisRuins.parallax,
+      alpha: T.midNecropolisRuins.alpha,
+      filter: 'sepia(3%) saturate(126%) brightness(103%) contrast(122%)',
+    });
+  }
+
+  if (assets.atlas?.regions?.dustHaze && T.dustHaze?.alpha > 0.01) {
+    drawDesertBackgroundLayer(
+      ctx,
+      assets,
+      'dustHaze',
+      { y: T.dustHaze.y, height: T.dustHaze.height },
+      {
+        ...layerOptions,
+        parallax: T.dustHaze.parallax,
+        alpha: T.dustHaze.alpha,
+        filter: 'sepia(2%) saturate(104%) brightness(112%) contrast(100%)',
+      },
+    );
   }
 
   drawDesertEntryAtmosphericGrade(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, {
     groundY: isV3ProductionCandidate
       ? assets.atlas?.candidateGroundLaneWalkingSurfaceY ?? 538
       : T.groundLane.y,
-    intensity: isV3ProductionCandidate ? 1.05 : 0.74,
+    intensity: isV3ProductionCandidate ? 1.05 : 0.3,
   });
 
   // Placed Sphinx landmark: a single non-tiling monument grounded at the
@@ -4025,17 +4151,17 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
       // bright polished gold (desertSphinx.brightness / .saturate, live in Layers panel).
       const sphinxBrightness = T.desertSphinx.brightness ?? 1;
       const sphinxSaturate = T.desertSphinx.saturate ?? 1;
-      const sphinxGraded = sphinxBrightness !== 1 || sphinxSaturate !== 1;
-      if (sphinxGraded) {
-        ctx.save();
-        ctx.filter = `brightness(${sphinxBrightness}) saturate(${sphinxSaturate}) contrast(1.08)`;
-      }
+      const sphinxContrast = T.desertSphinx.contrast ?? 1.04;
+      const sphinxAlpha = Math.max(0, Math.min(1, T.desertSphinx.alpha ?? 1));
+      ctx.save();
+      ctx.globalAlpha = sphinxAlpha;
+      ctx.filter = `sepia(5%) brightness(${sphinxBrightness}) saturate(${sphinxSaturate}) contrast(${sphinxContrast})`;
       ctx.drawImage(
         sphinxImage,
         sphinxRegion.x, sphinxRegion.y, sphinxRegion.w, sphinxRegion.h,
         Math.round(sphinxX), SPHINX_BASE_Y - SPHINX_HEIGHT, Math.round(sphinxWidth), SPHINX_HEIGHT,
       );
-      if (sphinxGraded) ctx.restore();
+      ctx.restore();
     }
   }
 
@@ -4058,6 +4184,7 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     if (ritualX > -ritualWidth && ritualX < CANVAS_WIDTH + ritualWidth) {
       ctx.save();
       ctx.globalAlpha = cfg.alpha;
+      ctx.filter = `sepia(5%) brightness(${cfg.brightness ?? 1}) saturate(${cfg.saturate ?? 1}) contrast(${cfg.contrast ?? 1})`;
       ctx.drawImage(
         ritualImage,
         ritualRegion.x, ritualRegion.y, ritualRegion.w, ritualRegion.h,
@@ -4065,6 +4192,12 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
       );
       ctx.restore();
     }
+  }
+  if (!isV3ProductionCandidate) {
+    drawDesertEntryLayerCohesionGrade(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, {
+      groundY: T.groundLane.y,
+      intensity: 0.68,
+    });
   }
   if (assets.atlas?.devCandidateLabel) {
     ctx.save();
@@ -4093,7 +4226,9 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
 
 export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   const {
+    CANVAS_HEIGHT,
     CANVAS_WIDTH,
+    GROUND_Y,
     desertBackgroundAssetsRef,
     drawDesertBackgroundLayer,
     getSectionBackgroundAssets,
@@ -4147,17 +4282,17 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   // background onto the path and softens the boundary so it stops reading as a
   // hard ledge -- subtle, no clutter.
   drawDesertEntryPlayableFloorGrade(ctx, CANVAS_WIDTH, {
-    groundY: isV3ProductionCandidate ? candidateGroundY : 522,
-    floorBottom: isV3ProductionCandidate ? 616 : 612,
+    groundY: isV3ProductionCandidate ? candidateGroundY : GROUND_Y,
+    floorBottom: isV3ProductionCandidate ? 616 : Math.min(CANVAS_HEIGHT, T.groundLane.y + T.groundLane.height),
     intensity: isV3ProductionCandidate ? 0.72 : 0.42,
   });
   ctx.save();
-  const contactShadow = ctx.createLinearGradient(0, 512, 0, 574);
+  const contactShadow = ctx.createLinearGradient(0, GROUND_Y - 34, 0, GROUND_Y + 30);
   contactShadow.addColorStop(0, 'rgba(28, 17, 9, 0)');
   contactShadow.addColorStop(0.5, 'rgba(28, 17, 9, 0.11)');
   contactShadow.addColorStop(1, 'rgba(28, 17, 9, 0)');
   ctx.fillStyle = contactShadow;
-  ctx.fillRect(0, 512, CANVAS_WIDTH, 62);
+  ctx.fillRect(0, GROUND_Y - 34, CANVAS_WIDTH, 64);
   ctx.restore();
   drawDesertEntryDryPlazaSeamBreakup(ctx, CANVAS_WIDTH, cameraX, {
     seamY: isV3ProductionCandidate ? candidateGroundY + 28 : T.groundLane.y + 35,

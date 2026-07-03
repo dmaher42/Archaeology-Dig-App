@@ -26,6 +26,7 @@ export const PLAYER_ATTACK_TYPES = Object.freeze({
   LIGHT: 'light',
   HEAVY: 'heavy',
 });
+export const PLAYER_AIR_ATTACK_TYPE = 'air-light';
 export const PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL = 'K';
 export const PLAYER_HEAVY_FOLLOWUP_CUE_DURATION = 0.42;
 export const PLAYER_ATTACK_LIGHT_DAMAGE = 1 * COMBAT_DAMAGE_SCALE;
@@ -39,6 +40,14 @@ export const PLAYER_BOSS_STAGGER_ENDURANCE_REWARD = 10;
 export const PLAYER_ATTACK_RANGE = 92;
 export const PLAYER_ATTACK_HEIGHT = 36;
 export const PLAYER_ATTACK_BACK_REACH = 10;
+export const PLAYER_AIR_ATTACK_DAMAGE = 1 * COMBAT_DAMAGE_SCALE;
+export const PLAYER_AIR_ATTACK_STAMINA_COST = 2;
+export const PLAYER_AIR_ATTACK_RANGE = 84;
+export const PLAYER_AIR_ATTACK_HEIGHT = 66;
+export const PLAYER_AIR_ATTACK_BACK_REACH = 8;
+export const PLAYER_AIR_ATTACK_Y_OFFSET = 12;
+export const PLAYER_AIR_ATTACK_DOWNWARD_VELOCITY = 120;
+export const PLAYER_AIR_ATTACK_FORWARD_BOOST = 48;
 export const PLAYER_ATTACK_NEAR_MISS_DISTANCE = 44;
 export const PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE = 34;
 export const PLAYER_ATTACK_FINISHER_ROW = 'attack_pick_swing_sweep';
@@ -51,6 +60,60 @@ export const PLAYER_ATTACK_COMBO_TIMINGS = [
   { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
   { windup: 0.18, swing: 0.52, recoil: 0.28, cooldown: 0.5 },
 ];
+export const PLAYER_AIR_ATTACK_TIMING = Object.freeze({
+  windup: 0.08,
+  swing: 0.24,
+  recoil: 0.22,
+  cooldown: 0.32,
+});
+export const getPlayerComboAttackTiming = (sequenceIndex = 1) => {
+  const timingIndex = Math.max(0, sequenceIndex - 1) % PLAYER_ATTACK_COMBO_TIMINGS.length;
+  return PLAYER_ATTACK_COMBO_TIMINGS[timingIndex] || PLAYER_ATTACK_COMBO_TIMINGS[0];
+};
+export const getPlayerAttackProfile = ({
+  queuedAttackType = PLAYER_ATTACK_TYPES.LIGHT,
+  player = {},
+  heavyFollowupPrimed = false,
+} = {}) => {
+  const isHeavyAttack = queuedAttackType === PLAYER_ATTACK_TYPES.HEAVY;
+  const isAirLightAttack = queuedAttackType === PLAYER_ATTACK_TYPES.LIGHT && !player.onGround;
+  if (isAirLightAttack) {
+    return {
+      attackType: PLAYER_AIR_ATTACK_TYPE,
+      sequenceIndex: 1,
+      timing: PLAYER_AIR_ATTACK_TIMING,
+      range: PLAYER_AIR_ATTACK_RANGE,
+      height: PLAYER_AIR_ATTACK_HEIGHT,
+      backReach: PLAYER_AIR_ATTACK_BACK_REACH,
+      yOffset: PLAYER_AIR_ATTACK_Y_OFFSET,
+      damage: PLAYER_AIR_ATTACK_DAMAGE,
+      staminaCost: PLAYER_AIR_ATTACK_STAMINA_COST,
+      canPrimeHeavyFollowup: false,
+      downwardVelocity: PLAYER_AIR_ATTACK_DOWNWARD_VELOCITY,
+      forwardBoost: PLAYER_AIR_ATTACK_FORWARD_BOOST,
+    };
+  }
+
+  const sequenceIndex = heavyFollowupPrimed
+    ? PLAYER_COMBO_MAX_STEP
+    : isHeavyAttack
+      ? 2
+      : 1;
+  return {
+    attackType: isHeavyAttack ? PLAYER_ATTACK_TYPES.HEAVY : PLAYER_ATTACK_TYPES.LIGHT,
+    sequenceIndex,
+    timing: getPlayerComboAttackTiming(sequenceIndex),
+    range: PLAYER_ATTACK_RANGE,
+    height: PLAYER_ATTACK_HEIGHT,
+    backReach: PLAYER_ATTACK_BACK_REACH,
+    yOffset: 0,
+    damage: null,
+    staminaCost: PLAYER_ATTACK_STAMINA_COST,
+    canPrimeHeavyFollowup: !isHeavyAttack && !heavyFollowupPrimed,
+    downwardVelocity: 0,
+    forwardBoost: 0,
+  };
+};
 export const PLAYER_HIT_SCREEN_SHAKE_DURATION = 0.22;
 export const PLAYER_HIT_SCREEN_SHAKE_PIXELS = 2.4;
 export const SCORPION_ATTACK_RANGE_MULTIPLIER = 1.4;
@@ -58,9 +121,306 @@ export const SCORPION_CHASE_SPEED_MULTIPLIER = 1.15;
 export const SCORPION_VENOM_SPIT_RANGE = CANVAS_WIDTH * 0.5;
 export const SCORPION_VENOM_SLOW_DURATION = 3.6;
 export const SCORPION_VENOM_SLOW_MULTIPLIER = 0.48;
+export const SCORPION_VENOM_REFRESH_WINDOW = 0.9;
+export const SCORPION_VENOM_STAMINA_DAMAGE = 3;
+export const SCORPION_VENOM_ATTACK_PATTERN_TUNING = Object.freeze({
+  windup: 0.32,
+  duration: 0.42,
+  cooldown: 1.1,
+  recovery: 0.42,
+  vulnerableAfter: 0.54,
+  damageScale: 0.55,
+  staminaDamage: SCORPION_VENOM_STAMINA_DAMAGE,
+});
 export const ENEMY_AGGRO_MEMORY_SECONDS = 7.5;
 export const ENEMY_AGGRO_PATROL_PADDING = 320;
 export const ENEMY_DEFEATED_VISIBLE_SECONDS = 3;
+export const ENEMY_VENOM_PRESSURE_CHASE_SPEED_MULTIPLIER = 1.42;
+export const ENEMY_VENOM_PRESSURE_AGGRO_REACH_BONUS = 120;
+export const ENEMY_VENOM_PRESSURE_AGGRO_MEMORY_MULTIPLIER = 1.22;
+const ENEMY_VENOM_PRESSURE_TYPES = new Set(['scarab', 'scorpion']);
+export const SCORPION_ANTI_AIR_ATTACK_PATTERN = {
+  id: 'anti-air-sting',
+  label: 'Tail Raise',
+  windup: 0.54,
+  duration: 0.32,
+  cooldown: 1.75,
+  recovery: 0.82,
+  vulnerableAfter: 0.9,
+  speed: 22,
+  range: 38,
+  height: 104,
+  yOffset: -82,
+  backReach: 34,
+  damageScale: 1.35,
+  airbornePunish: true,
+  shieldDuringWindup: false,
+  protectedDuringWindup: false,
+  protectedDuringAttack: false,
+  color: '#f59e0b',
+};
+const SCARAB_CHARGE_PATTERN_IDS = new Set(['charge', 'heavy-charge']);
+export const SCARAB_VAULT_OUTCOME = Object.freeze({
+  bounceMultiplier: 0.62,
+  enemyStunTimer: 0.72,
+  attackRecovery: 0.78,
+  vulnerabilityTimer: 0.78,
+  attackCooldown: 0.9,
+  hitStopTimer: 0.06,
+  cameraShakeTimer: 0.09,
+  cameraShakeStrength: 0.16,
+  lastAttackResult: 'scarab-vault',
+  damage: 0,
+  notice: 'Asha vaulted the scarab charge. Strike while it skids.',
+});
+export const ENEMY_COMBAT_INTENTS = Object.freeze({
+  PATROL: 'patrol',
+  PRESSURE: 'pressure',
+  ROUTE_DENY: 'route-deny',
+  ANTI_AIR: 'anti-air',
+  RANGED_HARASS: 'ranged-harass',
+  AMBUSH: 'ambush',
+  DUELIST: 'duelist',
+  SPAWNER: 'spawner',
+});
+
+const getEnemyIntentText = (enemy = {}) => ([
+  enemy.id,
+  enemy.name,
+  enemy.type,
+  enemy.combatPurpose,
+  enemy.encounterRole,
+  enemy.combatRole,
+  enemy.pressureHint,
+  enemy.protectsRouteId,
+].filter(Boolean).join(' ').toLowerCase());
+
+const enemyIntentTextIncludes = (enemy, terms) => {
+  const text = getEnemyIntentText(enemy);
+  return terms.some(term => text.includes(term));
+};
+
+export const getEnemyCombatIntent = (enemy = {}) => {
+  if (enemy.type === 'scorpion-nest' || enemyIntentTextIncludes(enemy, ['spawner', 'spawn', 'nest'])) {
+    return {
+      id: ENEMY_COMBAT_INTENTS.SPAWNER,
+      label: 'Spawner',
+      reason: 'Creates pressure until Asha chooses to destroy it.',
+    };
+  }
+  if (
+    enemy.protectsRouteId
+    || enemy.routeBlocker === true
+    || enemyIntentTextIncludes(enemy, ['route guardian', 'seal warden', 'protects the seal', 'protects route', 'objective-defense'])
+  ) {
+    return {
+      id: ENEMY_COMBAT_INTENTS.ROUTE_DENY,
+      label: 'Route Denial',
+      reason: 'Guards a path or reward and should actively hold that line.',
+    };
+  }
+  if (
+    enemy.type === 'scorpion'
+    && (
+      enemy.openingRouteRamp
+      || enemy.firstSealRouteRamp
+      || enemyIntentTextIncludes(enemy, ['jump', 'air', 'anti-air', 'high sting', 'vertical'])
+    )
+  ) {
+    return {
+      id: ENEMY_COMBAT_INTENTS.ANTI_AIR,
+      label: 'Anti-Air',
+      reason: 'Pressures careless jumps and keeps Asha thinking about vertical space.',
+    };
+  }
+  if (enemy.type === 'sand-wisp' || enemy.type === 'bat' || enemy.flying || enemyIntentTextIncludes(enemy, ['ranged', 'harass', 'blind'])) {
+    return {
+      id: ENEMY_COMBAT_INTENTS.RANGED_HARASS,
+      label: 'Ranged Harass',
+      reason: 'Pressures from a loose distance instead of body-blocking the route.',
+    };
+  }
+  if (enemy.type === 'snake' || enemyIntentTextIncludes(enemy, ['ambush', 'lunge', 'predator'])) {
+    return {
+      id: ENEMY_COMBAT_INTENTS.AMBUSH,
+      label: 'Ambush',
+      reason: 'Waits for over-extension, then commits to a punishable lunge.',
+    };
+  }
+  if (enemyIntentTextIncludes(enemy, ['duelist', 'guardian', 'mummy', 'warden', 'warrior', 'statue'])) {
+    return {
+      id: ENEMY_COMBAT_INTENTS.DUELIST,
+      label: 'Duelist',
+      reason: 'Fights face-to-face with clearer counter windows.',
+    };
+  }
+  if (enemy.combatPurpose || enemy.encounterRole || enemy.combatRole || enemy.pressureHint) {
+    return {
+      id: ENEMY_COMBAT_INTENTS.PRESSURE,
+      label: 'Pressure',
+      reason: 'Has encounter purpose and should stay engaged with Asha.',
+    };
+  }
+  return {
+    id: ENEMY_COMBAT_INTENTS.PATROL,
+    label: 'Patrol',
+    reason: 'Basic roaming enemy with no special encounter job.',
+  };
+};
+
+export const getEnemyIntentTuning = (enemy = {}, intent = getEnemyCombatIntent(enemy)) => {
+  switch (intent?.id) {
+    case ENEMY_COMBAT_INTENTS.ROUTE_DENY:
+      return {
+        pressureReachBonus: 52,
+        pursuitPaddingBonus: 120,
+        chaseMultiplier: 1.18,
+        awarenessMultiplier: 1.1,
+        verticalAwareness: 148,
+        standoffGapBonus: 8,
+      };
+    case ENEMY_COMBAT_INTENTS.ANTI_AIR:
+      return {
+        pressureReachBonus: 38,
+        pursuitPaddingBonus: 70,
+        chaseMultiplier: 1.1,
+        awarenessMultiplier: 1.08,
+        verticalAwareness: 168,
+        airborneAggro: true,
+      };
+    case ENEMY_COMBAT_INTENTS.RANGED_HARASS:
+      return {
+        pressureReachBonus: 46,
+        pursuitPaddingBonus: 90,
+        chaseMultiplier: 1.08,
+        awarenessMultiplier: 1.12,
+        verticalAwareness: 178,
+        standoffGapBonus: 28,
+      };
+    case ENEMY_COMBAT_INTENTS.AMBUSH:
+      return {
+        pressureReachBonus: 34,
+        pursuitPaddingBonus: 60,
+        chaseMultiplier: 1.12,
+        awarenessMultiplier: 1.06,
+        verticalAwareness: 142,
+      };
+    case ENEMY_COMBAT_INTENTS.DUELIST:
+      return {
+        pressureReachBonus: 30,
+        pursuitPaddingBonus: 72,
+        chaseMultiplier: 1.1,
+        awarenessMultiplier: 1.04,
+        verticalAwareness: 146,
+        standoffGapBonus: 6,
+      };
+    case ENEMY_COMBAT_INTENTS.PRESSURE:
+      return {
+        pressureReachBonus: 26,
+        pursuitPaddingBonus: 48,
+        chaseMultiplier: 1.06,
+        awarenessMultiplier: 1.02,
+        verticalAwareness: 132,
+      };
+    default:
+      return {};
+  }
+};
+
+export const getEnemyVenomPressureTuning = (enemy = {}, venomSlowTimer = 0) => {
+  const active = ENEMY_VENOM_PRESSURE_TYPES.has(enemy?.type) && (venomSlowTimer || 0) > 0;
+  if (!active) {
+    return {
+      active: false,
+      chaseSpeedMultiplier: 1,
+      aggroReachBonus: 0,
+      aggroMemoryMultiplier: 1,
+    };
+  }
+  return {
+    active: true,
+    chaseSpeedMultiplier: ENEMY_VENOM_PRESSURE_CHASE_SPEED_MULTIPLIER,
+    aggroReachBonus: ENEMY_VENOM_PRESSURE_AGGRO_REACH_BONUS,
+    aggroMemoryMultiplier: ENEMY_VENOM_PRESSURE_AGGRO_MEMORY_MULTIPLIER,
+  };
+};
+
+export const getEnemyFacingDirectionToPlayer = (enemy = {}, player = {}, fallbackDirection = enemy.direction || 1) => {
+  const enemyCenter = (enemy.x || 0) + (enemy.width || 0) / 2;
+  const playerCenter = (player.x || 0) + (player.width || 0) / 2;
+  const distanceToPlayer = playerCenter - enemyCenter;
+  if (Math.abs(distanceToPlayer) <= 1) return fallbackDirection >= 0 ? 1 : -1;
+  return distanceToPlayer >= 0 ? 1 : -1;
+};
+
+export const resolveEnemyCombatSide = ({
+  enemy = {},
+  player = {},
+  currentSide = 0,
+  crossingBuffer = 6,
+} = {}) => {
+  const enemyCenter = (enemy.x || 0) + (enemy.width || 0) / 2;
+  const playerCenter = (player.x || 0) + (player.width || 0) / 2;
+  const rawSide = enemyCenter - playerCenter;
+  if (Math.abs(rawSide) <= crossingBuffer && currentSide) return currentSide >= 0 ? 1 : -1;
+  if (Math.abs(rawSide) > 1) return Math.sign(rawSide);
+  const fallback = currentSide || -(enemy.direction || 1);
+  return fallback >= 0 ? 1 : -1;
+};
+
+export const shouldUseScorpionAntiAirSting = ({
+  enemy,
+  player,
+  distanceToPlayer = 0,
+  baseNearPlayerX = 0,
+  awarenessMultiplier = 1,
+  verticalAwareness = 168,
+} = {}) => {
+  if (enemy?.type !== 'scorpion' || !player || player.onGround) return false;
+  const enemyCenterY = (enemy.y || 0) + (enemy.height || 0) / 2;
+  const playerCenterY = (player.y || 0) + (player.height || 0) / 2;
+  const playerFootY = (player.y || 0) + (player.height || 0);
+  const enemyLowThreatLine = (enemy.y || 0) + (enemy.height || 0) + 42;
+  const horizontalThreat = Math.max(
+    SCORPION_ANTI_AIR_ATTACK_PATTERN.range + SCORPION_ANTI_AIR_ATTACK_PATTERN.backReach,
+    baseNearPlayerX * awarenessMultiplier * 0.72,
+  );
+  return (
+    Math.abs(distanceToPlayer) <= horizontalThreat
+    && Math.abs(playerCenterY - enemyCenterY) <= verticalAwareness + 28
+    && playerFootY <= enemyLowThreatLine
+  );
+};
+
+export const shouldUseScorpionVenomSpit = ({
+  enemy,
+  meleeReachesPlayer = false,
+  scorpionVenomCanReach = false,
+  shouldUseScorpionAntiAir = false,
+  venomSlowTimer = 0,
+} = {}) => (
+  enemy?.type === 'scorpion'
+  && !shouldUseScorpionAntiAir
+  && !meleeReachesPlayer
+  && scorpionVenomCanReach
+  && (venomSlowTimer || 0) <= SCORPION_VENOM_REFRESH_WINDOW
+);
+
+export const shouldVaultScarabCharge = ({
+  enemy,
+  contact,
+  pattern,
+} = {}) => (
+  contact?.type === 'stomp'
+  && enemy?.type === 'scarab'
+  && (enemy.attackTimer || 0) > 0
+  && SCARAB_CHARGE_PATTERN_IDS.has(enemy.attackPattern || pattern?.id)
+);
+
+export const getScarabVaultOutcome = ({ jumpSpeed = 0 } = {}) => ({
+  ...SCARAB_VAULT_OUTCOME,
+  playerVy: -jumpSpeed * SCARAB_VAULT_OUTCOME.bounceMultiplier,
+});
 
 export const DEFAULT_BOSS_ATTACK_PHASES = [
   {

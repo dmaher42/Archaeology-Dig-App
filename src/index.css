@@ -7776,6 +7776,18 @@ main {
   color: #e07b3f;
 }
 
+.journey-dev-section-jump {
+  opacity: 0.22;
+  filter: saturate(72%) brightness(82%);
+  transition: opacity 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+}
+
+.journey-dev-section-jump:hover,
+.journey-dev-section-jump:focus-within {
+  opacity: 0.96;
+  filter: none;
+}
+
 /* Next-seal cartouche: gold rope border with the knot bar on its left edge */
 .journey-floating-hud-gate {
   position: absolute;

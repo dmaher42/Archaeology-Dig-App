@@ -1,0 +1,490 @@
+.naidoc-start-mode,
+.naidoc-exploration-mode {
+  box-sizing: border-box;
+  min-height: 100vh;
+  color: #17342e;
+  font-family: 'Outfit', system-ui, sans-serif;
+}
+
+.naidoc-start-mode *,
+.naidoc-exploration-mode * {
+  box-sizing: border-box;
+}
+
+.activity-card--naidoc .activity-card-icon--naidoc {
+  background: linear-gradient(135deg, #0f766e, #e9c46a);
+  color: #fff8e8;
+}
+
+.naidoc-start-mode {
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background:
+    linear-gradient(180deg, rgba(168, 216, 207, 0.72), rgba(244, 230, 200, 0.92)),
+    linear-gradient(90deg, #2a9d8f, #e9c46a 48%, #e76f51);
+}
+
+.naidoc-start-panel {
+  width: min(100%, 1040px);
+  display: grid;
+  gap: 1.25rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border-radius: 8px;
+  background: #fff8e8;
+}
+
+.naidoc-back-button {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(23, 52, 46, 0.22);
+  border-radius: 6px;
+  background: rgba(255, 248, 232, 0.88);
+  color: #17342e;
+  font: 800 0.86rem/1 'Outfit', system-ui, sans-serif;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+}
+
+.naidoc-start-copy h1,
+.naidoc-game-header h1 {
+  max-width: 900px;
+  color: #17342e;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.85rem, 4vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+  overflow-wrap: break-word;
+  margin: 0;
+}
+
+.naidoc-start-copy p,
+.naidoc-game-header p {
+  max-width: 760px;
+  margin: 0.75rem 0 0;
+  color: #4b5b52;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.naidoc-teacher-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.naidoc-teacher-grid section {
+  display: grid;
+  gap: 0.4rem;
+  min-height: 150px;
+  padding: 1rem;
+  border: 1px solid rgba(23, 52, 46, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.naidoc-teacher-grid h2 {
+  margin: 0;
+  color: #17342e;
+  font-size: 1rem;
+}
+
+.naidoc-teacher-grid p {
+  margin: 0;
+  color: #4b5b52;
+  line-height: 1.45;
+}
+
+.naidoc-start-button,
+.naidoc-primary-action,
+.naidoc-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 6px;
+  font: 900 0.9rem/1 'Outfit', system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.naidoc-start-button,
+.naidoc-primary-action {
+  border: 1px solid #0f766e;
+  background: #0f766e;
+  color: #fff8e8;
+  padding: 0.78rem 1rem;
+}
+
+.naidoc-start-button {
+  width: fit-content;
+}
+
+.naidoc-secondary-action {
+  border: 1px solid rgba(23, 52, 46, 0.24);
+  background: #fff8e8;
+  color: #17342e;
+  padding: 0.7rem 0.85rem;
+}
+
+.naidoc-exploration-mode {
+  padding: 1rem;
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+  background:
+    radial-gradient(circle at top left, rgba(42, 157, 143, 0.28), transparent 34rem),
+    linear-gradient(180deg, #f5ead2 0%, #d9e5d4 100%);
+}
+
+.naidoc-game-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  width: min(100%, 1450px);
+  margin: 0 auto 0.85rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(23, 52, 46, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 248, 232, 0.86);
+  box-shadow: 0 16px 40px rgba(23, 52, 46, 0.14);
+}
+
+.naidoc-game-header h1 {
+  font-size: clamp(1rem, 2.1vw, 1.65rem);
+}
+
+.naidoc-game-header p {
+  font-size: 0.92rem;
+  margin-top: 0.25rem;
+}
+
+.naidoc-progress-panel {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 210px;
+  padding: 0.72rem 0.9rem;
+  border-radius: 8px;
+  background: #17342e;
+  color: #fff8e8;
+  text-align: center;
+}
+
+.naidoc-progress-panel strong {
+  font-size: 1.25rem;
+}
+
+.naidoc-progress-panel span {
+  color: rgba(255, 248, 232, 0.76);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.naidoc-game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 0.85rem;
+  width: min(100%, 1450px);
+  margin: 0 auto;
+}
+
+.naidoc-canvas-shell {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(23, 52, 46, 0.18);
+  border-radius: 8px;
+  background: #a8d8cf;
+  box-shadow: 0 18px 44px rgba(23, 52, 46, 0.18);
+}
+
+.naidoc-game-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.naidoc-control-strip {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.naidoc-control-strip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.36rem 0.55rem;
+  border-radius: 6px;
+  background: rgba(255, 248, 232, 0.9);
+  color: #17342e;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.naidoc-side-panel {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid rgba(23, 52, 46, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 248, 232, 0.9);
+  color: #17342e;
+}
+
+.naidoc-side-panel h2 {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+}
+
+.naidoc-side-panel ol {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.naidoc-side-panel li,
+.naidoc-next-marker {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.58rem;
+  border-left: 4px solid rgba(42, 157, 143, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.naidoc-side-panel li.is-current {
+  border-left-color: #0f766e;
+  background: rgba(42, 157, 143, 0.12);
+}
+
+.naidoc-side-panel strong {
+  color: #17342e;
+}
+
+.naidoc-side-panel span,
+.naidoc-next-marker span {
+  color: #51665e;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.naidoc-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 21, 0.58);
+}
+
+.naidoc-learning-card,
+.naidoc-quiz-panel {
+  width: min(100%, 720px);
+  max-height: min(90vh, 780px);
+  overflow: auto;
+  border: 1px solid rgba(255, 248, 232, 0.28);
+  border-radius: 8px;
+  background: #fff8e8;
+  color: #17342e;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+}
+
+.naidoc-learning-card {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+}
+
+.naidoc-learning-kicker {
+  width: fit-content;
+  padding: 0.35rem 0.55rem;
+  border-radius: 6px;
+  background: rgba(42, 157, 143, 0.13);
+  color: #0f766e;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.naidoc-learning-card h2,
+.naidoc-quiz-heading h2 {
+  margin: 0;
+  color: #17342e;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0;
+}
+
+.naidoc-learning-card p {
+  margin: 0;
+  color: #3f544d;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.naidoc-discussion-prompt {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  border-radius: 8px;
+  background: rgba(233, 196, 106, 0.2);
+}
+
+.naidoc-discussion-prompt strong {
+  color: #8a4b16;
+}
+
+.naidoc-discussion-prompt span {
+  color: #3f544d;
+}
+
+.naidoc-quiz-panel {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 980px);
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+
+.naidoc-quiz-heading {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+}
+
+.naidoc-quiz-heading p {
+  margin: 0.25rem 0 0;
+  color: #51665e;
+}
+
+.naidoc-quiz-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.naidoc-quiz-question {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid rgba(23, 52, 46, 0.14);
+  border-radius: 8px;
+}
+
+.naidoc-quiz-question legend {
+  grid-column: 1 / -1;
+  margin-bottom: 0.35rem;
+  color: #17342e;
+  font-weight: 900;
+}
+
+.naidoc-quiz-question button {
+  min-height: 42px;
+  border: 1px solid rgba(23, 52, 46, 0.18);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #17342e;
+  font: 700 0.84rem/1.25 'Outfit', system-ui, sans-serif;
+  text-align: left;
+  padding: 0.6rem;
+  cursor: pointer;
+}
+
+.naidoc-quiz-question button.is-selected {
+  border-color: #0f766e;
+  background: rgba(42, 157, 143, 0.1);
+}
+
+.naidoc-quiz-question button.is-correct {
+  border-color: #15803d;
+  background: rgba(22, 163, 74, 0.12);
+}
+
+.naidoc-quiz-question button.is-incorrect {
+  border-color: #b45309;
+  background: rgba(180, 83, 9, 0.12);
+}
+
+.naidoc-reflection-field {
+  display: grid;
+  gap: 0.45rem;
+  color: #17342e;
+  font-weight: 900;
+}
+
+.naidoc-reflection-field textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid rgba(23, 52, 46, 0.2);
+  border-radius: 6px;
+  background: #fff;
+  color: #17342e;
+  font: 500 0.95rem/1.45 'Outfit', system-ui, sans-serif;
+  padding: 0.7rem;
+}
+
+.naidoc-quiz-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(23, 52, 46, 0.14);
+}
+
+.naidoc-quiz-footer div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (max-width: 980px) {
+  .naidoc-game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .naidoc-game-header {
+    grid-template-columns: 1fr;
+  }
+
+  .naidoc-progress-panel {
+    width: fit-content;
+  }
+
+  .naidoc-teacher-grid,
+  .naidoc-quiz-question {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .naidoc-exploration-mode,
+  .naidoc-start-mode {
+    padding: 0.65rem;
+  }
+
+  .naidoc-control-strip {
+    position: static;
+    padding: 0.55rem;
+    background: rgba(255, 248, 232, 0.88);
+  }
+
+  .naidoc-game-header h1 {
+    font-size: 0.95rem;
+    line-height: 1.18;
+  }
+}

@@ -4,6 +4,25 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-01 Desert Entry screenshot polish pass:
+- Kept the pass on the existing Journey renderer and active layered Desert Entry image contract; no duplicate scene path and no new SVG particle layer.
+- Added canvas-based atmospheric grading over the temple/background layer so the huge backdrop sits farther back and competes less with the playable foreground.
+- Added canvas-based playable-floor occlusion/warmth near the ground lane so Asha, enemies, and props read as sitting in the same sand/stone space.
+- Added a subtle warm enemy sprite rim/drop-shadow so dark enemies belong to the sunset lighting without changing their silhouettes or combat behavior.
+- Quieted the local dev jump overlay until hover/focus so screenshots and playtesting read more like the actual game composition.
+- Follow-up quick win: derived `desert-entry-necropolis-stitched-pushed-back-2026-07-01.png` from the active stitched mid-necropolis layer and wired it into the manifest, pushing the ruins back with lower contrast, softer detail, cooler colour, and darker buried bases.
+- Dry plaza pass: replaced the smooth, pale `groundBacking` with `desert-entry-dry-plaza-ground-backing-2026-07-01.png`, a matte cracked-sand/rubble layer so the space between the gameplay path and ruins no longer reads as a river.
+- Extended the same dry-plaza treatment into the world-locked `groundLane` via `desert-entry-dry-plaza-groundlane-2026-07-01.png`, breaking up the old flat orange top strip with cracks, stones, rubble, and dry grass while keeping the combat floor readable.
+- Pushed the dry plaza layer upward toward the ruins and added a small canvas seam-breakup pass so the dry ground blends into the necropolis base instead of forming a ruler-straight horizontal platform edge.
+
+2026-07-02 Desert Entry sky replacement pass:
+- Generated and normalized `desert-entry-generated-sunburst-sky-2026-07-02.png` as a 2172x724 replacement for the active `skyLight` layer, matching the reference image's brighter sun-break clouds and warm cinematic amber tone.
+- Retuned the selected sky into `desert-entry-generated-sunburst-sky-balanced-2026-07-02.png` after review because the first pass was too orange; the active version keeps the sun break but shifts the cloud mass toward cooler bronze/umber and dusty gold.
+- Wired the new sky through `public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.json` without adding a parallel background path.
+- Ground layer follow-up: replaced the active `groundBacking` with `desert-entry-dry-plaza-ground-backing-softened-2026-07-02.png` and `foregroundRubble` with `desert-entry-foreground-rubble-integrated-2026-07-02.png`; tuned the backing lower/softer and the rubble lower/less opaque so the playable lane remains readable while the ruins-to-path join has more natural dusty support.
+- Regenerated the unsuitable ground support assets instead of continuing narrow tweaks: `desert-entry-generated-dry-plaza-ground-backing-2026-07-02.png` is a fully opaque matte dry plaza backing, and `desert-entry-generated-foreground-rubble-solid-2026-07-02.png` is a chroma-key cleaned rubble strip with solid stone interiors and transparent gaps.
+- Fixed the generated rubble draw order after playtest feedback: `foregroundRubble` is no longer drawn in the early atmosphere pass before `groundBacking`; it is now drawn in the Desert Entry ground-lane pass after backing/lane, so the solid rocks appear in front of the ground backing instead of being covered by it.
+
 2026-06-28 Mummification Lab local save and classroom support pass:
 - Extended the existing `src/components/mummification-quest/` implementation; no duplicate app, no drawing canvas, no AI chat, and no Lost Site Expedition gameplay changes.
 - Added device-local autosave for group responses using `archaeologyDigApp:mummificationQuest:v1`, plus a visible saved indicator and Reset Mummification Lab Progress action.

@@ -1,0 +1,79 @@
+{
+  "image": "desert-entry-v3-generated-far-sky-terrain-pyramids.png",
+  "imageWidth": 1774,
+  "imageHeight": 724,
+  "runtimeMode": "layered-necropolis-playable-route",
+  "devCandidateMode": "v3-production-layers-test",
+  "devCandidateLabel": "DEV V3 production layers test",
+  "status": "candidate-review-only-not-live-natural-embankment-ground-pass-12",
+  "sourceConcept": "C:/Users/dmahe/.codex/generated_images/019f0d6c-819c-7a62-b30a-6969117024eb/ig_0ecf87db9407ae19016a435fbf6d0081918e11058bc97f266a.png",
+  "notes": "Production-intent V3 Desert Entry candidate generated as one coherent asset sheet, then split locally into a full sky plate, ravine/temple depth layer, and walkable bridge/road layer. Pass 12 replaces the under-road support with a generated natural desert/stone embankment with buried ruins so Asha reads as walking at ground level instead of on a high ledge.",
+  "regions": {
+    "skyLight": {
+      "image": "desert-entry-v3-generated-far-sky-terrain-pyramids.png",
+      "x": 0,
+      "y": 0,
+      "w": 1774,
+      "h": 724
+    },
+    "farPyramids": {
+      "image": "desert-entry-v3-coherent-production-empty.png",
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "distantCliffs": {
+      "image": "desert-entry-v3-generated-cool-distance-ridge-clean.png",
+      "x": 0,
+      "y": 0,
+      "w": 1744,
+      "h": 319
+    },
+    "midNecropolisRuins": {
+      "image": "desert-entry-v3-coherent-balanced-mid-ravine-temple-depth.png",
+      "x": 0,
+      "y": 0,
+      "w": 1786,
+      "h": 291
+    },
+    "groundBacking": {
+      "image": "desert-entry-v3-natural-embankment-ground-backing.png",
+      "x": 0,
+      "y": 0,
+      "w": 1656,
+      "h": 356
+    },
+    "groundLane": {
+      "image": "desert-entry-v3-coherent-balanced-walkable-bridge-road.png",
+      "x": 0,
+      "y": 0,
+      "w": 1762,
+      "h": 140
+    },
+    "foregroundRubble": {
+      "image": "desert-entry-v3-coherent-production-empty.png",
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    },
+    "foregroundDepth": {
+      "image": "desert-entry-v3-coherent-production-empty.png",
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16
+    }
+  },
+  "candidateSkyLayerHeight": 660,
+  "candidateDepthFillDrawY": 190,
+  "candidateDepthFillHeight": 315,
+  "candidateDepthFillAlpha": 0,
+  "candidateMidLayerDrawY": 210,
+  "candidateMidLayerHeight": 355,
+  "candidateGroundBackingDrawY": 492,
+  "candidateGroundLaneDrawY": 520,
+  "candidateGroundLaneWalkingSurfaceY": 538,
+  "candidateGroundLaneMode": "coherent-sheet-bridge-road"
+}

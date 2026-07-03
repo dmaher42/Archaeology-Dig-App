@@ -1,0 +1,40 @@
+{
+  "status": "review-production-prep-only-not-live",
+  "source": "public/assets/expedition/backgrounds/desert-entry/_review-long-route-panels-2026-06-28/continuous-master-route-strip-v3-cropped-framing.png",
+  "approvedConceptCopy": "public/assets/expedition/backgrounds/desert-entry/_review-layer-breakdown-2026-06-29/desert-entry-v3-production-source-approved.png",
+  "layerMap": "public/assets/expedition/backgrounds/desert-entry/_review-layer-breakdown-2026-06-29/desert-entry-v3-production-layer-map.png",
+  "groundLaneCandidate": "public/assets/expedition/backgrounds/desert-entry/_review-layer-breakdown-2026-06-29/desert-entry-v3-ground-lane-candidate-review.png",
+  "sourceDimensions": {
+    "w": 2172,
+    "h": 724
+  },
+  "currentRuntimeContract": {
+    "manifest": "public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.json",
+    "fullSceneLayerSize": {
+      "w": 2172,
+      "h": 724
+    },
+    "groundLaneCurrentSize": {
+      "w": 2172,
+      "h": 313
+    },
+    "groundBackingCurrentSize": {
+      "w": 4096,
+      "h": 220
+    },
+    "foregroundDepthCurrentSize": {
+      "w": 4096,
+      "h": 128
+    }
+  },
+  "candidateFootLineYInSourcePx": 593,
+  "gameplayRouteBeats": [
+    "start ledge",
+    "bridge crossing",
+    "combat pocket 1",
+    "combat pocket 2",
+    "approach space",
+    "temple entry"
+  ],
+  "nextRecommendedStep": "generate or paint true separated parallax layers from this approved layer map, then wire into manifest as a versioned candidate pack only after visual review"
+}

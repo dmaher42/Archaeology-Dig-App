@@ -235,7 +235,9 @@ import {
   PLAYER_FINISHER_SLASH_EFFECT_SRC,
   PLAYER_FINISHER_SLASH_EFFECT_VERSION,
   PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL,
+  SCORPION_ANTI_AIR_ATTACK_PATTERN,
   SCORPION_ATTACK_RANGE_MULTIPLIER,
+  SCORPION_VENOM_ATTACK_PATTERN_TUNING,
   SCORPION_VENOM_SLOW_DURATION,
   SCORPION_VENOM_SLOW_MULTIPLIER,
   SCORPION_VENOM_SPIT_RANGE,
@@ -1171,6 +1173,11 @@ const resetPlayerCombo = (current) => {
   current.attackQueuedType = PLAYER_ATTACK_TYPES.LIGHT;
   current.attackQueuedHeavyFollowupPrimed = false;
   current.attackType = PLAYER_ATTACK_TYPES.LIGHT;
+  current.attackRange = 0;
+  current.attackHeight = 0;
+  current.attackBackReach = 0;
+  current.attackYOffset = 0;
+  current.attackDamage = null;
   current.heavyFollowupReadyTimer = 0;
   current.heavyFollowupCueTimer = 0;
 };
@@ -1549,17 +1556,12 @@ const SCORPION_VENOM_ATTACK_PATTERN = {
   ...DEFAULT_ENEMY_ATTACK_PATTERN,
   id: 'venom-spit',
   label: 'Venom Spit',
-  windup: 0.72,
-  duration: 0.36,
-  cooldown: 2.15,
-  recovery: 0.72,
-  vulnerableAfter: 0.82,
+  ...SCORPION_VENOM_ATTACK_PATTERN_TUNING,
   speed: 0,
   range: SCORPION_VENOM_SPIT_RANGE,
   height: 44,
   yOffset: -28,
   backReach: 8,
-  damageScale: 0,
   slowDuration: SCORPION_VENOM_SLOW_DURATION,
   slowMultiplier: SCORPION_VENOM_SLOW_MULTIPLIER,
   ranged: true,
@@ -5793,6 +5795,12 @@ export default function ExpeditionJourney({
   const getEnemyPatternConfig = useCallback((enemy) => {
     if (enemy.type === 'scorpion' && enemy.attackPattern === SCORPION_VENOM_ATTACK_PATTERN.id) {
       return SCORPION_VENOM_ATTACK_PATTERN;
+    }
+    if (
+      enemy.type === 'scorpion' && enemy.attackPattern === SCORPION_ANTI_AIR_ATTACK_PATTERN.id
+      && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
+    ) {
+      return SCORPION_ANTI_AIR_ATTACK_PATTERN;
     }
     // While a heavy attack is in flight (windup -> swing), resolve the heavy pattern so the
     // swing carries heavy damage, reach, speed, and duration. attackPattern keeps the last-used

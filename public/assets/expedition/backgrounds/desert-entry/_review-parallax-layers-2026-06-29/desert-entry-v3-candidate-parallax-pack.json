@@ -1,0 +1,68 @@
+{
+  "image": "desert-entry-v3-candidate-sky-light.png",
+  "imageWidth": 2172,
+  "imageHeight": 724,
+  "status": "candidate-review-only-not-live",
+  "sourceConcept": "public/assets/expedition/backgrounds/desert-entry/_review-long-route-panels-2026-06-28/continuous-master-route-strip-v3-cropped-framing.png",
+  "notes": "Candidate separated parallax layers generated from the approved V3 Desert Entry concept. This is a production-start pack for visual review; it has not replaced the active manifest. Because the concept is a flattened painting, masks are approximate and the ground lane needs a hand-cleaned ravine/bridge transparency pass before shipping.",
+  "regions": {
+    "skyLight": {
+      "image": "desert-entry-v3-candidate-sky-light.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 724
+    },
+    "farPyramids": {
+      "image": "desert-entry-v3-candidate-far-pyramids.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 724
+    },
+    "distantCliffs": {
+      "image": "desert-entry-v3-candidate-distant-cliffs.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 724
+    },
+    "midNecropolisRuins": {
+      "image": "desert-entry-v3-candidate-mid-necropolis-ruins.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 724
+    },
+    "groundBacking": {
+      "image": "desert-entry-v3-candidate-ground-backing.png",
+      "x": 0,
+      "y": 0,
+      "w": 4096,
+      "h": 220
+    },
+    "groundLane": {
+      "image": "desert-entry-v3-candidate-ground-lane.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 313
+    },
+    "foregroundRubble": {
+      "image": "desert-entry-v3-candidate-foreground-rubble.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 220
+    },
+    "foregroundDepth": {
+      "image": "desert-entry-v3-candidate-foreground-depth.png",
+      "x": 0,
+      "y": 0,
+      "w": 4096,
+      "h": 128
+    }
+  },
+  "candidateFootLineYInSourcePx": 593,
+  "nextStep": "Review composite. If approved, hand-clean groundLane alpha around ravine/bridge and create a temporary dev manifest switch for in-game camera/parallax testing."
+}

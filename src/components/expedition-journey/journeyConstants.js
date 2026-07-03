@@ -83,6 +83,7 @@ export const CHARACTER_LOADER_STORAGE_KEY = 'expedition-character-loader-choice'
 export const JOURNEY_PROP_EDITOR_STORAGE_KEY = 'expedition-journey-prop-editor-edits-v1';
 export const JOURNEY_PROP_EDITOR_SECTIONS_KEY = 'expedition-journey-prop-editor-collapsed-sections-v1';
 export const JOURNEY_PROP_EDITOR_PANEL_POS_KEY = 'expedition-journey-prop-editor-panel-pos-v1';
+export const JOURNEY_PROP_PALETTE_DOCK_KEY = 'expedition-journey-prop-palette-dock-v1';
 export const CHARACTER_LOADER_VISIBILITY_STORAGE_KEY = 'expedition-character-loader-visible-v3';
 
 // Boss focus padding + Scarab Queen lair intro/camera tuning (update loop + cinematic).
