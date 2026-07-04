@@ -26,6 +26,7 @@ Current source-of-truth note:
 2026-07-04 Desert Entry ground-backing detail pass:
 - Reworked the active non-colliding `groundBacking` into `desert-entry-warm-detailed-ground-backing-2026-07-04.png`, keeping the same layer slot but warming the colour and strengthening larger cracks/ruin texture so it should no longer read as a grey flat backing in-game.
 - Wired the new PNG through the existing Desert Entry parallax manifest and updated the focused manifest guard; collision, player movement, enemies, and layer order were not changed.
+- Baked the pasted Ritual Temple layer tuning into `desertLayerTuning.js`: parallax 1, height 764, width scale 1.1, base Y 605, and softer brightness/saturation/contrast so the temple should sit closer to the gameplay plane without dominating the scene.
 
 2026-06-28 Mummification Lab local save and classroom support pass:
 - Extended the existing `src/components/mummification-quest/` implementation; no duplicate app, no drawing canvas, no AI chat, and no Lost Site Expedition gameplay changes.
