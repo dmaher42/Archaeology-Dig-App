@@ -3486,12 +3486,18 @@ export function useJourneySimulation({
       }
 
       if (e.stunTimer <= 0 && e.attackWindup <= 0 && e.attackTimer <= 0 && e.attackRecovery <= 0) {
-        const isAggroChasing = (e.aggroMemoryTimer || 0) > 0;
+        // While this timer runs the enemy has given up an unwinnable chase and
+        // walks back to its patrol ground instead of freezing at its leash end.
+        e.patrolReturnTimer = Math.max(0, (e.patrolReturnTimer || 0) - dt);
+        const isAggroChasing = (e.aggroMemoryTimer || 0) > 0 && e.patrolReturnTimer <= 0;
         const sameCombatPlane = Math.abs(player.y - e.y) < Math.max(intentTuning.verticalAwareness || 0, 118 + (e.encounterRole ? 16 : 0));
-        const isPressingPlayer = isAggroChasing
-          || (
-            Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier * 1.55)
-            && sameCombatPlane
+        const isPressingPlayer = e.patrolReturnTimer <= 0
+          && (
+            isAggroChasing
+            || (
+              Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier * 1.55)
+              && sameCombatPlane
+            )
           );
         const venomPursuitBoost = venomPressureTuning.chaseSpeedMultiplier;
         const chaseSpeedMultiplier = isAggroChasing
@@ -3510,13 +3516,33 @@ export function useJourneySimulation({
           const playerCenter = player.x + player.width / 2;
           e.combatSide = resolveEnemyCombatSide({ enemy: e, player, currentSide: e.combatSide });
           const standoffDistance = e.width / 2 + player.width / 2 + ENEMY_COMBAT_STANDOFF_GAP + (intentTuning.standoffGapBonus || 0);
-          let targetX = playerCenter + e.combatSide * standoffDistance - e.width / 2;
-          targetX = Math.min(movementMax, Math.max(movementMin, targetX));
+          const rawTargetX = playerCenter + e.combatSide * standoffDistance - e.width / 2;
+          const targetX = Math.min(movementMax, Math.max(movementMin, rawTargetX));
           const step = patrolSpeed * dt;
           const toTarget = targetX - e.x;
           e.x += Math.abs(toTarget) <= step ? toTarget : Math.sign(toTarget) * step;
           // Always face Asha while holding the line.
           e.direction = e.combatSide >= 0 ? -1 : 1;
+          // Stuck-chase watchdog: if the leash clamp is holding this enemy away
+          // from Asha and it has already reached the clamped spot, it would
+          // otherwise stand frozen at an invisible wall. After ~0.9s of that,
+          // give up: drop aggro and walk home for a couple of seconds.
+          const pinnedByLeash = rawTargetX !== targetX && Math.abs(toTarget) <= Math.max(step, 1.5);
+          if (pinnedByLeash && (e.speed || 0) > 0) {
+            e.stuckChaseTimer = (e.stuckChaseTimer || 0) + dt;
+            if (e.stuckChaseTimer >= 0.9) {
+              e.stuckChaseTimer = 0;
+              e.aggroMemoryTimer = 0;
+              e.combatSide = 0;
+              e.stepShiftTimer = 0;
+              e.patrolReturnTimer = 2.2;
+              // Head back toward home ground immediately.
+              const patrolCenter = (e.patrolMin + e.patrolMax) / 2;
+              e.direction = e.x <= patrolCenter ? 1 : -1;
+            }
+          } else {
+            e.stuckChaseTimer = 0;
+          }
         } else {
           // Not locked into a combat slot: patrol/chase normally and release the
           // committed side so it is re-picked on the next approach.
