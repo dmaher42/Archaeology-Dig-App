@@ -257,6 +257,7 @@ const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/env
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
 const desertEntryEgyptTrueSkyLightPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-sky-light-2026-06-27.png', import.meta.url);
+const desertEntrySkyOnlyCrackedGoldPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-sky-only-cracked-gold-2026-07-04.png', import.meta.url);
 const desertEntryEgyptTrueFarPyramidsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-far-pyramids-2026-06-27.png', import.meta.url);
 const desertEntryEgyptTrueDistantCliffsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-distant-cliffs-2026-06-27.png', import.meta.url);
 const desertEntryEgyptTrueMidRuinsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-mid-necropolis-ruins-2026-06-27.png', import.meta.url);
@@ -5219,12 +5220,13 @@ test('conservative sign cleanup moves route signs onto atlas-backed props', () =
 
 test('desert entry asset manifest records the layered necropolis gameplay-background rebuild', () => {
   assert.equal(desertEntryBackgroundAtlas.runtimeMode, 'layered-necropolis-playable-route');
-  assert.equal(desertEntryBackgroundAtlas.visualPass, 'warm-detailed-ground-backing-refresh-2026-07-04');
+  assert.equal(desertEntryBackgroundAtlas.visualPass, 'sky-only-cracked-gold-refresh-2026-07-04');
   assert.match(desertEntryBackgroundAtlas.notes, /processional-road gameplay lane refresh/);
-  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-v4-hybrid-open-sky-2026-07-02.png');
+  assert.match(desertEntryBackgroundAtlas.notes, /skyLight layer must remain an opaque sky-only strip with no terrain/i);
+  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-sky-only-cracked-gold-2026-07-04.png');
   assert.equal(desertEntryBackgroundAtlas.imageWidth, 2172);
   assert.equal(desertEntryBackgroundAtlas.imageHeight, 724);
-  assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-v4-hybrid-open-sky-2026-07-02.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-sky-only-cracked-gold-2026-07-04.png');
   assert.equal(desertEntryBackgroundAtlas.regions.farPyramids.image, 'desert-entry-egypt-true-far-pyramids-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.distantCliffs.image, 'desert-entry-egypt-true-distant-cliffs-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-v4-hybrid-mid-necropolis-soft-depth-2026-07-02.png');
@@ -5255,7 +5257,7 @@ test('desert entry V3 background candidate is dev-gated and does not replace the
   assert.match(journeyBackgroundAssetsSource, /params\.get\(DESERT_ENTRY_V3_CANDIDATE_URL_PARAM\) === 'v3'/);
   assert.match(journeyBackgroundAssetsSource, /'desert-entry': getDesertEntryBackgroundPack\(\)/);
   assert.match(journeyBackgroundAssetsSource, /desert-entry-v3-production-parallax-pack\.json/);
-  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-v4-hybrid-open-sky-2026-07-02.png');
+  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-sky-only-cracked-gold-2026-07-04.png');
   assert.notEqual(desertEntryBackgroundAtlas.image, desertEntryV3CandidateBackgroundAtlas.image);
   assert.equal(desertEntryV3CandidateBackgroundAtlas.runtimeMode, 'layered-necropolis-playable-route');
   assert.equal(desertEntryV3CandidateBackgroundAtlas.devCandidateMode, 'v3-production-layers-test');
@@ -5314,6 +5316,7 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
   );
 
   [
+    desertEntrySkyOnlyCrackedGoldPath,
     desertEntryEgyptTrueSkyLightPath,
     desertEntryEgyptTrueFarPyramidsPath,
     desertEntryEgyptTrueDistantCliffsPath,
@@ -6092,7 +6095,7 @@ test('regular enemy families use distinct combat role timings without a new AI s
   assert.match(journeyGameplayContractSource, /const ENEMY_AGGRO_PATROL_PADDING = 320/);
   assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?awareness:\s*1\.70[\s\S]*?chase:\s*2\.05/);
   assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?awareness:\s*1\.60[\s\S]*?chase:\s*1\.85/);
-  assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?id:\s*'charge'[\s\S]*?windup:\s*0\.42[\s\S]*?speed:\s*185[\s\S]*?range:\s*38/);
+  assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?id:\s*'charge'[\s\S]*?windup:\s*0\.58[\s\S]*?speed:\s*185[\s\S]*?range:\s*38/);
   assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?id:\s*'sting'[\s\S]*?windup:\s*0\.6[\s\S]*?duration:\s*0\.3[\s\S]*?speed:\s*54[\s\S]*?range:\s*28[\s\S]*?height:\s*58[\s\S]*?yOffset:\s*-34[\s\S]*?backReach:\s*38[\s\S]*?damageScale:\s*1\.45/);
   assert.match(journeyComponentSource, /snake:\s*\{[\s\S]*?id:\s*'lunge'[\s\S]*?windup:\s*0\.62[\s\S]*?speed:\s*166[\s\S]*?range:\s*52/);
   assert.match(journeyComponentSource, /'sand-wisp':\s*\{[\s\S]*?id:\s*'sand-burst'[\s\S]*?windup:\s*0\.5[\s\S]*?speed:\s*150/);

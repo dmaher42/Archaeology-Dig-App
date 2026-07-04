@@ -8,7 +8,7 @@ import test from 'node:test';
 import {
   getMissingSectionBackgroundAssets,
 } from '../journeyBackgroundAssets.js';
-import { journeyComponentSource, journeyRendererSource } from '../journeySourceText.test-utils.mjs';
+import { expeditionJourneySource, journeyComponentSource, journeyRendererSource } from '../journeySourceText.test-utils.mjs';
 import {
   getMissingEnemySpriteAssets,
 } from '../journeyEnemySprites.js';
@@ -216,7 +216,7 @@ test('Rome player, weapon, props, evidence icons, and cinematic art are connecte
     'assets/expedition/environment/rome-section-one/rome-vault-sigil-cutscene-2026-06-24.png',
   ].forEach(assertPngAssetExists);
 
-  const journeySource = await readFile(path.join(repoRoot, 'src', 'components', 'ExpeditionJourney.jsx'), 'utf8');
+  const journeySource = expeditionJourneySource;
   assert.match(journeySource, /ROME_OPENING_BACKGROUND_SRC/);
   assert.match(journeySource, /ROME_OPENING_ASHA_CUTSCENE_SRC/);
   assert.match(journeySource, /ROME_OPENING_LEGATE_CUTSCENE_SRC/);

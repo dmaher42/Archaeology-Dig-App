@@ -9,7 +9,7 @@ import {
   EXPECTED_CHINA_RIVER_VALLEY_BACKGROUND_KEYS,
   getMissingSectionBackgroundAssets,
 } from './journeyBackgroundAssets.js';
-import { indexCssSource, journeyRendererSource } from './journeySourceText.test-utils.mjs';
+import { expeditionJourneySource, indexCssSource, journeyRendererSource } from './journeySourceText.test-utils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
@@ -56,7 +56,7 @@ test('China layered background pack is ready for the shared Journey background l
 });
 
 test('China background draw path receives active Journey pack ids', async () => {
-  const journeySource = await readFile(path.join(repoRoot, 'src', 'components', 'ExpeditionJourney.jsx'), 'utf8');
+  const journeySource = expeditionJourneySource;
   const rendererSource = journeyRendererSource;
 
   assert.match(journeySource, /useJourneyRenderer\(\{[\s\S]*backgroundPackId,[\s\S]*environmentPackId,/);
@@ -64,7 +64,7 @@ test('China background draw path receives active Journey pack ids', async () => 
 });
 
 test('China opening cinematic uses China route copy and real PNG assets instead of Egypt/Anubis defaults', async () => {
-  const journeySource = await readFile(path.join(repoRoot, 'src', 'components', 'ExpeditionJourney.jsx'), 'utf8');
+  const journeySource = expeditionJourneySource;
   const openingScenesSource = await readFile(path.join(repoRoot, 'src', 'components', 'expedition-journey', 'journeyOpeningScenes.js'), 'utf8');
   const cssSource = indexCssSource;
 

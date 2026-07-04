@@ -4,6 +4,12 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-04 Combat readability pass (timing windows + grounded telegraphs):
+- Playtest feedback: fights were hard to time and the colour telegraphs looked artificial. Raised the fast enemy windups so tells are humanly readable (default strike 0.38->0.55, scarab charge 0.42->0.58, bat swoop 0.36->0.5, looter dash 0.3->0.46; scorpion/snake/guardian were already 0.6+), widened the parry window 0.12->0.2, and extended dodge invulnerability 0.18->0.22.
+- Replaced the floating telegraph rectangles and body-outline auras in the enemy renderer with grounded cues: a soft danger pool on the sand under the strike zone that grows with the windup, a reach tick/dot at the strike's far edge, a red expanding ground ring for unblockables, and a gold ground flash plus counter ring during the parry window. The gold/orange/red danger colour language is unchanged.
+- Updated the source-guard pin for the scarab charge windup; verified combat/enemy-sprite/source-guard suites (261 tests), eslint, and a production build.
+- Environment fix: machine-wide NODE_ENV=production had caused npm to strip dev tools (eslint/vite) from node_modules; reinstalled with --include=dev. The env var is still set globally and can bite again.
+
 2026-07-04 Combat feel pass (attack buffering, dodge economy, snappier light hit):
 - Added a 0.3s attack input buffer: J/K presses made while Asha is still mid-swing or recovering now fire the moment she is ready instead of being silently dropped; buffered presses expire if held too long, and the existing heavy follow-up buffering path is unchanged.
 - Cut the dodge Endurance cost from 8 to 4 so dodging is clearly cheaper than eating a hit (enemy hits cost ~6-10); the perfect-dodge reward still refunds more than the dodge costs.
@@ -51,6 +57,7 @@ Current source-of-truth note:
 - Reworked the active non-colliding `groundBacking` into `desert-entry-warm-detailed-ground-backing-2026-07-04.png`, keeping the same layer slot but warming the colour and strengthening larger cracks/ruin texture so it should no longer read as a grey flat backing in-game.
 - Wired the new PNG through the existing Desert Entry parallax manifest and updated the focused manifest guard; collision, player movement, enemies, and layer order were not changed.
 - Baked the pasted Ritual Temple layer tuning into `desertLayerTuning.js`: parallax 1, height 764, width scale 1.1, base Y 605, and softer brightness/saturation/contrast so the temple should sit closer to the gameplay plane without dominating the scene.
+- Replaced the active `skyLight` layer with `desert-entry-sky-only-cracked-gold-2026-07-04.png`, an opaque 2172x724 warm amber/gold sunset sky with subtle cracked-gold shimmer and no terrain baked into the layer.
 
 2026-06-28 Mummification Lab local save and classroom support pass:
 - Extended the existing `src/components/mummification-quest/` implementation; no duplicate app, no drawing canvas, no AI chat, and no Lost Site Expedition gameplay changes.

@@ -9,7 +9,7 @@ const expeditionModeSource = [
   '../useExpeditionDigDraw.js',
   '../useExpeditionDigSimulation.js',
 ].map((p) => readFileSync(new URL(p, import.meta.url), 'utf8')).join('\n');
-const expeditionJourneySource = readFileSync(new URL('../ExpeditionJourney.jsx', import.meta.url), 'utf8');
+import { expeditionJourneySource } from '../expedition-journey/journeySourceText.test-utils.mjs';
 const journeyLevelDataSource = readFileSync(new URL('../expedition-journey/journeyLevelData.js', import.meta.url), 'utf8');
 
 test('Egypt archive prologue keeps the required grounded story sequence before Journey', () => {

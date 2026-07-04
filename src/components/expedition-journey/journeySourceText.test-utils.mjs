@@ -15,8 +15,18 @@ export const JOURNEY_RENDERER_SOURCE_URLS = [
   new URL('./renderer/rendererWorldFeatures.js', import.meta.url),
 ];
 
-export const JOURNEY_SOURCE_URLS = [
+// ExpeditionJourney.jsx's scene constants/helpers were split into these modules.
+// Tests that scan the "journey component" source must scan them together.
+export const EXPEDITION_JOURNEY_SOURCE_URLS = [
   new URL('../ExpeditionJourney.jsx', import.meta.url),
+  new URL('./journeySceneAssets.js', import.meta.url),
+  new URL('./journeyChamberTriggers.js', import.meta.url),
+  new URL('./journeyGameplayHelpers.js', import.meta.url),
+  new URL('./journeyWorldProps.js', import.meta.url),
+];
+
+export const JOURNEY_SOURCE_URLS = [
+  ...EXPEDITION_JOURNEY_SOURCE_URLS,
   new URL('./journeyConstants.js', import.meta.url),
   new URL('./useJourneyEditorOutliner.js', import.meta.url),
   new URL('./useJourneyPlacementEditor.js', import.meta.url),
@@ -66,4 +76,5 @@ export const readJourneySourceText = (urls = JOURNEY_SOURCE_URLS) => urls
 export const journeyComponentSource = readJourneySourceText();
 export const journeyBackgroundAssetsSource = readJourneySourceText([JOURNEY_BACKGROUND_ASSETS_SOURCE_URL]);
 export const journeyRendererSource = readJourneySourceText(JOURNEY_RENDERER_SOURCE_URLS);
+export const expeditionJourneySource = readJourneySourceText(EXPEDITION_JOURNEY_SOURCE_URLS);
 export const indexCssSource = readJourneySourceText(INDEX_CSS_SOURCE_URLS);

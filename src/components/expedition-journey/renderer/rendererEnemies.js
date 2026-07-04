@@ -1066,21 +1066,43 @@ export function drawEnemyAttackTellFrame(ctx, enemy, screenX, cameraX, now, boss
     ctx.fill();
   } else if (tellActive) {
     // Gold/orange means parry or dodge; red means unblockable, dodge only.
+    // Danger reads through grounded light on the sand instead of floating
+    // overlay rectangles, so the cue feels like part of the world.
     const windupDuration = Math.max(0.001, pattern.windup || 0.4);
     const charge = clamp(1 - enemy.attackWindup / windupDuration, 0, 1);
     const isUnblockable = !telegraph.parryable;
     const ringR = enemy.width * 0.6;
 
     if (!pattern.ranged) {
-      ctx.globalAlpha = (0.14 + charge * 0.2) * (isUnblockable ? 1.1 : 1);
+      // Soft danger pool on the ground under the strike zone, growing with charge.
+      const zoneCenterX = boxX + attackBox.width / 2;
+      const zoneRadius = Math.max(attackBox.width * (0.42 + charge * 0.22), 20);
+      const zoneGlow = ctx.createRadialGradient(zoneCenterX, footY, 2, zoneCenterX, footY, zoneRadius);
+      zoneGlow.addColorStop(0, telegraph.glow);
+      zoneGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.save();
+      ctx.translate(zoneCenterX, footY);
+      ctx.scale(1, 0.26);
+      ctx.translate(-zoneCenterX, -footY);
+      ctx.globalAlpha = (0.3 + charge * 0.3) * (isUnblockable ? 1.1 : 1);
+      ctx.fillStyle = zoneGlow;
+      ctx.beginPath();
+      ctx.arc(zoneCenterX, footY, zoneRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      // Small reach tick at the far edge keeps the strike range honest.
+      const reachX = direction >= 0 ? boxX + attackBox.width : boxX;
+      ctx.globalAlpha = 0.28 + charge * 0.3;
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = telegraph.color;
+      ctx.beginPath();
+      ctx.moveTo(reachX, footY - 6);
+      ctx.lineTo(reachX, footY + 3);
+      ctx.stroke();
       ctx.fillStyle = telegraph.color;
       ctx.beginPath();
-      ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
+      ctx.arc(reachX, footY - 1, 1.6 + charge * 1.2, 0, Math.PI * 2);
       ctx.fill();
-      ctx.globalAlpha = 0.3 + charge * 0.4;
-      ctx.lineWidth = 1.5 + charge;
-      ctx.strokeStyle = telegraph.color;
-      ctx.stroke();
       if (pattern.lowLineThreat) {
         const lowLineY = attackBox.y + attackBox.height - 3;
         ctx.globalAlpha = 0.44 + charge * 0.34;
@@ -1114,33 +1136,55 @@ export function drawEnemyAttackTellFrame(ctx, enemy, screenX, cameraX, now, boss
     ctx.restore();
 
     if (isUnblockable) {
+      // Red expanding ground ring instead of a body outline: dodge, do not parry.
       const auraPulse = 0.5 + Math.sin(now / 130) * 0.5;
-      ctx.globalAlpha = 0.3 + auraPulse * 0.45 + charge * 0.2;
-      ctx.lineWidth = 2 + auraPulse * 2;
+      ctx.save();
+      ctx.translate(centerX, footY);
+      ctx.scale(1, 0.32);
+      ctx.globalAlpha = 0.28 + auraPulse * 0.3 + charge * 0.16;
+      ctx.lineWidth = 2 + auraPulse * 1.5;
       ctx.strokeStyle = telegraph.color;
       ctx.shadowColor = telegraph.glow;
-      ctx.shadowBlur = 8 + auraPulse * 10;
+      ctx.shadowBlur = 6 + auraPulse * 6;
       ctx.beginPath();
-      ctx.ellipse(screenX + enemy.width / 2, enemy.y + enemy.height * 0.5, enemy.width * 0.58, enemy.height * 0.52, 0, 0, Math.PI * 2);
+      ctx.arc(0, 0, ringR + 8 + auraPulse * 4, 0, Math.PI * 2);
       ctx.stroke();
+      ctx.restore();
     }
   } else if (attackActive) {
     const parryNow = telegraph.parryable && enemy.attackTimer <= PARRY_WINDOW_DURATION;
     if (!pattern.ranged) {
-      ctx.globalAlpha = parryNow ? 0.32 : 0.16;
-      ctx.fillStyle = parryNow ? '#fff7cc' : telegraph.color;
+      // During the swing the ground pool stays lit; the parry window flashes
+      // it bright gold so the counter moment still pops without a UI box.
+      const zoneCenterX = boxX + attackBox.width / 2;
+      const zoneRadius = Math.max(attackBox.width * 0.62, 22);
+      const strikeGlow = ctx.createRadialGradient(zoneCenterX, footY, 2, zoneCenterX, footY, zoneRadius);
+      strikeGlow.addColorStop(0, parryNow ? 'rgba(255, 242, 176, 0.9)' : telegraph.glow);
+      strikeGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.save();
+      ctx.translate(zoneCenterX, footY);
+      ctx.scale(1, 0.26);
+      ctx.translate(-zoneCenterX, -footY);
+      ctx.globalAlpha = parryNow ? 0.66 : 0.24;
+      ctx.fillStyle = strikeGlow;
       ctx.beginPath();
-      ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
+      ctx.arc(zoneCenterX, footY, zoneRadius, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
       if (parryNow) {
-        ctx.globalAlpha = 0.82;
+        // Bright counter ring at the enemy's feet during the parry window.
+        ctx.save();
+        ctx.translate(centerX, footY);
+        ctx.scale(1, 0.32);
+        ctx.globalAlpha = 0.8;
         ctx.lineWidth = 2.5;
         ctx.strokeStyle = '#fff2b0';
         ctx.shadowColor = 'rgba(255, 240, 170, 0.7)';
         ctx.shadowBlur = 10;
         ctx.beginPath();
-        ctx.roundRect(boxX, attackBox.y, attackBox.width, attackBox.height, 6);
+        ctx.arc(0, 0, enemy.width * 0.66, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.restore();
       }
     }
   }
