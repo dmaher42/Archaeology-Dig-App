@@ -567,11 +567,15 @@ test('snake ambush lunge starts from mid-range and overshoots into a punish wind
   assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.lowLineThreat, true);
   assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.protectedDuringWindup, false);
   assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.protectedDuringAttack, false);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.windup <= 0.5);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.speed >= 230);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.range >= 70);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.windup >= 0.56);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.windup <= 0.62);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.duration <= 0.32);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.speed >= 205);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.speed <= 224);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.range >= 80);
   assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.height <= PLAYER_AIR_ATTACK_HEIGHT);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.vulnerableAfter >= 0.82);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.recovery >= 0.88);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.vulnerableAfter >= 1.08);
 
   const snake = {
     type: 'snake',

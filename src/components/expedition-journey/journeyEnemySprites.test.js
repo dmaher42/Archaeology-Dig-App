@@ -9,7 +9,9 @@ import {
   shouldFlipBossSprite,
 } from './journeyBossSprites.js';
 import {
+  EXPECTED_SAND_SNAKE_SPRITE_KEYS,
   getEnemyBodyLanguagePose,
+  SAND_SNAKE_SPRITE_ATLAS_JSON,
   getEnemySpriteDrawBox,
   getEnemySpriteFrame,
   shouldUseEnemySpritePack,
@@ -208,6 +210,24 @@ test('sand-wisp flying enemy renders as the larger cinematic winged wisp', () =>
   assert.doesNotMatch(enemySpriteGeneratorSource, /flying-scarab-production-source-alpha\.png/);
 });
 
+test('live sand snake pack uses the promoted painted viper runtime atlas', () => {
+  assert.equal(
+    SAND_SNAKE_SPRITE_ATLAS_JSON,
+    'assets/expedition/enemies/sand-viper-painted-sprites-2026-07-04.json',
+  );
+
+  const atlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/enemies/sand-viper-painted-sprites-2026-07-04.json', import.meta.url), 'utf8'));
+  assert.equal(atlas.image, 'sand-viper-painted-sprites-2026-07-04.png');
+  assert.match(atlas.source, /Promoted painted Sand Viper runtime atlas/);
+  assert.notEqual(atlas.status, 'candidate-unapproved');
+  assert.equal(atlas.frameContract.length, 8);
+  EXPECTED_SAND_SNAKE_SPRITE_KEYS.forEach((key) => {
+    assert.ok(atlas.regions[key], `${key} should be present in the promoted painted snake atlas`);
+  });
+  assert.ok(atlas.regions.snakeAttack.w > atlas.regions.snakeWindup.w, 'lunge frame should read longer than the coiled windup');
+  assert.ok(atlas.regions.snakeWindup.h > atlas.regions.snakeAttack.h, 'coiled windup should read taller than the low lunge');
+});
+
 test('Scarab Queen keeps the left-facing atlas orientation while small scarabs use their own rules', () => {
   assert.equal(shouldFlipEnemySprite('scarab', 1), false, 'small scarab should not flip while facing right');
   assert.equal(shouldFlipEnemySprite('scarab', -1), true, 'small scarab should flip while facing left');
@@ -381,6 +401,28 @@ test('Phase 5C animation-led desert telegraphs use body language instead of larg
   assert.match(journeyComponentSource, /ctx\.rotate\(bodyPose\.rotation\)/);
   assert.match(journeyComponentSource, /sand-skid/);
   assert.doesNotMatch(useJourneyRendererSource, /drawDeflectRing\(16 \+ \(1 - progress\) \* 16/);
+});
+
+test('snake ambush body language reads as coil, lunge, then punish opening', () => {
+  const snake = {
+    id: 'sand-snake-ambush-1',
+    name: 'Sand Snake',
+    type: 'snake',
+    x: 100,
+    y: 430,
+    width: 52,
+    height: 24,
+    direction: 1,
+    attackDirection: 1,
+  };
+
+  assert.equal(getEnemySpriteFrame(snake, 'windup', 0), 'snakeWindup');
+  assert.equal(getEnemySpriteFrame(snake, 'attacking', 0), 'snakeAttack');
+  assert.equal(getEnemySpriteFrame(snake, 'cooldown', 0), 'snakeHit');
+  assert.equal(getEnemyBodyLanguagePose(snake, 'windup').offsetX < 0, true, 'snake should coil back before the ambush lunge');
+  assert.equal(getEnemyBodyLanguagePose(snake, 'attacking').offsetX > 0, true, 'snake should visibly commit forward during the lunge');
+  assert.equal(getEnemyBodyLanguagePose(snake, 'cooldown').offsetY > 0, true, 'snake should slump low during the punish opening');
+  assert.match(useJourneyRendererSource, /pattern\.lowLineThreat/);
 });
 
 test('Egypt heavy windups use dedicated premium atlas frames without changing normal windups', () => {

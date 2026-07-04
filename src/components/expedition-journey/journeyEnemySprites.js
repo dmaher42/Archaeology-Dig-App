@@ -21,7 +21,7 @@ export const LOOTER_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}looter-sprites
 export const LOOTER_CAPTAIN_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}looter-captain-sprites-premium-2026-06-02.json`;
 export const TEMPLE_BAT_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}temple-bat-sprites.json`;
 export const DESERT_SCARAB_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}desert-scarab-intimidating-sprites-heavy-windup-attack-2026-06-03.json`;
-export const SAND_SNAKE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-snake-sprites.json`;
+export const SAND_SNAKE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-viper-painted-sprites-2026-07-04.json`;
 export const SCORPION_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}scorpion-sprites-heavy-windup-2026-06-02.json`;
 export const SAND_WISP_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}sand-wisp-sprites.json`;
 export const CURSED_STATUE_SPRITE_ATLAS_JSON = `${ENEMY_SPRITE_BASE_PATH}cursed-statue-sprites.json`;
@@ -608,7 +608,7 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
     return `${family}Windup`;
   }
   if (combatMode === 'attacking') return `${family}Attack`;
-  if (combatMode === 'cooldown' && (family === 'scarab' || family === 'scorpion')) return `${family}Hit`;
+  if (combatMode === 'cooldown' && (family === 'scarab' || family === 'snake' || family === 'scorpion')) return `${family}Hit`;
 
   if (family === 'scarab') return `scarabWalk${walkFrame}`;
   if (family === 'snake') return `snakeWalk${walkFrame}`;
@@ -661,6 +661,21 @@ export const getEnemyBodyLanguagePose = (enemy, combatMode) => {
     }
     if (combatMode === 'stunned') {
       return { offsetX: -direction * 3, offsetY: 2, scaleX: 0.98, scaleY: 0.94, rotation: direction * 0.085 };
+    }
+  }
+
+  if (family === 'snake') {
+    if (combatMode === 'windup') {
+      return { offsetX: -direction * 4, offsetY: -2, scaleX: 0.92, scaleY: 1.12, rotation: -direction * 0.035 };
+    }
+    if (combatMode === 'attacking') {
+      return { offsetX: direction * 8, offsetY: 1, scaleX: 1.14, scaleY: 0.9, rotation: direction * 0.025 };
+    }
+    if (combatMode === 'cooldown') {
+      return { offsetX: -direction * 4, offsetY: 4, scaleX: 0.98, scaleY: 0.86, rotation: direction * 0.06 };
+    }
+    if (combatMode === 'stunned') {
+      return { offsetX: -direction * 3, offsetY: 2, scaleX: 0.96, scaleY: 0.92, rotation: direction * 0.08 };
     }
   }
 

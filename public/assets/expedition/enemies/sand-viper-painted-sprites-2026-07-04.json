@@ -1,0 +1,79 @@
+{
+  "image": "sand-viper-painted-sprites-2026-07-04.png",
+  "source": "Promoted painted Sand Viper runtime atlas repacked from the approved 2026-07-03 candidate into the existing Journey snake frame contract.",
+  "sourceImage": "candidates/sand-viper-painted-candidate-2026-07-03-alpha.png",
+  "status": "runtime-atlas",
+  "coordinateNote": "Four-by-two padded transparent atlas. Frames preserve snakeIdle, snakeWalk1-3, snakeWindup, snakeAttack, snakeHit, and snakeDefeated keys for the canonical enemy loader.",
+  "frameContract": [
+    "idle coil",
+    "slither 1",
+    "slither 2",
+    "coiled windup",
+    "fast low lunge attack",
+    "hurt recoil",
+    "defeated low body",
+    "alternate low slither"
+  ],
+  "regions": {
+    "snakeIdle": {
+      "x": 76,
+      "y": 134,
+      "w": 359,
+      "h": 206
+    },
+    "snakeWalk1": {
+      "x": 545,
+      "y": 225,
+      "w": 445,
+      "h": 115
+    },
+    "snakeWalk2": {
+      "x": 1055,
+      "y": 184,
+      "w": 450,
+      "h": 156
+    },
+    "snakeWindup": {
+      "x": 1627,
+      "y": 45,
+      "w": 329,
+      "h": 295
+    },
+    "snakeAttack": {
+      "x": 13,
+      "y": 523,
+      "w": 486,
+      "h": 169
+    },
+    "snakeHit": {
+      "x": 605,
+      "y": 471,
+      "w": 325,
+      "h": 221
+    },
+    "snakeDefeated": {
+      "x": 1035,
+      "y": 582,
+      "w": 490,
+      "h": 110
+    },
+    "snakeWalk3": {
+      "x": 1574,
+      "y": 569,
+      "w": 436,
+      "h": 123
+    },
+    "snakeSlither1": {
+      "x": 545,
+      "y": 225,
+      "w": 445,
+      "h": 115
+    },
+    "snakeSlither2": {
+      "x": 1055,
+      "y": 184,
+      "w": 450,
+      "h": 156
+    }
+  }
+}

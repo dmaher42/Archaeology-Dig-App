@@ -5870,6 +5870,18 @@ export function drawEnemyAttackTellFrame(ctx, enemy, screenX, cameraX, now, boss
       ctx.lineWidth = 1.5 + charge;
       ctx.strokeStyle = telegraph.color;
       ctx.stroke();
+      if (pattern.lowLineThreat) {
+        const lowLineY = attackBox.y + attackBox.height - 3;
+        ctx.globalAlpha = 0.44 + charge * 0.34;
+        ctx.lineWidth = 2 + charge * 2;
+        ctx.shadowColor = telegraph.glow;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(boxX, lowLineY);
+        ctx.lineTo(boxX + attackBox.width, lowLineY);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
     }
 
     ctx.save();

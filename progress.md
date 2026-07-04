@@ -4,6 +4,12 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-04 Snake ambush live-asset readability pass:
+- Promoted the painted sand-viper candidate into a cleaned runtime atlas and wired the live snake renderer to `sand-viper-painted-sprites-2026-07-04.json` instead of the older snake sheet.
+- Retuned the snake ambush as a clearer low-line threat: longer coil/read, slightly slower lunge, longer recovery, and a longer punish opening after the strike.
+- Added a low amber threat line during snake attack tells so the incoming ground-level danger is easier to read without changing enemy health or damage.
+- Verified focused snake sprite/combat tests, the snake ambush slice test, lint, build, the focused new atlas validator, and local serving of the new snake JSON/PNG through the app path.
+
 2026-07-01 Desert Entry screenshot polish pass:
 - Kept the pass on the existing Journey renderer and active layered Desert Entry image contract; no duplicate scene path and no new SVG particle layer.
 - Added canvas-based atmospheric grading over the temple/background layer so the huge backdrop sits farther back and competes less with the playable foreground.

@@ -17,7 +17,7 @@ PACKS = {
         "batIdle", "batWalk1", "batWalk2", "batWalk3", "batWindup", "batAttack", "batHit", "batDefeated",
     ],
     "public/assets/expedition/enemies/desert-scarab-intimidating-sprites-heavy-windup-attack-2026-06-03.json": ["scarabIdle", "scarabWalk1", "scarabWalk2", "scarabWalk3", "scarabWindup", "scarabHeavyWindup1", "scarabHeavyWindup2", "scarabAttack", "scarabHit", "scarabDefeated"],
-    "public/assets/expedition/enemies/sand-snake-sprites.json": ["snakeIdle", "snakeWalk1", "snakeWalk2", "snakeWalk3", "snakeWindup", "snakeAttack", "snakeHit", "snakeDefeated"],
+    "public/assets/expedition/enemies/sand-viper-painted-sprites-2026-07-04.json": ["snakeIdle", "snakeWalk1", "snakeWalk2", "snakeWalk3", "snakeWindup", "snakeAttack", "snakeHit", "snakeDefeated"],
     "public/assets/expedition/enemies/temple-bat-sprites.json": ["batIdle", "batWalk1", "batWalk2", "batWalk3", "batWindup", "batAttack", "batHit", "batDefeated"],
     "public/assets/expedition/enemies/scorpion-sprites-heavy-windup-2026-06-02.json": ["scorpionIdle", "scorpionWalk1", "scorpionWalk2", "scorpionWalk3", "scorpionWindup", "scorpionHeavyWindup1", "scorpionHeavyWindup2", "scorpionAttack", "scorpionHit", "scorpionDefeated"],
     "public/assets/expedition/enemies/sand-wisp-sprites.json": ["sandWispIdle", "sandWispWalk1", "sandWispWalk2", "sandWispWalk3", "sandWispWindup", "sandWispAttack", "sandWispHit", "sandWispDefeated"],
