@@ -3255,22 +3255,6 @@ export function useJourneySimulation({
             maxTimer: 0.38,
           });
         }
-        if (pattern.id === SCORPION_VENOM_ATTACK_PATTERN.id) {
-          const venomTravelTime = SCORPION_VENOM_SPIT_VISUAL_TRAVEL_TIME;
-          const rawLead = (player.vx || 0) * venomTravelTime * 0.85;
-          const velocityLead = Math.max(-160, Math.min(160, rawLead));
-          addCombatEffect(current, {
-            type: 'venom-spit',
-            x: e.x + e.width / 2,
-            y: e.y + e.height * 0.28,
-            targetX: player.x + player.width / 2 + velocityLead,
-            targetY: player.y + player.height * 0.42,
-            color: '#84cc16',
-            arcHeight: 42,
-            timer: venomTravelTime,
-            maxTimer: venomTravelTime,
-          });
-        }
         if (pattern.id === SCORPION_ANTI_AIR_ATTACK_PATTERN.id) {
           addCombatEffect(current, {
             type: 'enemy-pressure',
@@ -3344,7 +3328,24 @@ export function useJourneySimulation({
       }
 
       if (e.attackReady && e.attackWindup <= 0 && e.attackTimer <= 0) {
-        beginEnemyAttackSwing(e, getEnemyPatternConfig(e));
+        const releasePattern = getEnemyPatternConfig(e);
+        beginEnemyAttackSwing(e, releasePattern);
+        if (releasePattern.id === SCORPION_VENOM_ATTACK_PATTERN.id) {
+          const venomTravelTime = SCORPION_VENOM_SPIT_VISUAL_TRAVEL_TIME;
+          const rawLead = (player.vx || 0) * venomTravelTime * 0.85;
+          const velocityLead = Math.max(-160, Math.min(160, rawLead));
+          addCombatEffect(current, {
+            type: 'venom-spit',
+            x: e.x + e.width / 2,
+            y: e.y + e.height * 0.28,
+            targetX: player.x + player.width / 2 + velocityLead,
+            targetY: player.y + player.height * 0.42,
+            color: '#84cc16',
+            arcHeight: 42,
+            timer: venomTravelTime,
+            maxTimer: venomTravelTime,
+          });
+        }
       }
 
       if (e.attackTimer > 0) {
