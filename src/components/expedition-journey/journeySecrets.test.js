@@ -6627,6 +6627,16 @@ test('heavy follow-up input buffers during the visible combo window until Asha i
   assert.match(journeyComponentSource, /current\.attackQueuedHeavyFollowupPrimed = false;/);
 });
 
+test('regular attack input buffering remembers an early press briefly, then expires it safely', () => {
+  assert.match(journeyGameplayContractSource, /const PLAYER_ATTACK_INPUT_BUFFER_DURATION = 0\.3;/);
+  assert.match(journeyUtilsSource, /attackQueuedBufferTimer:\s*0/);
+  assert.match(journeyComponentSource, /current\.attackQueuedType = attackType === PLAYER_ATTACK_TYPES\.HEAVY[\s\S]{0,180}: PLAYER_ATTACK_TYPES\.LIGHT;/);
+  assert.match(journeyComponentSource, /current\.attackQueuedBufferTimer = PLAYER_ATTACK_INPUT_BUFFER_DURATION;/);
+  assert.match(journeyComponentSource, /current\.attackQueuedBufferTimer = Math\.max\(0, current\.attackQueuedBufferTimer - dt\);/);
+  assert.match(journeyComponentSource, /current\.attackQueuedBufferTimer <= 0[\s\S]{0,180}!current\.attackQueuedHeavyFollowupPrimed[\s\S]{0,180}stillBusy[\s\S]{0,180}current\.attackQueued = false;/);
+  assert.match(journeyComponentSource, /current\.attackQueuedBufferTimer = 0;[\s\S]{0,180}current\.attackType = activeAttackType;/);
+});
+
 test('missed attacks give physical near-miss spacing feedback without widening hitboxes', () => {
   assert.match(journeyGameplayContractSource, /const PLAYER_ATTACK_NEAR_MISS_DISTANCE = 44;/);
   assert.match(journeyGameplayContractSource, /const PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE = 34;/);

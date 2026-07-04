@@ -13,7 +13,9 @@ export const COMBAT_INTENSITY_VERSION = 'combat-impact-pressure-2026-05-16';
 export const PLAYER_ATTACK_STAMINA_COST = 1;
 export const MISSED_ATTACK_EXTRA_STAMINA_COST = 1;
 export const PROTECTED_HIT_EXTRA_STAMINA_COST = 1;
-export const PLAYER_DODGE_STAMINA_COST = 8;
+// Dodge must stay cheaper than eating a hit (enemy hits cost ~6-10 Endurance),
+// otherwise the game teaches players that dodging is not worth the cost.
+export const PLAYER_DODGE_STAMINA_COST = 4;
 export const PLAYER_DODGE_SPEED = 320;
 export const PLAYER_DODGE_DURATION = 0.34;
 export const PLAYER_DODGE_INVULNERABLE_DURATION = 0.18;
@@ -55,8 +57,13 @@ export const PLAYER_COMBO_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-comb
 export const PLAYER_COMBO_SLASH_EFFECT_VERSION = 'asha-combo-slash-effect-2026-06-06';
 export const PLAYER_FINISHER_SLASH_EFFECT_SRC = 'assets/expedition/player/asha-finisher-slash-effect-2026-06-06.png';
 export const PLAYER_FINISHER_SLASH_EFFECT_VERSION = 'asha-finisher-slash-effect-2026-06-06';
+// How long a J/K press made while Asha is still mid-attack stays remembered.
+// Keeps combat responsive instead of eating inputs pressed a beat early.
+export const PLAYER_ATTACK_INPUT_BUFFER_DURATION = 0.3;
 export const PLAYER_ATTACK_COMBO_TIMINGS = [
-  { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
+  // Opening light hit is deliberately snappier than the shared defaults so J feels
+  // quick and decisive; heavies and the finisher keep their weight below.
+  { windup: 0.1, swing: 0.3, recoil: 0.14, cooldown: 0.3 },
   { windup: ATTACK_WINDUP_DURATION, swing: ATTACK_DURATION, recoil: ATTACK_RECOIL_DURATION, cooldown: ATTACK_COOLDOWN },
   { windup: 0.18, swing: 0.52, recoil: 0.28, cooldown: 0.5 },
 ];
