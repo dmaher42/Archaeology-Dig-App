@@ -1,12 +1,12 @@
 {
-  "image": "desert-entry-v4-hybrid-open-sky-2026-07-02.png",
+  "image": "desert-entry-sky-only-cracked-gold-2026-07-04.png",
   "imageWidth": 2172,
   "imageHeight": 724,
-  "visualPass": "processional-road-and-ruin-props-refresh-2026-07-03",
-  "notes": "Layered necropolis rebuild, V4 hybrid open-sky pass, and processional-road gameplay lane refresh for the opening Egypt Journey scene. The active art direction is warm semi-realistic Valley of the Kings cliffs crossed with Memphite Necropolis ruins, with only subtle corruption marks. The background is split into full-width scene strips for sky/light, far pyramids, distant cliffs, mid necropolis ruins, a low dust-haze band, and a dedicated world-locked processional road. These active scene layers must not be replaced by single-object cutout plates. The processional road is visual only; the clean flat platform data remains the gameplay source for collision, enemies, shards, checkpoints, and gates. The ground backing layer is non-colliding visual support so the walkable floor reads as continuous land instead of a floating ledge.",
+  "visualPass": "sky-only-cracked-gold-refresh-2026-07-04",
+  "notes": "Layered necropolis rebuild, sky-only cracked-gold sunset refresh, and processional-road gameplay lane refresh for the opening Egypt Journey scene. The active art direction is warm semi-realistic Valley of the Kings cliffs crossed with Memphite Necropolis ruins, with only subtle corruption marks. The background is split into full-width scene strips for sky/light, far pyramids, distant cliffs, mid necropolis ruins, a low dust-haze band, and a dedicated world-locked processional road. The skyLight layer must remain an opaque sky-only strip with no terrain, ruins, pyramids, cliffs, or visible sun disc baked into it. These active scene layers must not be replaced by single-object cutout plates. The processional road is visual only; the clean flat platform data remains the gameplay source for collision, enemies, shards, checkpoints, and gates. The ground backing layer is non-colliding visual support so the walkable floor reads as continuous land instead of a floating ledge.",
   "regions": {
     "skyLight": {
-      "image": "desert-entry-v4-hybrid-open-sky-2026-07-02.png",
+      "image": "desert-entry-sky-only-cracked-gold-2026-07-04.png",
       "x": 0,
       "y": 0,
       "w": 2172,

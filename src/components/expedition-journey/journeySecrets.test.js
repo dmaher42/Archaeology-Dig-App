@@ -244,6 +244,7 @@ const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/env
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
 const desertEntryEgyptTrueSkyLightPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-sky-light-2026-06-27.png', import.meta.url);
+const desertEntrySkyOnlyCrackedGoldPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-sky-only-cracked-gold-2026-07-04.png', import.meta.url);
 const desertEntryEgyptTrueFarPyramidsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-far-pyramids-2026-06-27.png', import.meta.url);
 const desertEntryEgyptTrueDistantCliffsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-distant-cliffs-2026-06-27.png', import.meta.url);
 const desertEntryEgyptTrueMidRuinsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-mid-necropolis-ruins-2026-06-27.png', import.meta.url);
@@ -5214,12 +5215,13 @@ test('conservative sign cleanup moves route signs onto atlas-backed props', () =
 
 test('desert entry asset manifest records the layered necropolis gameplay-background rebuild', () => {
   assert.equal(desertEntryBackgroundAtlas.runtimeMode, 'layered-necropolis-playable-route');
-  assert.equal(desertEntryBackgroundAtlas.visualPass, 'processional-road-and-ruin-props-refresh-2026-07-03');
+  assert.equal(desertEntryBackgroundAtlas.visualPass, 'sky-only-cracked-gold-refresh-2026-07-04');
   assert.match(desertEntryBackgroundAtlas.notes, /processional-road gameplay lane refresh/);
-  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-v4-hybrid-open-sky-2026-07-02.png');
+  assert.match(desertEntryBackgroundAtlas.notes, /skyLight layer must remain an opaque sky-only strip with no terrain/i);
+  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-sky-only-cracked-gold-2026-07-04.png');
   assert.equal(desertEntryBackgroundAtlas.imageWidth, 2172);
   assert.equal(desertEntryBackgroundAtlas.imageHeight, 724);
-  assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-v4-hybrid-open-sky-2026-07-02.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-sky-only-cracked-gold-2026-07-04.png');
   assert.equal(desertEntryBackgroundAtlas.regions.farPyramids.image, 'desert-entry-egypt-true-far-pyramids-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.distantCliffs.image, 'desert-entry-egypt-true-distant-cliffs-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-v4-hybrid-mid-necropolis-soft-depth-2026-07-02.png');
@@ -5250,7 +5252,7 @@ test('desert entry V3 background candidate is dev-gated and does not replace the
   assert.match(journeyBackgroundAssetsSource, /params\.get\(DESERT_ENTRY_V3_CANDIDATE_URL_PARAM\) === 'v3'/);
   assert.match(journeyBackgroundAssetsSource, /'desert-entry': getDesertEntryBackgroundPack\(\)/);
   assert.match(journeyBackgroundAssetsSource, /desert-entry-v3-production-parallax-pack\.json/);
-  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-v4-hybrid-open-sky-2026-07-02.png');
+  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-sky-only-cracked-gold-2026-07-04.png');
   assert.notEqual(desertEntryBackgroundAtlas.image, desertEntryV3CandidateBackgroundAtlas.image);
   assert.equal(desertEntryV3CandidateBackgroundAtlas.runtimeMode, 'layered-necropolis-playable-route');
   assert.equal(desertEntryV3CandidateBackgroundAtlas.devCandidateMode, 'v3-production-layers-test');
@@ -5309,6 +5311,7 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
   );
 
   [
+    desertEntrySkyOnlyCrackedGoldPath,
     desertEntryEgyptTrueSkyLightPath,
     desertEntryEgyptTrueFarPyramidsPath,
     desertEntryEgyptTrueDistantCliffsPath,
