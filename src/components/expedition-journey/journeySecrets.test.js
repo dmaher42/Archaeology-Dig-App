@@ -1261,8 +1261,8 @@ test('desert entry ground collision uses the integrated painted route instead of
   assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1'/);
   assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'necropolis-route-ground-world-locked-2026-06-25'/);
   // Backing/lane geometry now lives in the dev-tunable store; defaults hold the look.
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.y, 500);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.height, 150);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.y, 460);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.height, 210);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.parallax, 0.72);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.y, 558);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.height, 174);

@@ -373,8 +373,8 @@ function drawDesertEntryAtmosphericGrade(ctx, canvasWidth, canvasHeight, options
   ctx.fillRect(0, 130, canvasWidth, Math.max(1, groundY - 130));
 
   const skyWeight = ctx.createLinearGradient(0, 0, 0, 210);
-  skyWeight.addColorStop(0, `rgba(34, 14, 9, ${0.24 * intensity})`);
-  skyWeight.addColorStop(0.62, `rgba(83, 34, 12, ${0.07 * intensity})`);
+  skyWeight.addColorStop(0, `rgba(34, 14, 9, ${0.12 * intensity})`);
+  skyWeight.addColorStop(0.62, `rgba(83, 34, 12, ${0.05 * intensity})`);
   skyWeight.addColorStop(1, 'rgba(72, 34, 15, 0)');
   ctx.fillStyle = skyWeight;
   ctx.fillRect(0, 0, canvasWidth, 220);
@@ -435,8 +435,8 @@ function drawDesertEntryLayerCohesionGrade(ctx, canvasWidth, canvasHeight, optio
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
   const skyDepth = ctx.createLinearGradient(0, 0, 0, Math.min(canvasHeight, 340));
-  skyDepth.addColorStop(0, `rgba(34, 12, 8, ${0.24 * intensity})`);
-  skyDepth.addColorStop(0.58, `rgba(86, 32, 9, ${0.075 * intensity})`);
+  skyDepth.addColorStop(0, `rgba(34, 12, 8, ${0.12 * intensity})`);
+  skyDepth.addColorStop(0.58, `rgba(86, 32, 9, ${0.05 * intensity})`);
   skyDepth.addColorStop(1, 'rgba(255, 255, 255, 1)');
   ctx.fillStyle = skyDepth;
   ctx.fillRect(0, 0, canvasWidth, Math.min(canvasHeight, 340));
@@ -562,7 +562,13 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
       assets,
       'skyLight',
       fullFrame,
-      { ...layerOptions, parallax: T.skyLight.parallax, alpha: T.skyLight.alpha },
+      {
+        ...layerOptions,
+        parallax: T.skyLight.parallax,
+        alpha: T.skyLight.alpha,
+        // Lift the baked-in storm murk so the sunset reads warm instead of muddy.
+        filter: 'brightness(1.06) saturate(1.05)',
+      },
     );
   if (!skyDrawn) return false;
 

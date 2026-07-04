@@ -17,7 +17,7 @@ export const DESERT_LAYER_TUNING_DEFAULTS = {
   dustHaze: { y: 408, height: 104, parallax: 0.48, alpha: 0.09 },
   desertSphinx: { sectionFraction: 0.56, parallax: 0.48, height: 292, baseY: 590, brightness: 1.01, saturate: 1.12, alpha: 0.94, contrast: 1.18 },
   ritualPyramid: { sectionFraction: 0.31, parallax: 1, height: 764, widthScale: 1.1, baseY: 605, alpha: 0.99, brightness: 1.04, saturate: 0.88, contrast: 1.04 },
-  groundBacking: { y: 500, height: 150, parallax: 0.72, alpha: 1 },
+  groundBacking: { y: 460, height: 210, parallax: 0.72, alpha: 1 },
   groundLane: { y: 558, height: 174, parallax: 1, alpha: 1 },
   foregroundRubble: { y: 542, height: 96, parallax: 1.12, alpha: 0.12 },
   foregroundDepth: { y: 584, height: 46, parallax: 1.24, alpha: 0.14 },
