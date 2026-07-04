@@ -1,0 +1,1203 @@
+/* ---- In-game Controls & Combat help (HUD button + overlay + shared reference) ---- */
+/* Carved bronze medallion so the help affordance matches the meters and cartouche */
+.journey-controls-reference {
+  display: grid;
+  gap: 0.9rem;
+  font-family: system-ui, sans-serif;
+}
+
+.journey-controls-keys-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem 1.1rem;
+}
+
+.journey-control-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.journey-control-keys {
+  display: inline-flex;
+  gap: 0.22rem;
+  flex: 0 0 auto;
+}
+
+.journey-controls-reference kbd {
+  min-width: 1.35rem;
+  padding: 0.12rem 0.34rem;
+  border: 1px solid rgba(245, 214, 143, 0.4);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.34);
+  color: #f6dca0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.journey-control-label {
+  font-size: 0.85rem;
+  color: #e8dcc4;
+}
+
+.journey-controls-legend {
+  display: grid;
+  gap: 0.4rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(245, 214, 143, 0.16);
+}
+
+.journey-controls-legend-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f4c76d;
+}
+
+.journey-telegraph-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.journey-telegraph-dot {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 999px;
+  background: var(--tell-color, #facc15);
+  box-shadow: 0 0 0.5rem var(--tell-color, #facc15);
+}
+
+.journey-telegraph-name {
+  font-weight: 700;
+  color: #fff3d6;
+}
+
+.journey-telegraph-desc {
+  color: rgba(232, 220, 196, 0.82);
+}
+
+.journey-controls-parry-tip {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #e8dcc4;
+}
+
+.journey-controls-parry-tip strong { color: #7fe9ff; }
+
+.journey-controls-parry-tip kbd,
+.briefing-controls-hint kbd {
+  min-width: 1.2rem;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid rgba(245, 214, 143, 0.4);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.34);
+  color: #f6dca0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+}
+
+.briefing-controls-hint {
+  margin: 0.6rem 0 0;
+  font-size: 0.76rem;
+  color: rgba(232, 220, 196, 0.7);
+}
+
+.journey-floating-hud-meters {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-self: start;
+  width: min(100%, 19rem);
+  justify-self: end;
+  gap: 0.4rem;
+}
+
+/* Carved bronze meter plates with gold frames */
+.journey-floating-hud-meter {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(52px, 1fr);
+  align-items: center;
+  gap: 0.28rem;
+  min-height: 1.24rem;
+  padding: 0.16rem 0.34rem;
+  background: linear-gradient(#41301f, #261a0f);
+  border: 1px solid #a8843f;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(231, 197, 122, 0.35),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 2px 6px rgba(20, 12, 4, 0.45);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.journey-floating-hud-meter.stamina-alert,
+.journey-floating-hud-meter.time-alert {
+  animation: journeyMeterWarningPulse 1.15s ease-in-out infinite;
+}
+
+.journey-floating-hud-meter.stamina-recent-loss {
+  border-color: rgba(198, 91, 53, 0.75);
+}
+
+.journey-floating-hud-meter.stamina-low,
+.journey-floating-hud-meter.stamina-empty {
+  border-color: #c65b35;
+  box-shadow: inset 0 1px 0 rgba(231, 197, 122, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(198, 91, 53, 0.3), 0 2px 6px rgba(20, 12, 4, 0.45);
+}
+
+.journey-floating-hud-meter.time-recent-loss {
+  border-color: rgba(227, 189, 106, 0.8);
+}
+
+.journey-floating-hud-meter.time-low,
+.journey-floating-hud-meter.time-empty {
+  border-color: #e3bd6a;
+  box-shadow: inset 0 1px 0 rgba(231, 197, 122, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(227, 189, 106, 0.3), 0 2px 6px rgba(20, 12, 4, 0.45);
+}
+
+.journey-floating-hud-meter.time-low .time-fill,
+.journey-floating-hud-meter.time-empty .time-fill {
+  background: linear-gradient(90deg, #8e2f1d, #e07b3f);
+}
+
+@keyframes journeyMeterWarningPulse {
+  0%, 100% {
+    box-shadow: inset 0 1px 0 rgba(231, 197, 122, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 rgba(201, 165, 72, 0);
+  }
+  50% {
+    box-shadow: inset 0 1px 0 rgba(231, 197, 122, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(201, 165, 72, 0.22);
+  }
+}
+
+.journey-floating-hud-meter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: #e6c88a;
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+}
+
+.journey-floating-hud-meter-label svg {
+  width: 0.7rem;
+  height: 0.7rem;
+  color: #c9a548;
+}
+
+.journey-floating-hud-bar {
+  position: relative;
+  height: 0.34rem;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #140d06;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.85), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.journey-floating-hud-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  /* top sheen so the fill reads as a polished gemstone inlay */
+  box-shadow: inset 0 1px 0 rgba(255, 240, 214, 0.35);
+  transition: width 0.25s ease;
+}
+
+.journey-floating-hud-fill.stamina-fill {
+  background: linear-gradient(90deg, #8e2f1d, #c65b35);
+}
+
+.journey-floating-hud-fill.time-fill {
+  background: linear-gradient(90deg, #a87a2c, #e3bd6a);
+}
+
+.journey-heavy-followup-cue {
+  grid-column: 2;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  width: max-content;
+  max-width: min(13rem, 100%);
+  margin-top: 1.88rem;
+  padding: 0.18rem 0.42rem 0.18rem 0.24rem;
+  border: 1px solid #c9a548;
+  border-radius: 4px;
+  background: linear-gradient(rgba(58, 43, 28, 0.94), rgba(41, 29, 17, 0.94));
+  color: #f2e3bd;
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 8px 18px rgba(18, 10, 4, 0.24);
+  animation: journey-heavy-followup-pulse 0.42s ease-out;
+}
+
+.journey-heavy-followup-cue kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.32rem;
+  height: 1.1rem;
+  border: 1px solid rgba(201, 165, 72, 0.75);
+  border-radius: 4px;
+  background: rgba(201, 165, 72, 0.16);
+  color: #f2e3bd;
+  font: 0.68rem 'Space Mono', monospace;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+
+@keyframes journey-heavy-followup-pulse {
+  0% {
+    opacity: 0;
+    transform: translateY(0.24rem) scale(0.92);
+  }
+  42% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.journey-floating-hud-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  justify-self: end;
+}
+
+.expedition-journey-mode-shell .journey-floating-hud {
+  left: 0.72rem;
+}
+
+@media (max-height: 760px) {
+  .expedition-sidebar {
+    grid-template-columns: auto;
+  }
+
+  .expedition-panel {
+    padding: 0.42rem 0.52rem;
+  }
+
+  .expedition-panel h2,
+  .expedition-panel h3 {
+    margin-bottom: 0.3rem;
+    padding-bottom: 0.26rem;
+  }
+}
+
+@media (max-width: 1060px) {
+  .journey-floating-hud {
+    grid-template-columns: auto minmax(180px, 1fr);
+  }
+
+  .journey-floating-hud-gate {
+    max-width: min(13rem, 48%);
+  }
+
+  .expedition-sidebar {
+    width: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .expedition-journey-container {
+    padding: 0.25rem;
+  }
+
+  .expedition-journey-mode-shell .journey-floating-hud,
+  .journey-floating-hud {
+    top: 3.05rem;
+    left: 0.65rem;
+    right: 0.65rem;
+    bottom: 0.65rem;
+    grid-template-columns: 1fr;
+  }
+
+  .journey-hud-ledger {
+    max-width: 100%;
+  }
+
+  .journey-floating-hud-meters {
+    grid-column: 1;
+    grid-row: auto;
+    grid-template-columns: 1fr;
+    gap: 0.34rem;
+    width: 100%;
+  }
+
+  .journey-enemy-toggle {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .journey-floating-hud-gate {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    max-width: min(14rem, 72%);
+  }
+
+  .expedition-sidebar {
+    left: auto;
+    right: 0.55rem;
+    bottom: 0.55rem;
+    grid-template-columns: 1fr;
+  }
+
+  .dossier-info,
+  .objective-panel {
+    display: none;
+  }
+}
+
+/* In-Game HUD Overlay */
+.journey-hud-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  justify-content: flex-start;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.hud-shards, .hud-stamina {
+  position: relative;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.hud-bar-bg {
+  width: 120px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.hud-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+.hud-bar-fill.stamina { background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+
+.journey-boss-reward-banner {
+  --reward-accent: #b45309;
+  position: absolute;
+  top: 4.3rem;
+  left: 50%;
+  z-index: 42;
+  width: min(34rem, calc(100% - 2rem));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.62rem 0.8rem;
+  align-items: center;
+  transform: translateX(-50%);
+  padding: 0.72rem 0.82rem;
+  border: 1px solid color-mix(in srgb, var(--reward-accent) 54%, #fff0c2 24%);
+  border-radius: 9px;
+  background:
+    radial-gradient(circle at 14% 20%, color-mix(in srgb, var(--reward-accent) 24%, transparent), transparent 32%),
+    linear-gradient(145deg, rgba(255, 248, 228, 0.96), rgba(232, 207, 156, 0.95));
+  color: #3a2514;
+  box-shadow: 0 14px 32px rgba(22, 13, 7, 0.32);
+  pointer-events: none;
+  animation: rewardBannerIn 0.28s ease-out both, rewardBannerPulse 1.1s ease-out;
+}
+
+.journey-boss-reward-banner.is-complete {
+  border-color: rgba(34, 197, 94, 0.62);
+}
+
+.journey-boss-reward-badge {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--reward-accent) 72%, #fff3c4 16%);
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.46), transparent 30%),
+    linear-gradient(145deg, color-mix(in srgb, var(--reward-accent) 62%, #f8dfa4), #392616);
+  color: #fff7d6;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 900;
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--reward-accent) 32%, transparent),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.24);
+  animation: rewardBadgePop 0.72s ease-out;
+}
+
+.journey-boss-reward-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.16rem;
+}
+
+.journey-boss-reward-kicker {
+  color: #8a4f1d;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.journey-boss-reward-copy strong {
+  color: #28180c;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.journey-boss-reward-copy span,
+.journey-boss-reward-copy em {
+  color: #54371d;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.journey-boss-reward-copy em {
+  color: #7a221a;
+}
+
+.journey-boss-reward-progress {
+  grid-column: 2;
+  width: fit-content;
+  padding: 0.22rem 0.48rem;
+  border-radius: 999px;
+  background: rgba(64, 42, 21, 0.1);
+  color: #3b2715;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+@keyframes rewardBannerIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes rewardBannerPulse {
+  0% {
+    box-shadow: 0 14px 32px rgba(22, 13, 7, 0.32), 0 0 0 rgba(250, 204, 21, 0);
+  }
+  36% {
+    box-shadow:
+      0 18px 34px rgba(22, 13, 7, 0.34),
+      0 0 0 5px color-mix(in srgb, var(--reward-accent) 22%, transparent);
+  }
+  100% {
+    box-shadow: 0 14px 32px rgba(22, 13, 7, 0.32), 0 0 0 rgba(250, 204, 21, 0);
+  }
+}
+
+@keyframes rewardBadgePop {
+  0% {
+    transform: scale(0.88);
+  }
+  42% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.journey-sidebar-toggle {
+  width: 100%;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid rgba(139, 106, 72, 0.24);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.42);
+  color: var(--bureau-ink);
+  padding: 0.34rem 0.48rem;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.journey-sidebar-toggle:hover,
+.journey-sidebar-toggle:focus-visible {
+  border-color: rgba(156, 45, 34, 0.38);
+  background: rgba(255, 232, 169, 0.74);
+}
+
+.journey-sidebar-controls {
+  display: grid;
+  gap: 0.28rem;
+  margin-top: 0.42rem;
+  padding: 0.44rem 0.5rem;
+  border: 1px solid rgba(139, 106, 72, 0.2);
+  border-radius: 6px;
+  background: rgba(255, 251, 235, 0.64);
+  color: var(--bureau-ink);
+}
+
+.journey-sidebar-controls div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.journey-sidebar-controls kbd {
+  background: #334155;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+/* Briefing Dossier Overlay */
+.expedition-briefing-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.expedition-briefing-card {
+  width: 540px;
+  background: #fdf6e3;
+  padding: 3rem;
+  border-radius: 4px;
+  border: 2px solid #a88661;
+  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.expedition-briefing-card::after {
+  content: "TOP SECRET";
+  position: absolute;
+  top: 30px;
+  right: -35px;
+  background: #7f1d1d;
+  color: #fff;
+  padding: 4px 50px;
+  font-weight: 900;
+  font-size: 0.7rem;
+  transform: rotate(45deg);
+  letter-spacing: 0.15em;
+}
+
+.briefing-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #a88661;
+  padding-bottom: 1rem;
+}
+
+.briefing-header h1 {
+  font-size: 1.75rem;
+  color: #1e293b;
+  margin: 0;
+}
+
+.instruction-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: #4a3720;
+  font-style: italic;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.mission-dossier {
+  background: rgba(168, 134, 97, 0.08);
+  border: 1.5px dashed #a88661;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2.5rem;
+}
+
+.dossier-tag {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #a88661;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.mission-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
+}
+
+.mission-desc {
+  font-size: 0.95rem;
+  color: #5c4b37;
+  line-height: 1.6;
+}
+
+/* Lost Site Expedition start briefing polish */
+.expedition-briefing-overlay {
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 213, 145, 0.2), transparent 23rem),
+    rgba(15, 23, 42, 0.88) !important;
+  backdrop-filter: blur(6px) saturate(1.05);
+}
+
+.expedition-briefing-card {
+  width: min(980px, calc(100vw - 2rem));
+  max-height: min(96vh, 680px);
+  display: grid;
+  gap: clamp(0.55rem, 1.2vw, 0.9rem);
+  padding: clamp(0.85rem, 1.9vw, 1.3rem) !important;
+  overflow: auto;
+  border: 1px solid rgba(255, 210, 124, 0.45) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, rgba(43, 29, 17, 0.95), rgba(12, 10, 8, 0.98)) !important;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(198, 160, 89, 0.15) !important;
+  color: #f1e6cf;
+}
+
+/* The briefing + help cards inherit .glass-card, whose :hover tilts the card.
+   That reads as a glitch on a full-screen panel, so neutralise it here. */
+.expedition-briefing-card:hover {
+  transform: none;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(198, 160, 89, 0.15);
+}
+
+.expedition-briefing-card::after {
+  content: "EXPEDITION";
+  top: auto;
+  right: 1rem;
+  bottom: 1rem;
+  padding: 0.2rem 0.55rem;
+  border: 2px solid rgba(127, 29, 29, 0.34);
+  border-radius: 5px;
+  background: transparent;
+  color: rgba(127, 29, 29, 0.34);
+  transform: rotate(-4deg);
+  letter-spacing: 0.14em;
+  pointer-events: none;
+}
+
+.briefing-header {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(5.5rem, 8.5rem);
+  align-items: stretch;
+  gap: clamp(0.7rem, 1.6vw, 1.1rem);
+  margin-bottom: 0 !important;
+  padding: clamp(0.7rem, 1.5vw, 1rem) !important;
+  overflow: hidden;
+  border: 1px solid rgba(139, 106, 72, 0.24) !important;
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(31, 20, 12, 0.88), rgba(74, 45, 19, 0.62)),
+    radial-gradient(circle at 82% 35%, rgba(255, 215, 128, 0.48), transparent 6rem);
+}
+
+.briefing-header-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.briefing-kicker {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.35rem;
+  color: #ffd27c;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.briefing-header h1 {
+  color: #fff7df !important;
+  font-size: clamp(1.85rem, 3.4vw, 2.6rem) !important;
+  line-height: 0.98;
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.42);
+}
+
+.briefing-header p {
+  max-width: 52ch;
+  margin: 0;
+  color: #f6e6c4;
+  font-size: clamp(0.86rem, 1.25vw, 0.96rem);
+  line-height: 1.38;
+}
+
+.briefing-hero-mark {
+  position: relative;
+  min-height: 7rem;
+  overflow: hidden;
+}
+
+.briefing-hero-mark::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 32%;
+  border-radius: 50% 50% 0 0;
+  background: linear-gradient(180deg, rgba(232, 158, 93, 0.42), rgba(93, 49, 18, 0.82));
+}
+
+.briefing-header-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.briefing-kicker {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.35rem;
+  color: #ffd27c;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.briefing-header h1 {
+  color: #fff7df !important;
+  font-size: clamp(1.85rem, 3.4vw, 2.6rem) !important;
+  line-height: 0.98;
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.42);
+}
+
+.briefing-header p {
+  max-width: 52ch;
+  margin: 0;
+  color: #f6e6c4;
+  font-size: clamp(0.86rem, 1.25vw, 0.96rem);
+  line-height: 1.38;
+}
+
+.briefing-hero-mark {
+  position: relative;
+  min-height: 7rem;
+  overflow: hidden;
+}
+
+.briefing-hero-mark::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 32%;
+  border-radius: 50% 50% 0 0;
+  background: linear-gradient(180deg, rgba(232, 158, 93, 0.42), rgba(93, 49, 18, 0.82));
+}
+
+.briefing-hero-portrait {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(-6px 8px 18px rgba(0, 0, 0, 0.62));
+  z-index: 2;
+}
+
+.briefing-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.9fr) minmax(0, 1.04fr);
+  gap: clamp(0.55rem, 1.2vw, 0.85rem);
+  align-items: stretch;
+}
+
+/* Matched trio of panels, each with a themed left accent. */
+.expedition-start-dossier { border-left-width: 4px !important; }
+
+.briefing-content .briefing-task-panel:not(.briefing-controls-panel) {
+  border-left: 4px solid rgba(214, 169, 85, 0.7);
+}
+
+.briefing-content .briefing-controls-panel {
+  border-left: 4px solid rgba(127, 222, 244, 0.66);
+}
+
+.briefing-controls-panel .journey-controls-reference { gap: 0.5rem; }
+.briefing-controls-panel .journey-controls-keys-grid { gap: 0.28rem 0.5rem; }
+.briefing-controls-panel .journey-controls-legend { gap: 0.28rem; padding-top: 0.5rem; }
+.briefing-controls-panel .journey-controls-parry-tip { font-size: 0.76rem; line-height: 1.36; }
+.briefing-controls-panel .briefing-controls-hint { margin-top: 0.45rem; }
+
+.expedition-start-dossier {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0 !important;
+  padding: clamp(0.7rem, 1.3vw, 0.92rem) !important;
+  border: 1px solid rgba(198, 160, 89, 0.24) !important;
+  border-left: 5px solid #b91c1c !important;
+  border-radius: 8px !important;
+  background: rgba(17, 13, 10, 0.6) !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+}
+
+.expedition-start-dossier .dossier-tag {
+  margin: 0;
+  color: #caa86e;
+  font-size: 0.68rem;
+}
+
+.expedition-start-dossier .mission-title {
+  margin: 0;
+  color: #fff3dd;
+  font-size: clamp(1.02rem, 1.7vw, 1.25rem);
+  line-height: 1.14;
+}
+
+.expedition-start-dossier .mission-desc {
+  margin: 0;
+  color: #bda983;
+  font-size: 0.88rem;
+  line-height: 1.42;
+}
+
+.briefing-task-panel {
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+  padding: clamp(0.7rem, 1.3vw, 0.92rem);
+  border: 1px solid rgba(198, 160, 89, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 247, 229, 0.045);
+}
+
+.briefing-task-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #caa86e;
+}
+
+.briefing-task-heading h2 {
+  margin: 0;
+  color: #fff3dd;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.briefing-task-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.36rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.briefing-task-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.42rem;
+  color: #cdbb95;
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1.26;
+}
+
+.briefing-task-list svg {
+  flex: 0 0 auto;
+  margin-top: 0.05rem;
+  color: #b91c1c;
+}
+
+.briefing-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.1rem;
+}
+
+.expedition-begin-btn {
+  min-width: min(100%, 17rem);
+  min-height: 3rem;
+  padding: 0.78rem 1.25rem;
+  border: 1px solid rgba(255, 210, 124, 0.32);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #d32929, #a91515);
+  color: #fff7df;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.88rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 12px 24px rgba(127, 29, 29, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.expedition-begin-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #ef3434, #b91c1c);
+  box-shadow: 0 16px 30px rgba(127, 29, 29, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.expedition-begin-btn:focus-visible {
+  outline: 3px solid rgba(255, 210, 124, 0.92);
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .briefing-header,
+  .briefing-content {
+    grid-template-columns: 1fr;
+  }
+
+  .briefing-hero-mark {
+    display: none;
+  }
+
+  .expedition-briefing-card {
+    width: min(560px, calc(100vw - 1.25rem));
+  }
+}
+
+@media (max-width: 520px) {
+  .expedition-briefing-overlay {
+    padding: 0.5rem;
+  }
+
+  .expedition-briefing-card {
+    max-height: 94vh;
+    padding: 0.8rem !important;
+  }
+
+  .briefing-header h1 {
+    font-size: clamp(1.8rem, 12vw, 2.45rem) !important;
+  }
+
+  .expedition-begin-btn {
+    width: 100%;
+  }
+}
+
+/* Failure Overlay */
+.expedition-failure-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(127, 29, 29, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  backdrop-filter: blur(8px);
+}
+
+.failure-card {
+  width: 400px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem;
+  background: #fdf6e3;
+  border-radius: 4px;
+  border: 3px solid #ef4444;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.failure-card p {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: #7f1d1d;
+  margin-bottom: 0.75rem;
+}
+
+.failure-reason {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 0.22rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(127, 29, 29, 0.08);
+  color: #7f1d1d;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* Animations */
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Controls Hint Bar */
+.controls-hint {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 0.75rem;
+  background: rgba(0,0,0,0.3);
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--arch-muted);
+}
+
+.controls-hint kbd {
+  background: #334155;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  margin-right: 4px;
+}
+
+/* Base Camp specific overrides and polish */
+.expedition-basecamp-card .expedition-tool-icon-wrapper {
+  border: 1px solid rgba(139, 106, 72, 0.15);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--bureau-gold-muted);
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.is-collected .expedition-tool-icon-wrapper {
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.3);
+  background: #fff;
+}
+
+.expedition-impact-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.status-label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.status-icon {
+  flex-shrink: 0;
+}
+
+.is-collected .status-icon { color: #059669; }
+.status-label {
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bureau-ink-muted);
+}
+
+.is-collected .status-label { color: #059669; }
+
+.expedition-impact-meta strong {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: var(--bureau-ink);
+}
+
+.expedition-impact-description {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--bureau-ink-muted);
+}
+
+.expedition-impact-description strong {
+  color: var(--bureau-ink);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Fix overlapping and alignment */
+@media (max-width: 800px) {
+  .expedition-field-kit-impact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bureau-briefing-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(139, 106, 72, 0.1);
+
+}

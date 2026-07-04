@@ -1,0 +1,413 @@
+
+:root {
+  /* HSL Base Colors - The Bureau Dossier Palette */
+  --h-wood: 30;
+  --s-wood: 15%;
+  --l-wood: 8%;
+
+  --h-ink: 210;
+  --s-ink: 10%;
+  --l-ink: 12%;
+
+  --h-parchment: 45;
+  --s-parchment: 60%;
+  --l-parchment: 96%;
+
+  --h-stamp: 0;
+  --s-stamp: 70%;
+  --l-stamp: 40%;
+
+  /* Core Palette */
+  --bg-color: hsl(var(--h-wood), var(--s-wood), var(--l-wood));
+  --paper: hsl(var(--h-parchment), var(--s-parchment), var(--l-parchment));
+  --paper-dark: hsl(var(--h-parchment), 40%, 90%);
+  --text-ink: hsl(var(--h-ink), var(--s-ink), var(--l-ink));
+  --text-ink-muted: hsl(var(--h-ink), 10%, 40%);
+  --accent-stamp: hsl(var(--h-stamp), var(--s-stamp), var(--l-stamp));
+
+  /* UI Tokens */
+  --folder-bg: #d4bca3;
+  --folder-border: #a88661;
+  --shadow-dossier: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  --card-radius: 2px; /* Sharp edges for paper */
+
+  /* Legacy/Base Expedition Tokens */
+  --sand-100: #F4ECE1;
+  --sand-200: #E6D5C3;
+  --sand-300: #D4BCA3;
+  --sand-400: #C2A383;
+  --sand-500: #A88661;
+  --sand-600: #8A6A48;
+  --sand-700: #6B5034;
+  --sand-800: #4A3620;
+  --sand-900: #291D11;
+  --text-color: #F4ECE1;
+  --accent: #E89E5D;
+  --accent-hover: #f3b482;
+  --success: #4ade80;
+
+  /* Bureau Aliases */
+  --bureau-parchment: var(--paper);
+  --bureau-parchment-dark: var(--paper-dark);
+  --bureau-ink: var(--text-ink);
+  --bureau-ink-muted: var(--text-ink-muted);
+  --bureau-gold: var(--folder-bg);
+  --bureau-gold-light: var(--folder-border);
+  --bureau-gold-dark: var(--folder-border);
+  --bureau-gold-muted: rgba(168, 134, 97, 0.5);
+  --bureau-shadow: var(--shadow-dossier);
+
+  /* Retro-compatible vars */
+  --arch-bg: var(--bg-color);
+  --arch-text: var(--text-ink);
+  --arch-accent: var(--accent-stamp);
+  --arch-panel: var(--paper-dark);
+  --arch-panel-border: var(--folder-border);
+}
+
+body {
+  font-family: 'Courier Prime', monospace;
+  background-color: var(--bg-color);
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(255, 230, 180, 0.05) 0%, transparent 60%),
+    url("https://www.transparenttextures.com/patterns/dark-wood.png");
+  color: var(--sand-100);
+  min-height: 100vh;
+  margin: 0;
+  -webkit-font-smoothing: grayscale;
+}
+
+.glass-card {
+  background: var(--paper);
+  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-dossier);
+  color: var(--text-ink);
+  padding: 2rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px) rotate(0.5deg);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.mode-loading-phase {
+  min-height: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.mode-loading-card {
+  display: grid;
+  gap: 0.35rem;
+  width: min(100%, 28rem);
+  padding: 1rem 1.15rem;
+  text-align: center;
+}
+
+.mode-loading-kicker {
+  color: var(--accent-stamp);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mode-loading-title {
+  color: var(--text-ink);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  font-weight: 800;
+}
+
+.premium-text-glow {
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(218, 165, 32, 0.4), 0 2px 4px rgba(0,0,0,0.8);
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(to right, rgba(218, 165, 32, 0.8), rgba(218, 165, 32, 0)) 1;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+::-webkit-scrollbar-thumb { background: var(--sand-600); border-radius: 4px; }
+
+/* App Structure */
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 100vw;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: min-content;
+  background: var(--dark-bg);
+}
+
+.main-header {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--paper-dark);
+  background-image: url("https://www.transparenttextures.com/patterns/cardboard-flat.png");
+  border-bottom: 3px solid var(--folder-border);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.header-icon-container {
+  width: 50px;
+  height: 50px;
+  background: var(--accent-stamp);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+  transform: rotate(-2deg);
+}
+
+.header-titles h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-ink);
+  margin: 0;
+  line-height: 1;
+}
+
+.header-titles p {
+  font-family: 'Courier Prime', monospace;
+  color: var(--text-ink-muted);
+  font-size: 0.8rem;
+  margin-top: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.save-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+.save-control-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border: 1px solid rgba(232, 158, 93, 0.38);
+  border-radius: 999px;
+  background: rgba(232, 158, 93, 0.1);
+  color: var(--sand-100);
+  padding: 0.24rem 0.42rem;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-control-btn:hover {
+  border-color: var(--accent);
+  background: rgba(232, 158, 93, 0.22);
+  transform: translateY(-1px);
+}
+
+.save-control-btn:disabled,
+.save-control-btn.is-disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.save-control-btn.is-disabled {
+  pointer-events: none;
+}
+
+.save-control-btn input {
+  display: none;
+}
+
+.save-control-icon-btn {
+  min-width: 2rem;
+  min-height: 2rem;
+}
+
+.save-control-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.save-message {
+  position: fixed;
+  top: 5.6rem;
+  left: 50%;
+  z-index: 5000;
+  transform: translateX(-50%);
+  max-width: min(720px, calc(100vw - 2rem));
+  padding: 0.65rem 1rem;
+  border: 1px solid rgba(232, 158, 93, 0.45);
+  border-radius: 999px;
+  background: rgba(22, 15, 9, 0.94);
+  color: var(--sand-100);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+.phase-navigation {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  list-style: none;
+  background: var(--paper-dark);
+  background-image: url("https://www.transparenttextures.com/patterns/cardboard-flat.png");
+  padding: 0;
+  border-radius: 4px;
+  border: 2px solid var(--folder-border);
+  box-shadow: var(--shadow-dossier);
+  margin: 1rem auto;
+  width: fit-content;
+  overflow: hidden;
+}
+
+.phase-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-family: 'Courier Prime', monospace;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-ink-muted);
+  transition: background 0.2s ease, color 0.2s ease;
+  cursor: default;
+  background: rgba(0,0,0,0.05);
+  border: none;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.phase-nav-item.active {
+  background: var(--paper);
+  color: var(--text-ink);
+  box-shadow: inset 0 4px 0 var(--accent-stamp);
+}
+
+.phase-nav-item:not(.active):hover {
+  background: rgba(0,0,0,0.1);
+  color: var(--text-ink);
+}
+
+.phase-navigation--readonly .phase-nav-item:not(.active):hover {
+  background: rgba(0,0,0,0.05);
+  color: var(--text-ink-muted);
+}
+
+.phase-nav-item .phase-num {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--text-ink-muted);
+  color: var(--paper);
+  border-radius: 2px;
+  font-size: 0.75rem;
+}
+
+.phase-nav-item.active .phase-num {
+  background: var(--accent-stamp);
+  color: #fff;
+}
+
+.phase-nav-item.done .phase-num {
+  background: hsla(var(--h-cyan), var(--s-cyan), var(--l-cyan), 0.2);
+  color: hsl(var(--h-cyan), var(--s-cyan), var(--l-cyan));
+}
+
+.phase-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--sand-600);
+}
+
+.phase-indicator span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.phase-indicator span.active {
+  background: rgba(232, 158, 93, 0.2);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.phase-indicator span.done {
+  color: var(--sand-300);
+}
+
+.phase-indicator span strong {
+  font-size: 0.68rem;
+  font-weight: 800;
+  opacity: 0.9;
+}
+
+.phase-indicator span em {
+  font-style: normal;
+  font-size: 0.86rem;
+}
+
+.phase-indicator svg {
+  opacity: 0.65;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+  min-height: 0;
+}

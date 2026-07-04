@@ -11,6 +11,7 @@ import {
 import {
   EXPECTED_SAND_SNAKE_SPRITE_KEYS,
   getEnemyBodyLanguagePose,
+  getEnemySpriteDebugAtlasState,
   SAND_SNAKE_SPRITE_ATLAS_JSON,
   getEnemySpriteDrawBox,
   getEnemySpriteFrame,
@@ -29,14 +30,15 @@ import {
   getEnemyAttackHurtbox,
   rectsOverlap,
 } from './journeyUtils.js';
-import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
+import { journeyComponentSource, journeyRendererSource } from './journeySourceText.test-utils.mjs';
 import { readFileSync } from 'node:fs';
 
 const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta.url), 'utf8');
 const journeyCombatSource = readFileSync(new URL('./journeyCombat.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
-const useJourneyRendererSource = readFileSync(new URL('./useJourneyRenderer.js', import.meta.url), 'utf8');
+const useJourneyRendererSource = journeyRendererSource;
+const useJourneySnapshotSource = readFileSync(new URL('./useJourneySnapshot.js', import.meta.url), 'utf8');
 const enemySpriteGeneratorSource = readFileSync(new URL('../../../scripts/generate_enemy_sprite_sheets.py', import.meta.url), 'utf8');
 const scarabQueenBuilderSource = readFileSync(new URL('../../../scripts/build_scarab_queen_atlas.py', import.meta.url), 'utf8');
 const scarabQueenAtlas = JSON.parse(readFileSync(new URL('../../../public/assets/expedition/bosses/scarab-queen-sprites.json', import.meta.url), 'utf8'));
@@ -226,6 +228,54 @@ test('live sand snake pack uses the promoted painted viper runtime atlas', () =>
   });
   assert.ok(atlas.regions.snakeAttack.w > atlas.regions.snakeWindup.w, 'lunge frame should read longer than the coiled windup');
   assert.ok(atlas.regions.snakeWindup.h > atlas.regions.snakeAttack.h, 'coiled windup should read taller than the low lunge');
+});
+
+test('debug sprite atlas state reports family-specific enemy packs', () => {
+  const debugState = getEnemySpriteDebugAtlasState(
+    {
+      loaded: true,
+      failed: false,
+      atlasPath: 'assets/expedition/enemies/small-enemy-sprites.json',
+      packs: {
+        small: {
+          loaded: true,
+          ready: true,
+          failed: false,
+          atlasPath: 'assets/expedition/enemies/small-enemy-sprites.json',
+        },
+        snake: {
+          loaded: true,
+          ready: true,
+          failed: false,
+          atlasPath: 'assets/expedition/enemies/sand-viper-painted-sprites-2026-07-04.json',
+        },
+        scarab: {
+          loaded: true,
+          ready: true,
+          failed: false,
+          atlasPath: 'assets/expedition/enemies/desert-scarab-intimidating-sprites-heavy-windup-attack-2026-06-03.json',
+        },
+      },
+    },
+    ['snake', 'scarab'],
+  );
+
+  assert.equal(debugState.enemySpriteAtlasPath, 'assets/expedition/enemies/small-enemy-sprites.json');
+  assert.equal(
+    debugState.enemySpriteAtlasPaths.snake,
+    'assets/expedition/enemies/sand-viper-painted-sprites-2026-07-04.json',
+  );
+  assert.equal(
+    debugState.visibleEnemySpriteAtlasPaths.snake,
+    'assets/expedition/enemies/sand-viper-painted-sprites-2026-07-04.json',
+  );
+  assert.equal(
+    debugState.visibleEnemySpriteAtlasPaths.scarab,
+    'assets/expedition/enemies/desert-scarab-intimidating-sprites-heavy-windup-attack-2026-06-03.json',
+  );
+  assert.equal(debugState.enemySpritePackStatus.snake.ready, true);
+  assert.match(useJourneySnapshotSource, /getEnemySpriteDebugAtlasState/);
+  assert.match(useJourneySnapshotSource, /\.\.\.enemySpriteDebugAtlasState/);
 });
 
 test('Scarab Queen keeps the left-facing atlas orientation while small scarabs use their own rules', () => {

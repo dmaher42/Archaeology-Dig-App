@@ -4,6 +4,24 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-04 Combat feel pass (attack buffering, dodge economy, snappier light hit):
+- Added a 0.3s attack input buffer: J/K presses made while Asha is still mid-swing or recovering now fire the moment she is ready instead of being silently dropped; buffered presses expire if held too long, and the existing heavy follow-up buffering path is unchanged.
+- Cut the dodge Endurance cost from 8 to 4 so dodging is clearly cheaper than eating a hit (enemy hits cost ~6-10); the perfect-dodge reward still refunds more than the dodge costs.
+- Made the opening light attack snappier (windup 0.10 / swing 0.30 / recoil 0.14 / cooldown 0.30, was 0.12/0.42/0.18/0.38) so J feels quick and decisive; heavy, finisher, and air attack timings are untouched.
+- Verified focused combat tests (23), enemy sprite/combat guards (51 with the combat suite), the full Journey source-guard suite (210), eslint, and a production build on the working machine.
+
+2026-07-04 Legacy sand snake runtime cleanup:
+- Deleted the old `sand-snake-sprites.json` and `sand-snake-sprites.png` runtime atlas files after the live enemy renderer and validator were already moved to the painted viper atlas.
+- Kept the painted viper runtime atlas, source/candidate PNGs, and archived metadata because those still document the approved asset path and provenance.
+
+2026-07-04 Painted viper candidate metadata archive:
+- Moved the promoted Sand Viper candidate metadata into `public/assets/expedition/enemies/candidates/archive/` and marked it `archived-promoted`.
+- Kept the candidate PNG/source PNG in place because the live painted viper runtime atlas still records the candidate image as provenance.
+
+2026-07-04 Journey debug snapshot enemy atlas readout fix:
+- Updated the AI/debug snapshot so enemy sprite reporting includes family-specific atlas paths and pack status instead of only the generic fallback enemy atlas path.
+- The visible families map now shows when snakes are using the promoted painted viper atlas, while the older `enemySpriteAtlasPath` remains as the primary fallback path for compatibility.
+
 2026-07-04 Snake ambush live-asset readability pass:
 - Promoted the painted sand-viper candidate into a cleaned runtime atlas and wired the live snake renderer to `sand-viper-painted-sprites-2026-07-04.json` instead of the older snake sheet.
 - Retuned the snake ambush as a clearer low-line threat: longer coil/read, slightly slower lunge, longer recovery, and a longer punish opening after the strike.

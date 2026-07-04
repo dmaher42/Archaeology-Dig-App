@@ -1006,6 +1006,8 @@ FAMILIES = {
         "draw": draw_snake,
         "aliases": {"Walk1": "snakeSlither1", "Walk2": "snakeSlither2"},
         "base_y": 320,
+        "standalone": False,
+        "retiredNote": "Standalone sand-snake atlas retired; live snake renderer uses sand-viper-painted-sprites-2026-07-04.json.",
     },
     "bat": {
         "path": ENEMY_DIR / "temple-bat-sprites",
@@ -1193,10 +1195,15 @@ def main():
         return
 
     if args.family:
-        write_family(args.family, FAMILIES[args.family])
+        config = FAMILIES[args.family]
+        if config.get("standalone") is False:
+            parser.error(config.get("retiredNote", f"{args.family} standalone atlas is retired."))
+        write_family(args.family, config)
         return
 
     for name, config in FAMILIES.items():
+        if config.get("standalone") is False:
+            continue
         write_family(name, config)
     write_small_pack()
     if args.include_bosses:

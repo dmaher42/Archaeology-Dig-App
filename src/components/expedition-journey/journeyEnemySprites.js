@@ -542,6 +542,39 @@ export const getEnemySpritePack = (assets, family) => {
   return assets?.packs?.small || assets || null;
 };
 
+export const getEnemySpriteDebugAtlasState = (assets, visibleFamilies = []) => {
+  const packs = assets?.packs || {};
+  const enemySpriteAtlasPaths = Object.fromEntries(
+    Object.entries(packs)
+      .map(([packId, pack]) => [packId, pack?.atlasPath || null])
+      .filter(([, atlasPath]) => Boolean(atlasPath)),
+  );
+  const enemySpritePackStatus = Object.fromEntries(
+    Object.entries(packs).map(([packId, pack]) => [packId, {
+      loaded: Boolean(pack?.loaded),
+      ready: Boolean(pack?.ready),
+      failed: Boolean(pack?.failed),
+      atlasPath: pack?.atlasPath || null,
+      error: pack?.error || null,
+    }]),
+  );
+  const visibleEnemySpriteAtlasPaths = Object.fromEntries(
+    [...new Set((visibleFamilies || []).filter(Boolean))]
+      .map((family) => {
+        const pack = getEnemySpritePack(assets, family);
+        return [family, pack?.atlasPath || assets?.atlasPath || ENEMY_SPRITE_ATLAS_JSON];
+      })
+      .filter(([, atlasPath]) => Boolean(atlasPath)),
+  );
+
+  return {
+    enemySpriteAtlasPath: assets?.atlasPath || ENEMY_SPRITE_ATLAS_JSON,
+    enemySpriteAtlasPaths,
+    visibleEnemySpriteAtlasPaths,
+    enemySpritePackStatus,
+  };
+};
+
 export const getEnemySpriteFamily = (enemy) => {
   if (!enemy) return null;
   // The scorpion nest is a stationary destructible spawner with its own placeholder

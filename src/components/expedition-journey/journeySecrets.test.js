@@ -52,7 +52,7 @@ import {
   ARRIVAL_THRESHOLD_SPAWN_X,
 } from './journeyOpeningScenes.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
-import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
+import { journeyComponentSource, journeyRendererSource } from './journeySourceText.test-utils.mjs';
 import { DESERT_LAYER_TUNING_DEFAULTS } from './desertLayerTuning.js';
 
 const source = readFileSync(new URL('./journeyLevelData.js', import.meta.url), 'utf8');
@@ -67,7 +67,7 @@ const journeyMarkerSpritesSource = readFileSync(new URL('./journeyMarkerSprites.
 const journeyBackgroundAssetsSource = readFileSync(new URL('./journeyBackgroundAssets.js', import.meta.url), 'utf8');
 const journeyCollectibleSpritesSource = readFileSync(new URL('./journeyCollectibleSprites.js', import.meta.url), 'utf8');
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
-const useJourneyRendererSource = readFileSync(new URL('./useJourneyRenderer.js', import.meta.url), 'utf8');
+const useJourneyRendererSource = journeyRendererSource;
 const journeyEditorShortcutsPath = new URL('./useJourneyPlacementEditorShortcuts.js', import.meta.url);
 const journeyEditorShortcutsSource = existsSync(journeyEditorShortcutsPath)
   ? readFileSync(journeyEditorShortcutsPath, 'utf8')
@@ -104,9 +104,22 @@ const expeditionModeSource = [
 const menuSource = readFileSync(new URL('../Menu.jsx', import.meta.url), 'utf8');
 const appSource = readFileSync(new URL('../../App.jsx', import.meta.url), 'utf8');
 const indexCssSource = [
-  readFileSync(new URL('../../index.css', import.meta.url), 'utf8'),
-  readFileSync(new URL('../../styles/lost-site-expedition.css', import.meta.url), 'utf8'),
-].join('\n');
+  '../../index.css',
+  '../../styles/index/01-base.css',
+  '../../styles/index/02-training-bureau.css',
+  '../../styles/index/03-layout-core.css',
+  '../../styles/index/04-survey-lab.css',
+  '../../styles/index/05-museum.css',
+  '../../styles/index/06-sorting-artifacts.css',
+  '../../styles/index/07-menu-dossier.css',
+  '../../styles/index/08-expedition-map.css',
+  '../../styles/index/09-expedition-dark.css',
+  '../../styles/index/10-hud-combat.css',
+  '../../styles/index/11-expedition-fullscreen.css',
+  '../../styles/index/12-journey-controls.css',
+  '../../styles/index/13-premium-training.css',
+  '../../styles/lost-site-expedition.css',
+].map((path) => readFileSync(new URL(path, import.meta.url), 'utf8')).join('\n');
 const mainCanvasCssSource = readFileSync(new URL('../../styles/main-canvas.css', import.meta.url), 'utf8');
 const journeyPropPaletteDrawerCssSource = readFileSync(new URL('../../styles/journey-prop-palette-drawer.css', import.meta.url), 'utf8');
 const journeyCombatContractSource = journeyCombatSource.replace(/\bexport const\b/g, 'const');
@@ -1121,11 +1134,7 @@ test('journey prop editor keeps selected prop transform controls reachable in th
 });
 
 test('journey prop editor overlay does not wash selected assets', () => {
-  const overlayStart = useJourneyRendererSource.indexOf('export function drawPropPlacementEditorOverlayFrame');
-  const drawStart = useJourneyRendererSource.indexOf('export function useJourneyRenderer', overlayStart);
-  assert.notEqual(overlayStart, -1);
-  assert.notEqual(drawStart, -1);
-  const overlaySource = useJourneyRendererSource.slice(overlayStart, drawStart);
+  const overlaySource = getComponentFunctionSource('drawPropPlacementEditorOverlayFrame');
   const propOverlaySource = overlaySource.slice(
     overlaySource.indexOf('getRenderableStoryProps(current).forEach'),
     overlaySource.indexOf('const selectedProp = getPropEditorSelectedProp(current);'),
@@ -4213,11 +4222,7 @@ test('Egypt chamber entry triggers render as configurable premium doors outside 
   assert.match(drawSource, /drawPremiumEgyptianChamberDoor/);
   assert.match(journeyComponentSource, /CHAMBER_DOOR_VISUALS_BY_ID\['mummification-chamber-entry-door'\]/);
 
-  const editorOverlayStart = useJourneyRendererSource.indexOf('export function drawPropPlacementEditorOverlayFrame');
-  const editorOverlayEnd = useJourneyRendererSource.indexOf('export function useJourneyRenderer', editorOverlayStart);
-  assert.notEqual(editorOverlayStart, -1, 'drawPropPlacementEditorOverlay should exist');
-  assert.notEqual(editorOverlayEnd, -1, 'drawPropPlacementEditorOverlay should end before draw');
-  const editorOverlaySource = useJourneyRendererSource.slice(editorOverlayStart, editorOverlayEnd);
+  const editorOverlaySource = getComponentFunctionSource('drawPropPlacementEditorOverlayFrame');
   assert.match(editorOverlaySource, /if \(!import\.meta\.env\.DEV \|\| !editor\.enabled\) return/);
   assert.match(editorOverlaySource, /Chamber entry trigger zones/);
   assert.match(editorOverlaySource, /rgba\(45, 212, 191/);

@@ -1,10 +1,13 @@
 {
-  "image": "sand-viper-painted-candidate-2026-07-03-alpha.png",
-  "sourceImage": "sand-viper-painted-candidate-2026-07-03-source.png",
+  "image": "../sand-viper-painted-candidate-2026-07-03-alpha.png",
+  "sourceImage": "../sand-viper-painted-candidate-2026-07-03-source.png",
   "source": "Built-in image generation candidate, chroma-key removed locally for transparent review.",
-  "status": "candidate-unapproved",
-  "intendedRuntimeTarget": "../sand-snake-sprites.png",
-  "approvalNote": "Do not wire this candidate into journeyEnemySprites.js until the user approves the visual direction and Codex repacks it into the existing snake runtime atlas contract.",
+  "status": "archived-promoted",
+  "archivedAt": "2026-07-04",
+  "archiveReason": "Candidate was promoted into the live painted sand-viper runtime atlas.",
+  "promotedRuntimeAtlas": "../../sand-viper-painted-sprites-2026-07-04.json",
+  "previousIntendedRuntimeTarget": "../sand-snake-sprites.png",
+  "approvalNote": "Archived metadata only. The live renderer now uses the repacked runtime atlas, while this record is kept for provenance and recovery.",
   "promptSummary": "Serious Egyptian desert viper / sand serpent enemy, dangerous ancient tone, bronze-brown and dark sand scales, small amber eyes, no cartoon stars, no cute expression, no jewel-neon palette, 8 side-view poses on chroma-key background.",
   "frameContract": [
     "idle coil",
@@ -24,6 +27,7 @@
     },
     "background": "transparent alpha converted from #ff00ff chroma key",
     "runtimeReady": false,
-    "repackRequired": true
+    "repackRequired": false,
+    "promoted": true
   }
 }

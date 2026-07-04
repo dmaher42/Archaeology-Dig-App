@@ -8,6 +8,7 @@ import test from 'node:test';
 import {
   getMissingSectionBackgroundAssets,
 } from '../journeyBackgroundAssets.js';
+import { journeyComponentSource, journeyRendererSource } from '../journeySourceText.test-utils.mjs';
 import {
   getMissingEnemySpriteAssets,
 } from '../journeyEnemySprites.js';
@@ -120,7 +121,7 @@ test('Rome Section One has a playable Forum-to-archive learning spine instead of
 });
 
 test('Rome and China do not inherit Egypt-only rooms or Scarab runtime gates', async () => {
-  const journeySource = await readFile(path.join(repoRoot, 'src', 'components', 'ExpeditionJourney.jsx'), 'utf8');
+  const journeySource = journeyComponentSource;
   const journeyUtilsSource = await readFile(path.join(repoRoot, 'src', 'components', 'expedition-journey', 'journeyUtils.js'), 'utf8');
 
   assert.match(journeySource, /const isEgyptJourney = !isChinaJourney && !isRomeJourney/);
@@ -175,7 +176,7 @@ test('Rome gameplay surfaces and route gates use Rome and China environment pack
   assert.match(modeSource, /routeMusicCue:\s*'bamboo-forest'/);
   assert.match(modeSource, /routeMusicCue:\s*'romanRoad'/);
 
-  const rendererSource = await readFile(path.join(repoRoot, 'src', 'components', 'expedition-journey', 'useJourneyRenderer.js'), 'utf8');
+  const rendererSource = journeyRendererSource;
   assert.match(rendererSource, /isChinaGate[\s\S]*sealedTimberGate/);
   assert.match(rendererSource, /isRomeGate[\s\S]*romanSealedGate/);
   assert.match(rendererSource, /const atlasKey = complete \? 'routeDoor'/);

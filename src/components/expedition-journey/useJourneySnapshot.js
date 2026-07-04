@@ -68,9 +68,9 @@ import {
 } from './journeyBossSprites';
 import {
   CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON,
-  ENEMY_SPRITE_ATLAS_JSON,
   ENEMY_SPRITE_ATLAS_VERSION,
   EXPECTED_CHINA_ENEMY_GUARDIAN_SPRITE_KEYS,
+  getEnemySpriteDebugAtlasState,
   getMissingEnemySpriteAssets,
 } from './journeyEnemySprites';
 import {
@@ -290,6 +290,10 @@ export function useJourneySnapshot({
           || getMissingSectionBackgroundAssets(desertBackgroundAssets, backgroundSectionId).length > 0;
       });
     const renderStats = current.renderStats || {};
+    const enemySpriteDebugAtlasState = getEnemySpriteDebugAtlasState(
+      enemySpriteAssets,
+      renderStats.visibleEnemySpriteFamilies || [],
+    );
     const playerAttackBox = current.playerAttackBox
       ? {
         x: Math.round(current.playerAttackBox.x),
@@ -402,7 +406,7 @@ export function useJourneySnapshot({
       chinaRiverValleyBackgroundAtlasPath: CHINA_RIVER_VALLEY_BACKGROUND_ATLAS_JSON,
       enemySpritesLoaded: enemySpriteAssets.loaded,
       enemySpriteFallbackActive,
-      enemySpriteAtlasPath: ENEMY_SPRITE_ATLAS_JSON,
+      ...enemySpriteDebugAtlasState,
       enemySpriteAtlasVersion: ENEMY_SPRITE_ATLAS_VERSION,
       missingEnemySpriteAssets,
       chinaEnemyGuardianSpriteAtlasPath: CHINA_ENEMY_GUARDIAN_SPRITE_ATLAS_JSON,

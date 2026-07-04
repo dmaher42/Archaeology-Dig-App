@@ -17,6 +17,7 @@ dist-ssr
 output/
 scratch/sfx-source/
 scratch/tut-assets/
+scratch/frame-captures/
 test-results/
 tmp/
 
