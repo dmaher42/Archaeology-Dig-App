@@ -220,6 +220,7 @@ import {
   PLAYER_ATTACK_BACK_REACH,
   PLAYER_ATTACK_COMBO_TIMINGS,
   PLAYER_ATTACK_HEIGHT,
+  PLAYER_ATTACK_INPUT_BUFFER_DURATION,
   PLAYER_ATTACK_NEAR_MISS_DISTANCE,
   PLAYER_ATTACK_NEAR_MISS_VERTICAL_TOLERANCE,
   PLAYER_ATTACK_RANGE,
@@ -6858,11 +6859,21 @@ export default function ExpeditionJourney({
       && current.attackComboWindowTimer > 0
       && current.attackComboLanded;
     if (current.attackCooldown > 0 || current.attackWindupTimer > 0 || current.attackTimer > 0 || current.attackRecoilTimer > 0) {
-      if (!canBufferHeavyFollowup) return;
+      if (canBufferHeavyFollowup) {
+        current.attackQueued = true;
+        current.attackQueuedType = PLAYER_ATTACK_TYPES.HEAVY;
+        current.attackQueuedHeavyFollowupPrimed = true;
+        current.heavyFollowupReadyTimer = Math.max(current.heavyFollowupReadyTimer || 0, current.attackComboWindowTimer || 0);
+        return;
+      }
+      // Buffer the press briefly so an attack tapped just before Asha recovers
+      // still fires instead of being silently dropped.
       current.attackQueued = true;
-      current.attackQueuedType = PLAYER_ATTACK_TYPES.HEAVY;
-      current.attackQueuedHeavyFollowupPrimed = true;
-      current.heavyFollowupReadyTimer = Math.max(current.heavyFollowupReadyTimer || 0, current.attackComboWindowTimer || 0);
+      current.attackQueuedType = attackType === PLAYER_ATTACK_TYPES.HEAVY
+        ? PLAYER_ATTACK_TYPES.HEAVY
+        : PLAYER_ATTACK_TYPES.LIGHT;
+      current.attackQueuedHeavyFollowupPrimed = false;
+      current.attackQueuedBufferTimer = PLAYER_ATTACK_INPUT_BUFFER_DURATION;
       return;
     }
     current.attackQueued = true;

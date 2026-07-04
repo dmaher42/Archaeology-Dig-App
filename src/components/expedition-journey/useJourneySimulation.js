@@ -756,6 +756,23 @@ export function useJourneySimulation({
     current.attackTimer = Math.max(0, current.attackTimer - dt);
     current.attackRecoilTimer = Math.max(0, current.attackRecoilTimer - dt);
     current.attackComboWindowTimer = Math.max(0, (current.attackComboWindowTimer || 0) - dt);
+    // Expire buffered attack presses that waited too long for Asha to recover.
+    if ((current.attackQueuedBufferTimer || 0) > 0) {
+      current.attackQueuedBufferTimer = Math.max(0, current.attackQueuedBufferTimer - dt);
+      const stillBusy = current.attackCooldown > 0
+        || current.attackWindupTimer > 0
+        || current.attackTimer > 0
+        || current.attackRecoilTimer > 0;
+      if (
+        current.attackQueuedBufferTimer <= 0
+        && current.attackQueued
+        && !current.attackQueuedHeavyFollowupPrimed
+        && stillBusy
+      ) {
+        current.attackQueued = false;
+        current.attackQueuedType = PLAYER_ATTACK_TYPES.LIGHT;
+      }
+    }
     current.heavyFollowupReadyTimer = Math.max(0, (current.heavyFollowupReadyTimer || 0) - dt);
     current.heavyFollowupCueTimer = Math.max(0, (current.heavyFollowupCueTimer || 0) - dt);
     current.dodgeTimer = Math.max(0, (current.dodgeTimer || 0) - dt);
@@ -2758,6 +2775,7 @@ export function useJourneySimulation({
       current.attackQueued = false;
       current.attackQueuedType = PLAYER_ATTACK_TYPES.LIGHT;
       current.attackQueuedHeavyFollowupPrimed = false;
+      current.attackQueuedBufferTimer = 0;
       current.attackType = activeAttackType;
       current.attackRange = attackProfile.range;
       current.attackHeight = attackProfile.height;
