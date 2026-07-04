@@ -12,7 +12,7 @@ export default defineConfig({
     journeyOverridesDevPlugin(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'pwa-192.png', 'pwa-512.png'],
+      includeAssets: ['pwa-192.png', 'pwa-512.png'],
       manifest: {
         name: 'Archaeology Dig App',
         short_name: 'Dig App',

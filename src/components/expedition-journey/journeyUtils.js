@@ -9,6 +9,7 @@ import {
   PLAYER_SPRITE_SCALE,
   PLAYER_WIDTH,
 } from './journeyConstants.js';
+import { SCARAB_QUEEN_DRAW_OFFSET_X } from './journeyBossSprites.js';
 import { BOSS_KEY_ITEMS, CHECKPOINTS, getJourneyEnemies, getJourneyMiniBosses, SECTIONS, SECTION_ATMOSPHERES } from './journeyDataRouter.js';
 import {
   applyJourneyTrapPlacementEdit,
@@ -224,6 +225,7 @@ export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   if (typeof edit.mirrorX === 'boolean') next.mirrorX = edit.mirrorX;
   if (typeof edit.mirrorY === 'boolean') next.mirrorY = edit.mirrorY;
   if (Number.isFinite(edit.brightness)) next.brightness = Math.max(0.4, Math.min(1.8, Math.round(edit.brightness * 100) / 100));
+  if (Number.isFinite(edit.alpha)) next.alpha = Math.max(0, Math.min(1, Math.round(edit.alpha * 100) / 100));
   if (typeof edit.depth === 'string' && edit.depth.trim()) next.depth = edit.depth;
   if (typeof edit.layer === 'string' && edit.layer.trim()) next.layer = edit.layer;
   if (Number.isFinite(edit.zIndex)) next.zIndex = edit.zIndex;
@@ -638,7 +640,15 @@ export const createJourneyPropPalette = (props = [], registryEntries = []) => {
     const template = getJourneyPropRegistryTemplate(entry);
     if (!template) return;
     const key = getJourneyPropTemplateKey(template);
-    if (!key || entries.has(key)) return;
+    if (!key) return;
+    if (entries.has(key)) {
+      const existing = entries.get(key);
+      if (entry.displayName) existing.label = entry.displayName;
+      if (entry.category) existing.category = entry.category;
+      if (template.imageAssetKey) existing.imageAssetKey = template.imageAssetKey;
+      if (entry.assetPath) existing.assetPath = entry.assetPath;
+      return;
+    }
     entries.set(key, {
       key,
       label: entry.displayName || getJourneyPropTemplateLabel(template),
@@ -1332,21 +1342,46 @@ export const getPlayerFeetHitbox = (player) => {
 
 export const getPlatformLandingHitbox = (platform) => {
   const tuning = JOURNEY_HITBOX_TUNING.platformLanding;
+  const minSurfaceY = getPlatformMinSurfaceY(platform);
   return {
     x: platform.x - tuning.xPad,
-    y: platform.y - tuning.topPad,
+    y: minSurfaceY - tuning.topPad,
     width: platform.width + tuning.xPad * 2,
-    height: tuning.topPad + Math.min(platform.height, tuning.bottomPad),
+    height: tuning.topPad + Math.max(1, getPlatformMaxSurfaceY(platform) - minSurfaceY) + Math.min(platform.height, tuning.bottomPad),
   };
 };
+
+export const getPlatformSurfaceYAtX = (platform, worldX) => {
+  if (!platform) return NaN;
+  const startY = Number.isFinite(platform.slopeStartY) ? platform.slopeStartY : platform.y;
+  const endY = Number.isFinite(platform.slopeEndY) ? platform.slopeEndY : startY;
+  if (!Number.isFinite(startY)) return NaN;
+  if (!Number.isFinite(endY) || !Number.isFinite(platform.x) || !Number.isFinite(platform.width) || platform.width <= 0) {
+    return startY;
+  }
+  const ratio = clamp((worldX - platform.x) / platform.width, 0, 1);
+  return startY + (endY - startY) * ratio;
+};
+
+export const getPlatformMinSurfaceY = (platform) => Math.min(
+  getPlatformSurfaceYAtX(platform, platform?.x ?? 0),
+  getPlatformSurfaceYAtX(platform, (platform?.x ?? 0) + (platform?.width ?? 0)),
+);
+
+export const getPlatformMaxSurfaceY = (platform) => Math.max(
+  getPlatformSurfaceYAtX(platform, platform?.x ?? 0),
+  getPlatformSurfaceYAtX(platform, (platform?.x ?? 0) + (platform?.width ?? 0)),
+);
 
 export const isLandingOnPlatform = (player, previousPlayer, platform) => {
   if (platform?.collision === 'blocker') return false;
   if (player.vy < 0) return false;
   const feet = getPlayerFeetHitbox(player);
   const previousFeetY = previousPlayer.y + previousPlayer.height;
+  const playerCenterX = player.x + player.width / 2;
+  const surfaceY = getPlatformSurfaceYAtX(platform, playerCenterX);
   return rectsOverlap(feet, getPlatformLandingHitbox(platform))
-    && previousFeetY <= platform.y + JOURNEY_HITBOX_TUNING.platformLanding.previousFootTolerance;
+    && previousFeetY <= surfaceY + JOURNEY_HITBOX_TUNING.platformLanding.previousFootTolerance;
 };
 
 export const getEnemyDamageHitbox = (enemy) => {
@@ -1393,6 +1428,20 @@ export const getEnemyStompHitbox = (enemy) => {
 
 export const getEnemyAttackHurtbox = (enemy, { boss = false } = {}) => {
   if (boss) {
+    if (enemy.id === 'scarab-queen') {
+      const visualWidth = Math.max(390, enemy.width * 6.675);
+      const visualHeight = Math.max(264, enemy.height * 5.775);
+      const visualX = enemy.x + enemy.width / 2 - visualWidth / 2 + SCARAB_QUEEN_DRAW_OFFSET_X;
+      const visualY = enemy.y + enemy.height - visualHeight + 16;
+      return insetRect(
+        { x: visualX, y: visualY, width: visualWidth, height: visualHeight },
+        {
+          x: Math.max(28, visualWidth * 0.12),
+          y: Math.max(34, visualHeight * 0.18),
+          bottom: Math.max(18, visualHeight * 0.12),
+        },
+      );
+    }
     const insetX = Math.max(6, enemy.width * 0.1);
     const topInset = Math.max(5, enemy.height * 0.08);
     const bottomInset = Math.max(4, enemy.height * 0.08);
@@ -2016,6 +2065,11 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   attackQueuedType: 'light',
   attackQueuedHeavyFollowupPrimed: false,
   attackType: 'light',
+  attackRange: 0,
+  attackHeight: 0,
+  attackBackReach: 0,
+  attackYOffset: 0,
+  attackDamage: null,
   attackSequenceIndex: 0,
   attackComboWindowTimer: 0,
   attackComboLanded: false,

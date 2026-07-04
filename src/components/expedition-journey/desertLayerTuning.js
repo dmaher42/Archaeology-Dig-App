@@ -12,14 +12,15 @@
 export const DESERT_LAYER_TUNING_DEFAULTS = {
   skyLight: { parallax: 0.012, alpha: 1 },
   distantCliffs: { parallax: 0.055, alpha: 0, height: 792 },
-  farPyramids: { sectionFraction: 0.5, parallax: 0.14, height: 540, baseY: 600 },
+  farPyramids: { sectionFraction: 0.5, parallax: 0.14, height: 540, baseY: 600, alpha: 0.94 },
   midNecropolisRuins: { parallax: 0.28, alpha: 1, height: 630, baseY: 630 },
-  desertSphinx: { sectionFraction: 0.16, parallax: 0.55, height: 300, baseY: 566, brightness: 0.82, saturate: 0.68 },
-  ritualPyramid: { sectionFraction: 0.31, parallax: 1, height: 736, widthScale: 1.14, baseY: 600, alpha: 1 },
-  groundBacking: { y: 515, height: 200, parallax: 0.98, alpha: 1 },
-  groundLane: { y: 545, height: 105, parallax: 1, alpha: 1 },
-  foregroundRubble: { y: 480, height: 150, parallax: 1.0, alpha: 1 },
-  foregroundDepth: { y: 584, height: 46, parallax: 1.08, alpha: 0.2 },
+  dustHaze: { y: 408, height: 104, parallax: 0.48, alpha: 0.09 },
+  desertSphinx: { sectionFraction: 0.56, parallax: 0.48, height: 292, baseY: 590, brightness: 1.01, saturate: 1.12, alpha: 0.94, contrast: 1.18 },
+  ritualPyramid: { sectionFraction: 0.31, parallax: 0.68, height: 760, widthScale: 1.16, baseY: 614, alpha: 0.99, brightness: 1.08, saturate: 1.14, contrast: 1.18 },
+  groundBacking: { y: 500, height: 150, parallax: 0.72, alpha: 1 },
+  groundLane: { y: 558, height: 174, parallax: 1, alpha: 1 },
+  foregroundRubble: { y: 542, height: 96, parallax: 1.12, alpha: 0.12 },
+  foregroundDepth: { y: 584, height: 46, parallax: 1.24, alpha: 0.14 },
 };
 
 const clone = (obj) => Object.fromEntries(
@@ -55,11 +56,18 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'parallax', min: 0, max: 0.5, step: 0.001 },
     { k: 'height', min: 120, max: 620, step: 2 },
     { k: 'baseY', label: 'Base Y', min: 400, max: 680, step: 1 },
+    { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'midNecropolisRuins', label: 'Necropolis Ruins', fields: [
     { k: 'parallax', min: 0, max: 0.6, step: 0.001 },
     { k: 'height', min: 300, max: 760, step: 2 },
     { k: 'baseY', label: 'Base Y', min: 400, max: 760, step: 1 },
+    { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
+  ] },
+  { key: 'dustHaze', label: 'Dust Haze', fields: [
+    { k: 'y', label: 'Top Y', min: 260, max: 610, step: 1 },
+    { k: 'height', min: 40, max: 260, step: 1 },
+    { k: 'parallax', min: 0, max: 1.2, step: 0.01 },
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'desertSphinx', label: 'Sphinx (placed)', fields: [
@@ -69,6 +77,8 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'baseY', label: 'Base Y', min: 400, max: 680, step: 1 },
     { k: 'brightness', label: 'Brightness', min: 0.4, max: 1.2, step: 0.02 },
     { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.3, step: 0.02 },
+    { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.3, step: 0.02 },
+    { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'ritualPyramid', label: 'Ritual Temple (building)', fields: [
     { k: 'sectionFraction', label: 'Position', min: 0, max: 1, step: 0.005 },
@@ -77,10 +87,13 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'widthScale', label: 'Width', min: 0.5, max: 2.5, step: 0.02 },
     { k: 'baseY', label: 'Base Y', min: 400, max: 700, step: 1 },
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
+    { k: 'brightness', label: 'Brightness', min: 0.4, max: 1.2, step: 0.02 },
+    { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.3, step: 0.02 },
+    { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.3, step: 0.02 },
   ] },
   { key: 'groundBacking', label: 'Ground Backing', fields: [
-    { k: 'y', label: 'Top Y', min: 480, max: 680, step: 1 },
-    { k: 'height', min: 40, max: 220, step: 1 },
+    { k: 'y', label: 'Top Y', min: 440, max: 680, step: 1 },
+    { k: 'height', min: 40, max: 280, step: 1 },
     { k: 'parallax', min: 0.6, max: 1.2, step: 0.01 },
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },

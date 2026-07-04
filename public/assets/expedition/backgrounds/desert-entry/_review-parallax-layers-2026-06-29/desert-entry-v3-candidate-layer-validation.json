@@ -1,0 +1,117 @@
+{
+  "layers": [
+    {
+      "key": "skyLight",
+      "file": "desert-entry-v3-candidate-sky-light.png",
+      "size": [
+        2172,
+        724
+      ],
+      "expected": [
+        2172,
+        724
+      ],
+      "opaquePct": 100.0,
+      "transparentPct": 0.0
+    },
+    {
+      "key": "farPyramids",
+      "file": "desert-entry-v3-candidate-far-pyramids.png",
+      "size": [
+        2172,
+        724
+      ],
+      "expected": [
+        2172,
+        724
+      ],
+      "opaquePct": 0.0,
+      "transparentPct": 59.82
+    },
+    {
+      "key": "distantCliffs",
+      "file": "desert-entry-v3-candidate-distant-cliffs.png",
+      "size": [
+        2172,
+        724
+      ],
+      "expected": [
+        2172,
+        724
+      ],
+      "opaquePct": 0.0,
+      "transparentPct": 58.23
+    },
+    {
+      "key": "midNecropolisRuins",
+      "file": "desert-entry-v3-candidate-mid-necropolis-ruins.png",
+      "size": [
+        2172,
+        724
+      ],
+      "expected": [
+        2172,
+        724
+      ],
+      "opaquePct": 0.0,
+      "transparentPct": 45.75
+    },
+    {
+      "key": "groundBacking",
+      "file": "desert-entry-v3-candidate-ground-backing.png",
+      "size": [
+        4096,
+        220
+      ],
+      "expected": [
+        4096,
+        220
+      ],
+      "opaquePct": 100.0,
+      "transparentPct": 0.0
+    },
+    {
+      "key": "groundLane",
+      "file": "desert-entry-v3-candidate-ground-lane.png",
+      "size": [
+        2172,
+        313
+      ],
+      "expected": [
+        2172,
+        313
+      ],
+      "opaquePct": 69.33,
+      "transparentPct": 0.64
+    },
+    {
+      "key": "foregroundRubble",
+      "file": "desert-entry-v3-candidate-foreground-rubble.png",
+      "size": [
+        2172,
+        220
+      ],
+      "expected": [
+        2172,
+        220
+      ],
+      "opaquePct": 0.0,
+      "transparentPct": 1.36
+    },
+    {
+      "key": "foregroundDepth",
+      "file": "desert-entry-v3-candidate-foreground-depth.png",
+      "size": [
+        4096,
+        128
+      ],
+      "expected": [
+        4096,
+        128
+      ],
+      "opaquePct": 0.0,
+      "transparentPct": 2.34
+    }
+  ],
+  "stressPreview": "desert-entry-v3-candidate-parallax-stress-preview.png"
+}

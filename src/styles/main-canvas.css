@@ -542,6 +542,7 @@
 
 .journey-prop-editor-grid input,
 .journey-prop-editor-controls input,
+.journey-prop-editor-quick-controls input,
 .journey-prop-editor-controls select {
   width: 4.5rem;
   padding: 0.22rem 0.36rem;
@@ -556,10 +557,39 @@
 
 .journey-prop-editor-grid input:focus-visible,
 .journey-prop-editor-controls input:focus-visible,
+.journey-prop-editor-quick-controls input:focus-visible,
 .journey-prop-editor-controls select:focus-visible {
   border-color: rgba(94, 234, 212, 0.7);
   background: rgba(0, 0, 0, 0.5);
   box-shadow: 0 0 0 2px rgba(94, 234, 212, 0.2);
+}
+
+.journey-prop-editor-quick-controls {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.34rem;
+  margin-top: 0.48rem;
+  padding-top: 0.44rem;
+  border-top: 1px solid rgba(94, 234, 212, 0.16);
+}
+
+.journey-prop-editor-quick-controls label {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.journey-prop-editor-quick-controls span {
+  color: rgba(236, 254, 255, 0.58);
+  font-size: 0.54rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.journey-prop-editor-quick-controls input {
+  width: 100%;
+  min-width: 0;
+  font-size: 0.68rem;
 }
 
 .journey-prop-editor-controls {

@@ -18,8 +18,15 @@ import {
 import {
   ENEMY_DEFEATED_VISIBLE_SECONDS,
   isEnemyDefeatedVisible,
+  PLAYER_ATTACK_BACK_REACH,
+  PLAYER_ATTACK_HEIGHT,
+  PLAYER_ATTACK_RANGE,
   updateEnemyDefeatedVisibility,
 } from './journeyCombat.js';
+import {
+  getEnemyAttackHurtbox,
+  rectsOverlap,
+} from './journeyUtils.js';
 import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
 import { readFileSync } from 'node:fs';
 
@@ -88,10 +95,17 @@ test('scorpion sting is a high anti-jump attack that hits harder through existin
   assert.match(journeyGameplayContractSource, /const SCORPION_ATTACK_RANGE_MULTIPLIER = 1\.4;/);
   assert.match(journeyComponentSource, /range: basePattern\.range \* SCORPION_ATTACK_RANGE_MULTIPLIER/);
   assert.match(journeyGameplayContractSource, /const SCORPION_CHASE_SPEED_MULTIPLIER = 1\.15;/);
-  assert.match(journeyComponentSource, /\(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER \* slowPursuitBoost : 1\)/);
+  assert.match(journeyGameplayContractSource, /const ENEMY_VENOM_PRESSURE_CHASE_SPEED_MULTIPLIER = 1\.42/);
+  assert.match(journeyGameplayContractSource, /const getEnemyVenomPressureTuning = \(enemy = \{\}, venomSlowTimer = 0\) => \{/);
+  assert.match(journeyComponentSource, /const venomPressureTuning = getEnemyVenomPressureTuning\(e, player\.venomSlowTimer \|\| 0\)/);
+  assert.match(journeyComponentSource, /venomPursuitBoost \* \(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER : 1\)/);
   assert.match(journeyComponentSource, /const meleeReachesPlayer = rectsOverlap\(/);
-  assert.match(journeyComponentSource, /const shouldUseVenomSpit = e\.type === 'scorpion' && !meleeReachesPlayer && scorpionVenomCanReach && !playerIsVenomSlowed;/);
-  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && meleeReachesPlayer\) \|\| shouldUseVenomSpit \|\| scarabPoisonChargeCanReach;/);
+  assert.match(journeyGameplayContractSource, /const SCORPION_ANTI_AIR_ATTACK_PATTERN = \{[\s\S]*?id:\s*'anti-air-sting'[\s\S]*?height:\s*104[\s\S]*?airbornePunish:\s*true/);
+  assert.match(journeyComponentSource, /const shouldUseScorpionAntiAir = shouldUseScorpionAntiAirSting\(\{/);
+  assert.match(journeyGameplayContractSource, /const SCORPION_VENOM_ATTACK_PATTERN_TUNING = Object\.freeze\(\{[\s\S]*?windup:\s*0\.32[\s\S]*?cooldown:\s*1\.1[\s\S]*?staminaDamage:\s*SCORPION_VENOM_STAMINA_DAMAGE/);
+  assert.match(journeyGameplayContractSource, /const shouldUseScorpionVenomSpit = \(\{[\s\S]*?venomSlowTimer[\s\S]*?SCORPION_VENOM_REFRESH_WINDOW/);
+  assert.match(journeyComponentSource, /const shouldUseVenomSpit = shouldUseScorpionVenomSpit\(\{[\s\S]*?venomSlowTimer:\s*player\.venomSlowTimer \|\| 0/);
+  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && meleeReachesPlayer\) \|\| shouldUseScorpionAntiAir \|\| shouldUseVenomSpit \|\| shouldUseWispDive \|\| shouldUseSnakeAmbush \|\| scarabPoisonChargeCanReach;/);
   assert.match(journeyComponentSource, /enemyCanStartAttack && e\.attackCooldown <= 0/);
   assert.match(journeyComponentSource, /const getAttackBox = useCallback\(\(attacker, range = 42, height = 28, direction = attacker\.direction \|\| 1, yOffset = 0, backReach = 0\) =>/);
   assert.match(journeyComponentSource, /const trailingReach = Math\.max\(0, backReach\);/);
@@ -273,6 +287,36 @@ test('Scarab Queen draw box matches the fixed atlas ratio closely enough to stay
     300 + boss.width / 2 - drawBox.width / 2 + SCARAB_QUEEN_DRAW_OFFSET_X,
     'Queen art should stay huge but sit farther into the arena so Asha remains readable',
   );
+});
+
+test('Scarab Queen combat hurtbox follows the oversized visible sprite', () => {
+  const boss = {
+    id: 'scarab-queen',
+    x: 1395,
+    y: 318,
+    width: 58,
+    height: 42,
+  };
+
+  const drawBox = getScarabQueenDrawBox(boss, boss.x);
+  const hurtbox = getEnemyAttackHurtbox(boss, { boss: true });
+  const player = {
+    x: drawBox.x - 18,
+    y: boss.y + boss.height - 42,
+    width: 28,
+    height: 42,
+    direction: 1,
+  };
+  const attackBox = {
+    x: player.x + player.width - PLAYER_ATTACK_BACK_REACH,
+    y: player.y + Math.max(4, (player.height - PLAYER_ATTACK_HEIGHT) / 2),
+    width: PLAYER_ATTACK_RANGE + PLAYER_ATTACK_BACK_REACH,
+    height: PLAYER_ATTACK_HEIGHT,
+  };
+
+  assert.ok(hurtbox.x < boss.x, 'Queen hurtbox should extend left into her visible sprite, not stay on the tiny logic body');
+  assert.ok(hurtbox.width > boss.width * 3, 'Queen hurtbox should match the large boss art scale');
+  assert.ok(rectsOverlap(attackBox, hurtbox), 'Asha should be able to hit the visible left side of the Scarab Queen');
 });
 
 test('enemy attack tells use compact timing overlays without arcade labels', () => {

@@ -60,9 +60,27 @@ test('China journey start briefing is not the Egypt Lost Map Tablet briefing', (
   assert.match(journeyHudOverlaysSource, /Restore the dynasty line at the Imperial Gate/);
 });
 
-test('Desert Entry keeps the sky clear of ambient particle dots', () => {
-  setExpeditionJourneyCiv('Ancient Egypt');
+test('Journey sections do not carry old full-screen ambient particle overlay settings', () => {
+  [
+    'Ancient Egypt',
+    'Ancient China',
+    'Ancient Rome',
+  ].forEach((civilisation) => {
+    setExpeditionJourneyCiv(civilisation);
 
-  assert.equal(SECTION_ATMOSPHERES['desert-entry'].particle, null);
-  assert.equal(SECTION_ATMOSPHERES['ruined-temple'].particle, 'embers');
+    Object.entries(SECTION_ATMOSPHERES).filter(([, atmosphere]) => atmosphere).forEach(([sectionId, atmosphere]) => {
+      assert.equal(
+        Object.hasOwn(atmosphere, 'particle'),
+        false,
+        `${civilisation} ${sectionId} should not draw section-wide ambient particles`,
+      );
+      assert.equal(
+        Object.hasOwn(atmosphere, 'particleColor'),
+        false,
+        `${civilisation} ${sectionId} should not configure section-wide ambient particle colour`,
+      );
+    });
+  });
+
+  setExpeditionJourneyCiv('Ancient Egypt');
 });

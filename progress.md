@@ -4,6 +4,25 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-01 Desert Entry screenshot polish pass:
+- Kept the pass on the existing Journey renderer and active layered Desert Entry image contract; no duplicate scene path and no new SVG particle layer.
+- Added canvas-based atmospheric grading over the temple/background layer so the huge backdrop sits farther back and competes less with the playable foreground.
+- Added canvas-based playable-floor occlusion/warmth near the ground lane so Asha, enemies, and props read as sitting in the same sand/stone space.
+- Added a subtle warm enemy sprite rim/drop-shadow so dark enemies belong to the sunset lighting without changing their silhouettes or combat behavior.
+- Quieted the local dev jump overlay until hover/focus so screenshots and playtesting read more like the actual game composition.
+- Follow-up quick win: derived `desert-entry-necropolis-stitched-pushed-back-2026-07-01.png` from the active stitched mid-necropolis layer and wired it into the manifest, pushing the ruins back with lower contrast, softer detail, cooler colour, and darker buried bases.
+- Dry plaza pass: replaced the smooth, pale `groundBacking` with `desert-entry-dry-plaza-ground-backing-2026-07-01.png`, a matte cracked-sand/rubble layer so the space between the gameplay path and ruins no longer reads as a river.
+- Extended the same dry-plaza treatment into the world-locked `groundLane` via `desert-entry-dry-plaza-groundlane-2026-07-01.png`, breaking up the old flat orange top strip with cracks, stones, rubble, and dry grass while keeping the combat floor readable.
+- Pushed the dry plaza layer upward toward the ruins and added a small canvas seam-breakup pass so the dry ground blends into the necropolis base instead of forming a ruler-straight horizontal platform edge.
+
+2026-07-02 Desert Entry sky replacement pass:
+- Generated and normalized `desert-entry-generated-sunburst-sky-2026-07-02.png` as a 2172x724 replacement for the active `skyLight` layer, matching the reference image's brighter sun-break clouds and warm cinematic amber tone.
+- Retuned the selected sky into `desert-entry-generated-sunburst-sky-balanced-2026-07-02.png` after review because the first pass was too orange; the active version keeps the sun break but shifts the cloud mass toward cooler bronze/umber and dusty gold.
+- Wired the new sky through `public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.json` without adding a parallel background path.
+- Ground layer follow-up: replaced the active `groundBacking` with `desert-entry-dry-plaza-ground-backing-softened-2026-07-02.png` and `foregroundRubble` with `desert-entry-foreground-rubble-integrated-2026-07-02.png`; tuned the backing lower/softer and the rubble lower/less opaque so the playable lane remains readable while the ruins-to-path join has more natural dusty support.
+- Regenerated the unsuitable ground support assets instead of continuing narrow tweaks: `desert-entry-generated-dry-plaza-ground-backing-2026-07-02.png` is a fully opaque matte dry plaza backing, and `desert-entry-generated-foreground-rubble-solid-2026-07-02.png` is a chroma-key cleaned rubble strip with solid stone interiors and transparent gaps.
+- Fixed the generated rubble draw order after playtest feedback: `foregroundRubble` is no longer drawn in the early atmosphere pass before `groundBacking`; it is now drawn in the Desert Entry ground-lane pass after backing/lane, so the solid rocks appear in front of the ground backing instead of being covered by it.
+
 2026-06-28 Mummification Lab local save and classroom support pass:
 - Extended the existing `src/components/mummification-quest/` implementation; no duplicate app, no drawing canvas, no AI chat, and no Lost Site Expedition gameplay changes.
 - Added device-local autosave for group responses using `archaeologyDigApp:mummificationQuest:v1`, plus a visible saved indicator and Reset Mummification Lab Progress action.
@@ -274,6 +293,34 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Added focused Training logic tests for survey-zone clue safety, board sizing, survey score, and save/restore behavior.
 - Verified `node --test src\utils\gameLogic.training.test.js`, `npm.cmd run lint`, `npm.cmd run build`, and a browser Training flow from Start Training through Survey, Grid, and Excavate.
 - Browser check confirmed no console errors and no horizontal layout overflow in the checked Training flow.
+
+2026-07-03 combat air-attack slice:
+- Added an airborne J attack profile to the existing Journey combat system instead of creating a new combat path.
+- Airborne J now uses quicker timing, a taller downward hitbox, a small forward/downward commitment, and an air-hit result that does not prime the grounded K heavy follow-up.
+- Landing an air strike refunds its small Endurance cost and gives Asha a slight lift, so jump becomes a combat answer without replacing dodge/parry/ground combos.
+- Verified focused combat tests, Journey source guards, enemy sprite/combat guards, lint, and a production build.
+- Next tuning target: playtest whether air J feels useful against wisps and committed enemies without making scorpion anti-air irrelevant.
+
+2026-07-03 combat wisp-dive slice:
+- Added a shared Wisp/Bat Aerial Dive combat pattern so flying enemies can actively harass Asha from above instead of waiting to be run past.
+- Wisps and bats now choose the dive when Asha is close underneath them, dip downward during the swing, show a pressure cue, and leave a clear counter window afterward.
+- The dive tells the player to jump-strike with J or dodge through it, giving the previous airborne attack slice a real enemy role to answer.
+- Verified the new combat helper test, Journey source guards, enemy sprite/combat guards, lint, production build, and a headless browser smoke load of the app menu.
+- Next tuning target: play the first Sand Wisp pocket and adjust dive range/speed if it feels unfair or too easy to outrun.
+
+2026-07-03 combat snake-ambush slice:
+- Added a shared Snake Ambush Lunge pattern so snakes can coil and attack from mid-range instead of only acting like another close-range obstacle.
+- Snakes now choose the low committed lunge when Asha is near but not already in melee range, with a clear warning line: jump or dodge the lunge, then punish the miss.
+- Existing snake venom-on-hit remains in the runtime, so getting clipped by the lunge has a stress consequence instead of only a small bump.
+- Created a non-runtime painted Sand Viper candidate at `public/assets/expedition/enemies/candidates/sand-viper-painted-candidate-2026-07-03-alpha.png`; it is deliberately not wired until the user approves the visual direction and it is repacked into the exact runtime atlas.
+- Verified combat tests, Journey source guards, enemy sprite/combat guards, lint, production build, candidate alpha metadata, and a headless browser smoke load of the app menu.
+- Next tuning target: play the first Sand Snake pocket and decide whether the painted candidate should replace the current cartoonish runtime snake sheet.
+
+2026-07-03 combat scarab-stun teaching slice:
+- Kept scarabs as armored front-shell enemies, but opened their armor while stunned, skidding, or in a counter window so Asha can damage them from either side after creating the opening.
+- Extended the existing jump-vault answer with a longer skid/punish window and added a perfect-dodge scarab-charge skid that uses impact, sand-skid, and counter-window effects instead of explicit tutorial text.
+- Removed the scarab-specific instructional notices for frontal shell hits and venom-boosted charges so players learn from deflect/skid visuals rather than a realism-breaking message.
+- Verified focused combat rules, Journey source guards, enemy sprite/combat guards, lint, production build, and a headless Chrome smoke load into the Journey canvas.
 
 2026-05-25 update:
 - Completed the UI makeover for the "Archeologist Training" screen (Training Phase).

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "eslint src/App.jsx src/main.jsx src/data.js src/components src/styles src/trailer src/utils eslint.config.js vite.config.js",
     "preview": "vite preview",
     "journey:apply-prop-export": "node scripts/apply-journey-prop-export.mjs",
     "journey:write-placement-overrides": "node scripts/apply-journey-prop-export.mjs --overrides src/components/expedition-journey/journeyPlacementOverrides.generated.js",

@@ -28,6 +28,10 @@ const MummificationQuestMode = lazy(() => import('./components/mummification-que
   default: module.MummificationQuestMode,
 })));
 
+const NaidocExplorationMode = lazy(() => import('./components/naidoc-exploration/NaidocExplorationMode').then((module) => ({
+  default: module.NaidocExplorationMode,
+})));
+
 // Utilities & Data
 import { 
   AUTOSAVE_KEY,
@@ -1453,6 +1457,13 @@ export default function App() {
     setPhase('mummificationQuest');
   };
 
+  const handleStartNaidocExploration = () => {
+    audioControls.stopExpeditionMusic?.();
+    audioControls.stopExpeditionLoopingSfx?.();
+    setIsSiteSelectionActive(false);
+    setPhase('naidocExploration');
+  };
+
   // Dev-only quick play: jump straight into the desert-entry journey gameplay,
   // bypassing the expedition selector, archive prologue, briefing and opening
   // cinematic. Reuses the same `?play` machinery as the URL bookmark — we set
@@ -1516,6 +1527,7 @@ export default function App() {
             onStartBureau={handleStartBureau}
             onStartExpedition={handleStartExpedition}
             onStartMummificationQuest={handleStartMummificationQuest}
+            onStartNaidocExploration={handleStartNaidocExploration}
             onQuickPlay={handleQuickPlay}
             savedGames={savedGames}
             onResumeInvestigation={() => applySavedSession(savedGames.archaeology)}
@@ -1684,6 +1696,12 @@ export default function App() {
         {phase === 'mummificationQuest' && (
           <Suspense fallback={<ModeLoadingFallback label="Loading Mummification Lab..." />}>
             <MummificationQuestMode onBackToMenu={() => setPhase('menu')} />
+          </Suspense>
+        )}
+
+        {phase === 'naidocExploration' && (
+          <Suspense fallback={<ModeLoadingFallback label="Loading NAIDOC exploration..." />}>
+            <NaidocExplorationMode onBackToMenu={() => setPhase('menu')} />
           </Suspense>
         )}
 

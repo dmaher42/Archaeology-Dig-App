@@ -4,7 +4,10 @@ import {
   createJourneyPlatformFromPaletteItem,
   createJourneyPlatformPalette,
   createJourneyPlacementChangeSummary,
+  getPlatformSurfaceYAtX,
+  isLandingOnPlatform,
 } from './journeyUtils.js';
+import { PLATFORMS } from './journeyLevelData.js';
 
 test('createJourneyPlatformFromPaletteItem creates a room-scoped editable platform', () => {
   const [platformItem] = createJourneyPlatformPalette().filter(item => item.type === 'platform');
@@ -37,4 +40,27 @@ test('createJourneyPlacementChangeSummary reports added platforms', () => {
   assert.deepEqual(summary.entries.map(entry => entry.label), [
     'Platform desert-entry-platform-1 added',
   ]);
+});
+
+test('sloping platforms expose a real walkable landing surface', () => {
+  const slope = PLATFORMS.find(platform => platform.id === 'lost-bridge-approach-slope');
+
+  assert.ok(slope, 'expected the ravine bridge approach slope to exist');
+  assert.equal(getPlatformSurfaceYAtX(slope, slope.x), slope.slopeStartY);
+  assert.equal(getPlatformSurfaceYAtX(slope, slope.x + slope.width), slope.slopeEndY);
+
+  const centerSurfaceY = getPlatformSurfaceYAtX(slope, slope.x + slope.width / 2);
+  const player = {
+    x: slope.x + slope.width / 2 - 12,
+    y: centerSurfaceY - 45,
+    width: 24,
+    height: 46,
+    vy: 120,
+  };
+  const previousPlayer = {
+    ...player,
+    y: player.y - 8,
+  };
+
+  assert.equal(isLandingOnPlatform(player, previousPlayer, slope), true);
 });

@@ -369,11 +369,12 @@ test('Desert Entry keeps the archived clean physical transition metadata instead
   assert.doesNotMatch(journeyComponentSource, /drawDesertEntryPrimaryBackgroundPlatesFrame/);
   assert.match(journeyComponentSource, /drawDesertJourneyPanelLayerFrame/);
   assert.match(journeyComponentSource, /drawDesertJourneyTransitionMaskFrame/);
-  assert.match(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS/);
-  assert.match(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS/);
+  assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS/);
+  assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_SEAM_MASKS/);
   assert.doesNotMatch(journeyComponentSource, /desertEntryPrimaryBackgroundPlateIds/);
-  assert.match(journeyComponentSource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
+  assert.doesNotMatch(journeyComponentSource, /desertEntryPrimaryBackgroundPlateSeamMasks/);
   assert.doesNotMatch(journeyComponentSource, /single-plate-camera-pan-primary-png-v3/);
+  assert.match(journeyBackgroundAssetsSource, /DESERT_BACKGROUND_DEPTH_MODE = 'desert-entry-necropolis-layered-playable-route-v1'/);
   assert.match(journeyComponentSource, /DESERT_JOURNEY_BACKGROUND_SYSTEM_VERSION/);
   assert.doesNotMatch(journeyComponentSource, /DESERT_ENTRY_PRIMARY_BACKGROUND_CROSSFADE_WIDTH/);
   assert.doesNotMatch(journeyComponentSource, /overlayAlpha/);
@@ -412,10 +413,10 @@ test('journeyDataRouter lays the ritual climb ledges from the building while jou
   assert.equal(basePlatform.width, 311);
   // Routed coords are computed as a fraction of the Ritual Chamber building, so a
   // building resize (desertLayerTuning.ritualPyramid) moves the whole climb with it
-  // (ritualBuildingClimb.js). These values follow the default 736-tall / 1.14-wide building.
-  assert.equal(routedPlatform.width, 195);
-  assert.equal(routedPlatform.x, 5004);
-  assert.equal(routedPlatform.y, 453);
+  // (ritualBuildingClimb.js). These values follow the default 760-tall / 1.16-wide building.
+  assert.equal(routedPlatform.width, 204);
+  assert.equal(routedPlatform.x, 4986);
+  assert.equal(routedPlatform.y, 462);
 });
 
 test('sacred exterior editor overrides stay aligned after horizontal scale changes', () => {
@@ -705,22 +706,18 @@ test('Desert Entry opening rebuild uses the layered necropolis atlas for arrival
     'desert-entry-broken-shrine-pieces-1',
   ];
 
-  assert.match(
+  assert.doesNotMatch(
     journeyComponentSource,
-    /const DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP = false;/,
-    'the temporary original-backdrop restore switch should be off so the continuous route can render',
-  );
-  const primaryPlateListSource = journeyComponentSource.slice(
-    journeyComponentSource.indexOf('const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS'),
-    journeyComponentSource.indexOf('const DESERT_ENTRY_RETIRED_BACKGROUND_PROP_IDS'),
+    /DESERT_ENTRY_RESTORE_ORIGINAL_BACKDROP/,
+    'the temporary original-backdrop restore switch should stay removed so the layered route remains canonical',
   );
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-arrival-ravine-mummification-panorama-1'));
-  assert.doesNotMatch(primaryPlateListSource, /'desert-entry-opening-pyramid-to-ravine-background-1',\s*[\r\n]\s*'desert-entry-ravine-bridge-background-1'/);
+  assert.doesNotMatch(journeyComponentSource, /const DESERT_ENTRY_PRIMARY_BACKGROUND_PLATE_IDS/);
   assert.doesNotMatch(journeyComponentSource, /opening-png-to-ravine-png-dust|ravine-png-to-mummification-png-dust|mummification-approach-png-to-arrival-png-pillar/);
   assert.equal(
     openingPyramid,
     undefined,
-    'the old generated opening pyramid should stay removed behind the primary background plates',
+    'the old generated opening pyramid should stay removed behind the layered necropolis atlas',
   );
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('opening-pyramid-facade-structure'));
   assert.equal(propById('desert-entry-arrival-ravine-mummification-panorama-1'), undefined);
@@ -731,7 +728,7 @@ test('Desert Entry opening rebuild uses the layered necropolis atlas for arrival
   assert.match(journeyBackgroundAssetsSource, /'groundLane'/);
   assert.match(journeyBackgroundAssetsSource, /'foregroundRubble'/);
   assert.match(journeyBackgroundAssetsSource, /'foregroundDepth'/);
-  assert.ok(existsSync('public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-ground-lane-2026-06-27.png'), 'Egypt true playable path image file should exist on disk');
+  assert.ok(existsSync('public/assets/expedition/backgrounds/desert-entry/desert-entry-dry-plaza-groundlane-2026-07-01.png'), 'active Desert Entry playable path image file should exist on disk');
   const wallBackedClimb = propById('desert-entry-opening-wall-backed-climb-1');
   assert.equal(
     wallBackedClimb,
@@ -769,16 +766,17 @@ test('Desert Entry opening rebuild uses the layered necropolis atlas for arrival
       `${id} should be removed so the early route background is carried by the clean panorama only`,
     );
   });
+  const earlyLayeredBackgroundPropIds = ROUTED_STORY_PROPS
+    .filter(prop => (
+      prop.sectionId === 'desert-entry'
+      && Number.isFinite(prop.x)
+      && prop.x <= 7000
+      && (prop.alpha ?? 1) > 0
+      && (prop.depth === 'background' || prop.depth === 'midground' || prop.layer === 'background')
+    ))
+    .map(prop => prop.id);
   assert.deepEqual(
-    ROUTED_STORY_PROPS
-      .filter(prop => (
-        prop.sectionId === 'desert-entry'
-        && Number.isFinite(prop.x)
-        && prop.x <= 7000
-        && (prop.alpha ?? 1) > 0
-        && (prop.depth === 'background' || prop.depth === 'midground' || prop.layer === 'background')
-      ))
-      .map(prop => prop.id),
+    earlyLayeredBackgroundPropIds.filter(id => /background|panorama/i.test(id)),
     [],
     'the layered necropolis atlas should own the early Desert Entry background instead of a routed panorama prop',
   );

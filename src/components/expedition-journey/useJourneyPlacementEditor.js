@@ -5,6 +5,7 @@ import {
   CANVAS_WIDTH,
   JOURNEY_PROP_EDITOR_STORAGE_KEY,
   JOURNEY_PROP_EDITOR_SECTIONS_KEY,
+  JOURNEY_PROP_PALETTE_DOCK_KEY,
 } from './journeyConstants';
 import { worldToScreenX } from './journeyLayout.js';
 import { getSectionForX } from './journeyUtils.js';
@@ -39,6 +40,11 @@ import {
   getEnvironmentAssetKeyForStoryProp,
 } from './journeyRenderAssets.js';
 import lostSitePropRegistry from './lostSitePropRegistry.json';
+
+const ARCH_CATEGORIES = ['Tomb Architecture', 'Route Gate Architecture', 'Arrival Threshold', 'Temple Approach'];
+const ENV_CATEGORIES = ['Desert Atmosphere', 'Environmental Storytelling Props'];
+const BRIDGE_FLOOR_CATEGORIES = ['Bridge Kit', 'Ravine Bridge', 'Premium Floor Kit', 'Prop Edge Kit'];
+const SACRED_CATEGORIES = ['Archaeology Props', 'Egyptian Sacred Props'];
 
 /* eslint-disable react-hooks/exhaustive-deps -- every dependency the rule flags in this file
    is a stable ref or a module-level helper passed in from the component; none change across
@@ -139,7 +145,7 @@ export function useJourneyPlacementEditor({
     gridSize: DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
     paletteOpen: false,
     selectedPaletteKey: null,
-    selectedPaletteCategory: 'prop',
+    selectedPaletteCategory: 'arch-prop',
     stampMode: false,
     showTrapTriggers: true,
     showHoverLabels: true,
@@ -147,6 +153,7 @@ export function useJourneyPlacementEditor({
     panelCollapsed: false,
     floorPickMode: false,
     palette: [],
+    paletteDockLayout: 'sidebar',
     selectedLockKey: null,
     selectedLocked: false,
     lockedCount: 0,
@@ -666,6 +673,14 @@ export function useJourneyPlacementEditor({
               ? shardPropsEditorPalette
               : editor.selectedPaletteCategory === 'ledge'
                 ? propEditorPalette.filter(item => item.category === 'Ledge Helpers')
+              : editor.selectedPaletteCategory === 'arch-prop'
+                ? propEditorPalette.filter(item => ARCH_CATEGORIES.includes(item.category))
+              : editor.selectedPaletteCategory === 'env-prop'
+                ? propEditorPalette.filter(item => ENV_CATEGORIES.includes(item.category) || !item.category)
+              : editor.selectedPaletteCategory === 'bridge-floor-prop'
+                ? propEditorPalette.filter(item => BRIDGE_FLOOR_CATEGORIES.includes(item.category))
+              : editor.selectedPaletteCategory === 'sacred-prop'
+                ? propEditorPalette.filter(item => SACRED_CATEGORIES.includes(item.category))
                 : propEditorPalette;
     const palette = paletteSource
       .map(item => ({ ...item, preview: getPropPalettePreview(item) }))
@@ -676,6 +691,11 @@ export function useJourneyPlacementEditor({
       : category === 'ground-detail' ? groundDetailsEditorPalette
       : category === 'foreground-detail' ? foregroundDetailsEditorPalette
       : category === 'shard-prop' ? shardPropsEditorPalette
+      : category === 'ledge' ? propEditorPalette.filter(item => item.category === 'Ledge Helpers')
+      : category === 'arch-prop' ? propEditorPalette.filter(item => ARCH_CATEGORIES.includes(item.category))
+      : category === 'env-prop' ? propEditorPalette.filter(item => ENV_CATEGORIES.includes(item.category) || !item.category)
+      : category === 'bridge-floor-prop' ? propEditorPalette.filter(item => BRIDGE_FLOOR_CATEGORIES.includes(item.category))
+      : category === 'sacred-prop' ? propEditorPalette.filter(item => SACRED_CATEGORIES.includes(item.category))
       : propEditorPalette
     );
     const recentPaletteItems = (editor.recentPaletteKeys || [])
@@ -879,6 +899,7 @@ export function useJourneyPlacementEditor({
       panelCollapsed: editor.panelCollapsed,
       floorPickMode: editor.floorPickMode,
       palette,
+      paletteDockLayout: editor.paletteDockLayout || 'sidebar',
       selectedLockKey,
       selectedLocked: Boolean(selectedLockKey && editor.lockedItems.has(selectedLockKey)),
       lockedCount: editor.lockedItems.size,
@@ -1054,6 +1075,8 @@ export function useJourneyPlacementEditor({
         pruneObsoleteLostBridgeRavineFloorEditorProps(propPlacementEditorRef.current);
         pruneRetiredDesertEntryBackgroundEditorProps(propPlacementEditorRef.current);
       }
+      const savedDock = window.localStorage.getItem(JOURNEY_PROP_PALETTE_DOCK_KEY);
+      propPlacementEditorRef.current.paletteDockLayout = savedDock || 'sidebar';
     } catch {
       // Ignore corrupt saved state — fall back to a clean editor.
     }

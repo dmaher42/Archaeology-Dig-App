@@ -70,6 +70,7 @@ export const PLATFORMS = [
   // (variant 'lost-bridge', y JY(130)=365) is the only playable crossing; the lower floor is
   // deliberately split away so knock-offs fall into the rescue zone instead of reading as a
   // walkable route. The far landing reconnects to the desert track after the chasm. ---
+  { id: 'lost-bridge-approach-slope', x: X(395), y: JY(272), slopeStartY: JY(318), slopeEndY: JY(272), width: X(72), height: 16, variant: 'lost-bridge', label: 'sloping sandstone approach into the ravine bridge climb' },
   { id: 'lost-bridge-approach-step-1', x: X(415), y: JY(272), width: 150, height: 16, variant: 'lost-bridge', label: 'broken sandstone approach step to the ravine bridge' },
   { id: 'lost-bridge-approach-step-2', x: X(437), y: JY(214), width: 130, height: 16, variant: 'lost-bridge', label: 'cracked sandstone approach step to the ravine bridge' },
   { id: 'lost-bridge-approach-step-3', x: X(452), y: JY(168), width: 120, height: 16, variant: 'lost-bridge', label: 'upper sandstone approach step to the ravine bridge entrance' },
@@ -300,7 +301,7 @@ export const ENEMIES = [
   // routeBlocker:false — this nest lives in the opening combat stretch (among the grounded bridge enemies) as a
   // fight-or-ignore spawner, NOT a destroy-to-pass wall. getLiveScorpionNestBlockers skips nests flagged this way.
   { id: 'desert-entry-scorpion-nest-1', name: 'Scorpion Nest', type: 'scorpion-nest', emoji: 'N', x: X(500), y: JY(316), width: 84, height: 54, patrolMin: X(500), patrolMax: X(500), speed: 0, health: 6, damage: 0, openingRouteRamp: true, routeBlocker: false, shards: 5, combatPurpose: 'objective-defense', spawnInterval: 3.4, spawnCap: 3, spawnInitialDelay: 0.9, attackPatternTuning: { windup: 99, duration: 0.1, cooldown: 99, recovery: 0.1, vulnerableAfter: 0.1, speed: 0, range: 0, height: 0, yOffset: 0, backReach: 0, damageScale: 0 }, encounterRole: 'nest arena', combatRole: 'destructible spawner', pressureHint: 'Scorpions pour from the nest. Destroy the nest to stop the swarm.' },
-  { id: 'sand-wisp-arena-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'W', x: X(545), y: JY(300), width: 32, height: 30, patrolMin: X(510), patrolMax: X(580), speed: 70, health: 2, damage: 5, openingRouteRamp: true, initialAttackCooldown: 2.2, attackPatternTuning: { windup: 0.56, cooldown: 1.7, recovery: 0.66, vulnerableAfter: 0.72, speed: 122, range: 34 }, shards: 2, combatPurpose: 'objective-defense', flying: true, encounterRole: 'nest arena pressure', pressureHint: 'A sand wisp harries you while the nest spits scorpions.' },
+  { id: 'sand-wisp-arena-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'W', x: X(545), y: JY(300), width: 40, height: 37.5, patrolMin: X(510), patrolMax: X(580), speed: 70, health: 2, damage: 5, openingRouteRamp: true, initialAttackCooldown: 2.2, attackPatternTuning: { windup: 0.56, cooldown: 1.7, recovery: 0.66, vulnerableAfter: 0.72, speed: 122, range: 34 }, shards: 2, combatPurpose: 'objective-defense', flying: true, encounterRole: 'nest arena pressure', pressureHint: 'A sand wisp harries you while the nest spits scorpions.' },
   { id: 'scarab-arena-1', name: 'Scarab', type: 'scarab', emoji: 'B', x: X(350), y: JY(334), width: 34, height: 26, patrolMin: X(325), patrolMax: X(380), speed: 76, health: 2, damage: 6, openingRouteRamp: true, initialAttackCooldown: 1.9, shards: 2, combatPurpose: 'objective-defense', encounterRole: 'nest arena pressure', pressureHint: 'Keeps pressure on the nest arena so the spawner cannot be ignored.' },
   { id: 'scarab-scout-1', name: 'Scarab Scout', type: 'scarab', emoji: 'ðŸž', x: X(705), y: JY(334), width: 34, height: 26, patrolMin: X(680), patrolMax: X(760), speed: 74, health: 1, damage: 5, openingRouteRamp: true, firstSealRouteRamp: true, shards: 2, combatPurpose: 'guardian-threshold', encounterRole: 'basic timing scout', combatRole: 'basic timing enemy', protectsRouteId: 'temple-approach-seal', pressureHint: 'Anubis\'s scout patrols the temple approach. The seal will not open while it remains.', attackPatternTuning: { label: 'Scout Charge', windup: 0.72, duration: 0.24, cooldown: 1.72, recovery: 0.82, vulnerableAfter: 0.9, speed: 138, range: 34 } },
   // --- Ravine Bridge encounter enemies. The bridge ART is not wired yet, so this stretch is still
@@ -312,16 +313,16 @@ export const ENEMIES = [
   { id: 'scarab-bridge-2', name: 'Bridge Scarab', type: 'scarab', emoji: 'B', x: X(540), y: JY(334), width: 36, height: 26, patrolMin: X(525), patrolMax: X(565), speed: 94, health: 2, damage: 8, openingRouteRamp: true, initialAttackCooldown: 1.5, shards: 3, combatPurpose: 'route-pressure', playerKnockbackMultiplier: 2.6, encounterRole: 'ravine bridge charger', pressureHint: 'A second scarab guards the far slabs. Clear the bridge methodically instead of rushing.' },
   // --- Light pressure across the stretched mummification -> mural walk (kept within the gentle opening budget) ---
   { id: 'scorpion-mural-approach-1', name: 'Sand Scorpion', type: 'scorpion', emoji: 'S', x: X(885), y: JY(328), width: 46, height: 30, patrolMin: X(845), patrolMax: X(945), speed: 56, health: 2, damage: 7, openingRouteRamp: true, initialAttackCooldown: 1.9, attackPatternTuning: { windup: 0.66, duration: 0.34, cooldown: 1.74, recovery: 0.7, vulnerableAfter: 0.78, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4 }, shards: 2, combatPurpose: 'route-pressure', encounterRole: 'approach pressure', pressureHint: 'A scorpion works the open sand between the chambers.' },
-  { id: 'sand-wisp-mural-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'W', x: X(985), y: JY(300), width: 32, height: 30, patrolMin: X(945), patrolMax: X(1040), speed: 72, health: 2, damage: 6, openingRouteRamp: true, initialAttackCooldown: 2.1, flying: true, attackPatternTuning: { windup: 0.56, cooldown: 1.7, recovery: 0.66, vulnerableAfter: 0.72, speed: 124, range: 34 }, shards: 2, combatPurpose: 'route-pressure', encounterRole: 'upper-route pressure', pressureHint: 'A wisp drifts the upper line over the mural approach.' },
-  { id: 'sand-wisp-start-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'ðŸª²', x: X(1095), y: JY(304), width: 32, height: 30, patrolMin: X(1085), patrolMax: X(1130), speed: 72, health: 2, damage: 4, initialAttackCooldown: 2.2, openingRouteRamp: true, attackPatternTuning: { windup: 0.56, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.72, speed: 124, range: 34 }, shards: 2, combatPurpose: 'route-pressure', flying: true, encounterRole: 'upper-route pressure', protectsRouteId: 'desert-upper-survey-route', pressureHint: 'Pressures the route without turning the seal into a checklist fight.' },
+  { id: 'sand-wisp-mural-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'W', x: X(985), y: JY(300), width: 40, height: 37.5, patrolMin: X(945), patrolMax: X(1040), speed: 72, health: 2, damage: 6, openingRouteRamp: true, initialAttackCooldown: 2.1, flying: true, attackPatternTuning: { windup: 0.56, cooldown: 1.7, recovery: 0.66, vulnerableAfter: 0.72, speed: 124, range: 34 }, shards: 2, combatPurpose: 'route-pressure', encounterRole: 'upper-route pressure', pressureHint: 'A wisp drifts the upper line over the mural approach.' },
+  { id: 'sand-wisp-start-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'ðŸª²', x: X(1095), y: JY(304), width: 40, height: 37.5, patrolMin: X(1085), patrolMax: X(1130), speed: 72, health: 2, damage: 4, initialAttackCooldown: 2.2, openingRouteRamp: true, attackPatternTuning: { windup: 0.56, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.72, speed: 124, range: 34 }, shards: 2, combatPurpose: 'route-pressure', flying: true, encounterRole: 'upper-route pressure', protectsRouteId: 'desert-upper-survey-route', pressureHint: 'Pressures the route without turning the seal into a checklist fight.' },
   { id: 'scarab-1', name: 'Scarab', type: 'scarab', emoji: 'ðŸž', x: X(1180), y: JY(334), width: 34, height: 26, patrolMin: X(1165), patrolMax: X(1225), speed: 80, health: 2, damage: 8, initialAttackCooldown: 1.8, openingRouteRamp: true, shards: 2, combatPurpose: 'route-pressure', combatRole: 'upper route timing pressure', pressureHint: 'A scarab patrols the raised route so the upper path still asks for timing.' },
-  { id: 'sand-wisp-ledge-1', name: 'Ledge Sand Wisp', type: 'sand-wisp', emoji: 'ðŸª²', x: X(1215), y: JY(300), width: 32, height: 30, patrolMin: X(1195), patrolMax: X(1245), speed: 70, health: 2, damage: 7, initialAttackCooldown: 2.1, openingRouteRamp: true, attackPatternTuning: { windup: 0.54, cooldown: 1.68, recovery: 0.64, vulnerableAfter: 0.7, speed: 128, range: 34 }, shards: 2, combatPurpose: 'guardian-threshold', flying: true, encounterRole: 'guardian prep pressure', protectsRouteId: 'guardian-prep-seal', pressureHint: 'Signals the guardian boundary without forcing an extra gate clear.' },
+  { id: 'sand-wisp-ledge-1', name: 'Ledge Sand Wisp', type: 'sand-wisp', emoji: 'ðŸª²', x: X(1215), y: JY(300), width: 40, height: 37.5, patrolMin: X(1195), patrolMax: X(1245), speed: 70, health: 2, damage: 7, initialAttackCooldown: 2.1, openingRouteRamp: true, attackPatternTuning: { windup: 0.54, cooldown: 1.68, recovery: 0.64, vulnerableAfter: 0.7, speed: 128, range: 34 }, shards: 2, combatPurpose: 'guardian-threshold', flying: true, encounterRole: 'guardian prep pressure', protectsRouteId: 'guardian-prep-seal', pressureHint: 'Signals the guardian boundary without forcing an extra gate clear.' },
   { id: 'scarab-upper-route-1', name: 'Upper Route Scarab', type: 'scarab', emoji: 'B', x: X(1240), y: JY(334), width: 32, height: 24, patrolMin: X(1225), patrolMax: X(1270), speed: 54, health: 2, damage: 8, initialAttackCooldown: 2, openingRouteRamp: true, shards: 1, combatPurpose: 'route-pressure', combatRole: 'upper route timing pressure', pressureHint: 'Guards the upper route without turning the seal into a checklist fight.' },
   { id: 'scorpion-seal-path-1', name: 'Seal Warden Scorpion', type: 'scorpion', emoji: 'S', x: X(1450), y: JY(328), width: 46, height: 30, patrolMin: X(1423), patrolMax: X(1487), speed: 62, health: 2, damage: 8, openingRouteRamp: true, attackPatternTuning: { label: 'Guarded Sting', windup: 0.82, duration: 0.32, cooldown: 1.86, recovery: 0.9, vulnerableAfter: 0.98, speed: 44, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.35, shieldDuringWindup: true, protectedDuringWindup: true }, shards: 1, combatPurpose: 'guardian-threshold', encounterRole: 'route guardian enemy', combatRole: 'route guardian enemy', protectsRouteId: 'temple-approach-seal', pressureHint: 'Anubis\'s warden protects the seal. Blind strikes bounce off its guard; counter after the sting.' },
   // --- Stretched scribe -> Scarab Queen lair gauntlet: fills the widened gap with an
   // air+ground squeeze, a snake ambush, and a shielded warden duel before the lair. ---
   { id: 'scarab-stretch-1', name: 'Tomb Scarab', type: 'scarab', emoji: 'B', x: X(1560), y: JY(334), width: 34, height: 26, patrolMin: X(1520), patrolMax: X(1620), speed: 92, health: 2, damage: 8, openingRouteRamp: true, initialAttackCooldown: 1.7, shards: 2, combatPurpose: 'route-pressure', encounterRole: 'air-ground squeeze', pressureHint: 'A scarab charges low while a wisp harries from above — split your attention.' },
-  { id: 'sand-wisp-stretch-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'W', x: X(1615), y: JY(298), width: 32, height: 30, patrolMin: X(1565), patrolMax: X(1670), speed: 76, health: 2, damage: 7, openingRouteRamp: true, initialAttackCooldown: 2, flying: true, attackPatternTuning: { windup: 0.54, cooldown: 1.66, recovery: 0.64, vulnerableAfter: 0.7, speed: 128, range: 34 }, shards: 2, combatPurpose: 'route-pressure', encounterRole: 'air-ground squeeze', pressureHint: 'Harries Asha above the scribe-to-Queen approach while ground enemies hold the route.' },
+  { id: 'sand-wisp-stretch-1', name: 'Sand Wisp', type: 'sand-wisp', emoji: 'W', x: X(1615), y: JY(298), width: 40, height: 37.5, patrolMin: X(1565), patrolMax: X(1670), speed: 76, health: 2, damage: 7, openingRouteRamp: true, initialAttackCooldown: 2, flying: true, attackPatternTuning: { windup: 0.54, cooldown: 1.66, recovery: 0.64, vulnerableAfter: 0.7, speed: 128, range: 34 }, shards: 2, combatPurpose: 'route-pressure', encounterRole: 'air-ground squeeze', pressureHint: 'Harries Asha above the scribe-to-Queen approach while ground enemies hold the route.' },
   { id: 'snake-stretch-ambush-1', name: 'Buried Sand Snake', type: 'snake', emoji: 'B', x: X(1745), y: JY(330), width: 42, height: 30, patrolMin: X(1700), patrolMax: X(1800), speed: 64, health: 2, damage: 10, openingRouteRamp: true, initialAttackCooldown: 1.9, attackPatternTuning: { windup: 0.66, cooldown: 1.68, recovery: 0.68, vulnerableAfter: 0.76, speed: 148, range: 50 }, shards: 3, combatPurpose: 'route-pressure', encounterRole: 'ambush pocket', pressureHint: 'A snake coils in the sand by the scribe chamber — its long lunge punishes a careless sprint.' },
   { id: 'scorpion-warden-2', name: 'Lair Gate Warden', type: 'scorpion', emoji: 'S', x: X(1885), y: JY(328), width: 48, height: 31, patrolMin: X(1850), patrolMax: X(1925), speed: 50, health: 3, damage: 10, openingRouteRamp: true, initialAttackCooldown: 2, attackPatternTuning: { label: 'Guarded Sting', windup: 0.84, duration: 0.32, cooldown: 1.88, recovery: 0.92, vulnerableAfter: 1.0, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.4, shieldDuringWindup: true, protectedDuringWindup: true }, shards: 4, combatPurpose: 'boss-preparation', encounterRole: 'shielded duel', combatRole: 'mini-boss-lite', pressureHint: 'A shielded warden guards the lair approach. Strikes bounce off its guard — wait for the sting, then counter.' },
   { id: 'scorpion-warning-1', name: 'Lair Warden Scorpion', type: 'scorpion', emoji: 'S', x: X(1990), y: JY(328), width: 46, height: 30, patrolMin: X(1970), patrolMax: X(2030), speed: 48, health: 2, damage: 10, initialAttackCooldown: 2.2, openingRouteRamp: true, attackPatternTuning: { windup: 0.64, duration: 0.32, cooldown: 1.72, recovery: 0.68, vulnerableAfter: 0.76, speed: 46, range: 28, height: 62, yOffset: -38, backReach: 42, damageScale: 1.45 }, shards: 2, combatPurpose: 'boss-preparation', encounterRole: 'lair approach pressure', pressureHint: 'Makes the final sand walk feel guarded before the Queen reveals herself.' },
@@ -1125,8 +1126,6 @@ export const SECTION_ATMOSPHERES = {
     skyTop: '#17211f',
     skyBottom: '#a96728',
     haze: 'rgba(93, 58, 28, 0.24)',
-    particle: null,
-    particleColor: null,
     fogColor: 'rgba(42, 33, 22, 0.24)',
     mood: 'eclipse sky, broken pyramids, corrupted Duat path',
     title: 'Cross the corrupted threshold and restore the first seal.',
@@ -1135,8 +1134,6 @@ export const SECTION_ATMOSPHERES = {
     skyTop: '#5c4d3c',
     skyBottom: '#8b6a47',
     haze: 'rgba(251, 191, 36, 0.15)',
-    particle: 'embers',
-    particleColor: 'rgba(251, 191, 36, 0.5)',
     fogColor: 'rgba(75, 50, 32, 0.22)',
     mood: 'flickering torches, shifting shadows, heavy stone',
     title: 'Deep within the temple, the stone begins to groan.',
@@ -1145,8 +1142,6 @@ export const SECTION_ATMOSPHERES = {
     skyTop: '#111827',
     skyBottom: '#312e81',
     haze: 'rgba(129, 140, 248, 0.18)',
-    particle: 'glyph motes',
-    particleColor: 'rgba(165, 180, 252, 0.55)',
     fogColor: 'rgba(30, 27, 75, 0.3)',
     mood: 'pulsing glyphs, purple mist, forgotten depths',
     title: 'The catacombs reveal secrets written in light.',
@@ -1155,8 +1150,6 @@ export const SECTION_ATMOSPHERES = {
     skyTop: '#7f1d1d',
     skyBottom: '#ef4444',
     haze: 'rgba(248, 113, 113, 0.25)',
-    particle: 'dust and debris',
-    particleColor: 'rgba(255, 228, 172, 0.65)',
     fogColor: 'rgba(153, 27, 27, 0.25)',
     mood: 'trembling ground, falling rubble, urgent heat',
     title: 'The ruins are collapsing! Find the exit now!',
@@ -1165,8 +1158,6 @@ export const SECTION_ATMOSPHERES = {
     skyTop: '#064e3b',
     skyBottom: '#065f46',
     haze: 'rgba(167, 243, 208, 0.2)',
-    particle: 'fireflies',
-    particleColor: 'rgba(209, 250, 229, 0.6)',
     fogColor: 'rgba(6, 78, 59, 0.18)',
     mood: 'safe encampment, golden light, the site awaits',
     title: 'Base Camp is in sight. You have reached the dig.',
@@ -1855,7 +1846,6 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'relic-shard-purpose-note-read', sectionId: 'desert-entry', x: X(180), name: 'Seal Test', message: 'Restore the fragments the seal still recognises. Pass the guardians. The site will test you.', type: 'arrival', duration: 2.4, shake: 0.05 },
   { id: 'starter-route-note', sectionId: 'desert-entry', x: X(255), name: 'Ancient Trace', message: 'A worn marker points deeper into the ruins.', type: 'arrival', duration: 1.8, shake: 0.08 },
   { id: 'desert-first-dust-preview', sectionId: 'desert-entry', x: X(300), name: 'Dust Gust', message: 'A dust gust curls through the first survey markers.', type: 'dust-gust', duration: 2.8, shake: 0.18, dynamic: true, card: false },
-  { id: 'desert-start-birds-scatter', sectionId: 'desert-entry', x: X(340), name: 'Birds Scatter', message: 'Birds lift from the first ruined stones.', type: 'birds-scatter', duration: 2.6, shake: 0.06, dynamic: true, card: false },
   { id: 'opening-guide-careful-tools', sectionId: 'desert-entry', x: X(380), name: 'Guide Reminder', message: 'Good. Evidence and tools open the path - not force.', type: 'dust-gust', duration: 2.0, shake: 0.04, card: false },
   { id: 'desert-pottery-clue', sectionId: 'desert-entry', x: X(410), name: 'Trace Evidence', message: 'The sand has preserved a trace here.', type: 'arrival', duration: 2.2, shake: 0.15 },
   { id: 'sand-gust', sectionId: 'desert-entry', x: X(520), name: 'Sand Gust', message: 'A sheet of sand sweeps across the entry route.', type: 'gust', duration: 2.4, shake: 0.4 },
@@ -1863,7 +1853,6 @@ export const ENVIRONMENT_EVENTS = [
   { id: 'desert-distant-rockfall', sectionId: 'desert-entry', x: X(500), name: 'Distant Rockfall', message: 'Stone shifts somewhere beyond the ridge.', type: 'rockfall', duration: 2.8, shake: 0.18, dynamic: true, card: false, sfxKey: 'distantRockfall' },
   { id: 'air-wrongness', sectionId: 'desert-entry', x: X(800), type: 'air-wrongness' },
   { id: 'scarab-queen-lair-dread-wind', sectionId: 'desert-entry', x: X(1953), name: 'Lair Wind', message: 'A low wind pulls sand toward something buried ahead.', type: 'dust-gust', duration: 4.2, shake: 0.18, dynamic: true, card: false },
-  { id: 'desert-birds-scatter', sectionId: 'desert-entry', x: X(2075), name: 'Birds Scatter', message: 'Birds scatter from the far ruins.', type: 'birds-scatter', duration: 2.4, shake: 0.08, dynamic: true, card: false },
   { id: 'lost-bridge-warning', sectionId: 'desert-entry', x: X(410), name: 'Ravine Bridge', message: 'A narrow bridge spans a deep scorpion ravine. Clear it, or be knocked into the dark.', type: 'collapse', duration: 2.8, shake: 0.2, sfxKey: 'bridgeStoneCrack' },
   { id: 'lost-bridge-chamber-arrival', sectionId: 'desert-entry', x: X(556), name: 'Chamber Reached', message: 'Across the ravine, the Mummification Chamber rises. You crossed to reach it.', type: 'shrine-glow', duration: 3.2, shake: 0.12 },
   { id: 'desert-marker', sectionId: 'desert-entry', x: X(700), name: 'Threshold Marker', message: 'A jackal guardian marks the threshold into the ancient site.', type: 'arrival', duration: 2.2, shake: 0.1 },

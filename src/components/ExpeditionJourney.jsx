@@ -235,10 +235,14 @@ import {
   PLAYER_FINISHER_SLASH_EFFECT_SRC,
   PLAYER_FINISHER_SLASH_EFFECT_VERSION,
   PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL,
+  SCORPION_ANTI_AIR_ATTACK_PATTERN,
   SCORPION_ATTACK_RANGE_MULTIPLIER,
+  SCORPION_VENOM_ATTACK_PATTERN_TUNING,
   SCORPION_VENOM_SLOW_DURATION,
   SCORPION_VENOM_SLOW_MULTIPLIER,
   SCORPION_VENOM_SPIT_RANGE,
+  SNAKE_AMBUSH_LUNGE_PATTERN,
+  WISP_DIVE_ATTACK_PATTERN,
 } from './expedition-journey/journeyCombat.js';
 
 import {
@@ -1171,6 +1175,11 @@ const resetPlayerCombo = (current) => {
   current.attackQueuedType = PLAYER_ATTACK_TYPES.LIGHT;
   current.attackQueuedHeavyFollowupPrimed = false;
   current.attackType = PLAYER_ATTACK_TYPES.LIGHT;
+  current.attackRange = 0;
+  current.attackHeight = 0;
+  current.attackBackReach = 0;
+  current.attackYOffset = 0;
+  current.attackDamage = null;
   current.heavyFollowupReadyTimer = 0;
   current.heavyFollowupCueTimer = 0;
 };
@@ -1517,7 +1526,6 @@ const HEAVY_ATTACK_PATTERNS = {
 };
 
 const ENEMY_TYPE_STAKE_MESSAGES = {
-  scarab: 'Scarab face armor blocks frontal hits. Let it charge past, then strike from behind.',
   scorpion: 'Scorpion venom slows Asha. If a scarab is nearby, its charge gets faster.',
   'sand-wisp': 'Sand wisps tense before they burst. Wait for the opening.',
   snake: 'Snake lunges from mid-range. Watch the coil.',
@@ -1549,17 +1557,12 @@ const SCORPION_VENOM_ATTACK_PATTERN = {
   ...DEFAULT_ENEMY_ATTACK_PATTERN,
   id: 'venom-spit',
   label: 'Venom Spit',
-  windup: 0.72,
-  duration: 0.36,
-  cooldown: 2.15,
-  recovery: 0.72,
-  vulnerableAfter: 0.82,
+  ...SCORPION_VENOM_ATTACK_PATTERN_TUNING,
   speed: 0,
   range: SCORPION_VENOM_SPIT_RANGE,
   height: 44,
   yOffset: -28,
   backReach: 8,
-  damageScale: 0,
   slowDuration: SCORPION_VENOM_SLOW_DURATION,
   slowMultiplier: SCORPION_VENOM_SLOW_MULTIPLIER,
   ranged: true,
@@ -2625,6 +2628,18 @@ const ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1';
 const ROUTE_GROUND_HAZE_FIX_VERSION = 'necropolis-route-ground-world-locked-2026-06-25';
 const DESERT_ENTRY_VISUAL_GROUND_PLANE_OFFSET_Y = 0;
 const DESERT_ENTRY_VISUAL_GROUND_FOOT_TOLERANCE = 26;
+// Grounded desert-entry enemies render with a per-family `groundOffset` (journeyEnemySprites.js)
+// that sinks their sprite below the painted route after the background rebuild, while the player
+// anchors flush at the floor. This lifts ONLY grounded desert-entry enemy sprites back onto the
+// route. Scoped to enemies + desert-entry; the player, other acts, bridge-deck enemies, flyers, and
+// the nest are excluded. Per-TYPE because each sprite's art has different empty padding under the
+// feet: bump a type up if it still sits sunk, down if it floats. `default` covers any other type.
+const DESERT_ENTRY_ENEMY_FOOT_LIFT = {
+  scorpion: 7,
+  scarab: 7,
+  snake: 14,
+  default: 8,
+};
 const FOREGROUND_DEPTH_LAYER_MODE = 'edge-framed-visual-only-no-collision';
 const ENABLE_FOREGROUND_DEPTH_LAYER = false;
 const DRAW_JOURNEY_FLAG_MARKERS = false;
@@ -3508,6 +3523,7 @@ export default function ExpeditionJourney({
     return (current.enemies || [])
       .filter(enemy => (
         enemy.type === 'scorpion-nest'
+        && enemy.routeBlocker !== false
         && !enemy.defeated
         && isEntityActiveInScene(enemy, current)
       ))
@@ -5781,6 +5797,24 @@ export default function ExpeditionJourney({
     if (enemy.type === 'scorpion' && enemy.attackPattern === SCORPION_VENOM_ATTACK_PATTERN.id) {
       return SCORPION_VENOM_ATTACK_PATTERN;
     }
+    if (
+      enemy.type === 'scorpion' && enemy.attackPattern === SCORPION_ANTI_AIR_ATTACK_PATTERN.id
+      && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
+    ) {
+      return SCORPION_ANTI_AIR_ATTACK_PATTERN;
+    }
+    if (
+      (enemy.type === 'sand-wisp' || enemy.type === 'bat') && enemy.attackPattern === WISP_DIVE_ATTACK_PATTERN.id
+      && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
+    ) {
+      return WISP_DIVE_ATTACK_PATTERN;
+    }
+    if (
+      enemy.type === 'snake' && enemy.attackPattern === SNAKE_AMBUSH_LUNGE_PATTERN.id
+      && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
+    ) {
+      return SNAKE_AMBUSH_LUNGE_PATTERN;
+    }
     // While a heavy attack is in flight (windup -> swing), resolve the heavy pattern so the
     // swing carries heavy damage, reach, speed, and duration. attackPattern keeps the last-used
     // id after the attack ends, so outside the attack lifecycle the normal pattern must drive
@@ -6128,6 +6162,17 @@ export default function ExpeditionJourney({
     return entity.y + getDesertEntryVisualGroundOffsetY(entity.x + width / 2, entity.y + height, current);
   }, [getDesertEntryVisualGroundOffsetY]);
 
+  // Enemy-only, desert-entry-only foot correction (see DESERT_ENTRY_ENEMY_FOOT_LIFT). Returns the
+  // pixels to lift a grounded desert-entry enemy sprite so its feet meet the painted route. Excludes
+  // the nest (custom render) and flyers; bridge-deck enemies fall outside the floor-contact tolerance.
+  const getDesertEntryEnemyFootLift = useCallback((entity, current = stateRef.current) => {
+    if (!entity || entity.type === 'scorpion-nest' || entity.flying) return 0;
+    const width = Number.isFinite(entity.width) ? entity.width : 0;
+    const height = Number.isFinite(entity.height) ? entity.height : 0;
+    if (!getDesertEntryGroundContactActive(entity.x + width / 2, entity.y + height, current)) return 0;
+    return DESERT_ENTRY_ENEMY_FOOT_LIFT[entity.type] ?? DESERT_ENTRY_ENEMY_FOOT_LIFT.default;
+  }, [getDesertEntryGroundContactActive]);
+
   const {
     drawAncientRouteGround,
     drawArrivalThresholdDoorwayOccluder,
@@ -6166,7 +6211,6 @@ export default function ExpeditionJourney({
     drawOpeningCinematic,
     drawOpeningSphinxEncounter,
     drawOpeningThresholdScene,
-    drawParticles,
     drawPlatform,
     drawPlayerFeedbackOverlays,
     drawPlayerSprite,
@@ -6532,7 +6576,6 @@ export default function ExpeditionJourney({
     drawOpeningPyramidMasonryBack,
     drawOpeningSphinxEncounter,
     drawOpeningThresholdScene,
-    drawParticles,
     drawPlatform,
     drawPlayerFeedbackOverlays,
     drawPlayerSprite,
@@ -6563,6 +6606,7 @@ export default function ExpeditionJourney({
     getActiveHiddenRoutes,
     getActiveSecretCollectibles,
     getCombatMode,
+    getDesertEntryEnemyFootLift,
     getDesertEntryVisualGroundOffsetY,
     getDoorwayGateStatus,
     getEditedMiniBoss,
@@ -7701,6 +7745,10 @@ export default function ExpeditionJourney({
         const current = stateRef.current;
         const sectionCheckpoint = getRenderableCheckpoints().find(checkpoint => checkpoint.id === section.id);
         const jumpX = sectionCheckpoint?.x ?? section.start + 24;
+        current.arrivalThresholdActive = false;
+        current.arrivalThresholdExitTransition = null;
+        current.arrivalThresholdTrial = null;
+        current.arrivalThresholdNoticeTimer = 0;
         current.player.x = clamp(jumpX, 0, WORLD_WIDTH - current.player.width);
         current.player.y = GROUND_Y - current.player.height;
         current.player.vx = 0;

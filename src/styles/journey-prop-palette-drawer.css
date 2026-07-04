@@ -183,3 +183,389 @@
     padding-bottom: 0.12rem;
   }
 }
+
+/* Sidebar Layout Overrides */
+.journey-prop-palette-panel.is-sidebar-layout {
+  top: 0.72rem;
+  left: auto;
+  right: 0.72rem;
+  bottom: 0.72rem;
+  width: 19.5rem;
+  max-height: calc(100% - 1.44rem);
+  display: flex;
+  flex-direction: column;
+  padding: 0.58rem;
+  background: rgba(12, 10, 9, 0.95);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  z-index: 55;
+  overflow: hidden;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-editor-export-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+  align-items: center;
+  padding-bottom: 0.46rem;
+  border-bottom: 1px solid rgba(214, 158, 73, 0.25);
+  margin-bottom: 0.46rem;
+  min-height: auto;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-editor-export-header strong {
+  flex: 1 1 100%;
+  font-size: 0.8rem;
+  color: #fde68a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px dashed rgba(255,255,255,0.08);
+  padding-bottom: 0.16rem;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-search {
+  flex: 1;
+  margin: 0.1rem 0;
+  padding: 0.24rem 0.48rem;
+  font-size: 0.68rem;
+  border-radius: 4px;
+  border: 1px solid rgba(214, 158, 73, 0.4);
+  background: rgba(0, 0, 0, 0.4);
+  color: #f8fafc;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-editor-export-header span {
+  font-size: 0.58rem;
+  opacity: 0.8;
+  color: #fbbf24;
+  padding-left: 0.12rem;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-layout-toggle,
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-stamp {
+  padding: 0.16rem 0.38rem;
+  font-size: 0.58rem;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 247, 237, 0.2);
+  background: rgba(255, 247, 237, 0.08);
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.15s ease;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-layout-toggle:hover,
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-stamp:hover {
+  background: rgba(255, 247, 237, 0.16);
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-browser {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 0.4rem;
+  margin-top: 0;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-category-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-right: 0;
+  border-bottom: 0;
+  padding: 0;
+  gap: 0.2rem;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-category-rail .journey-prop-palette-recent-label {
+  display: block;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 0.1rem;
+  font-weight: 700;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.18rem;
+  width: 100%;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-tabs button {
+  min-height: auto;
+  padding: 0.22rem 0.12rem;
+  font-size: 0.58rem;
+  border-radius: 3px;
+  text-align: center;
+  border: 1px solid rgba(214, 158, 73, 0.2);
+  background: rgba(214, 158, 73, 0.06);
+  color: #fde68a;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-tabs button:hover {
+  background: rgba(214, 158, 73, 0.15);
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-tabs button.is-selected {
+  border-color: #fbbf24;
+  background: rgba(214, 158, 73, 0.28);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-recent {
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.24rem;
+  padding: 0.24rem;
+  border: 1px dashed rgba(214, 158, 73, 0.25);
+  border-radius: 4px;
+  background: rgba(20, 15, 10, 0.3);
+  margin: 0.2rem 0;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-recent-item {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.18rem;
+  padding: 0.12rem 0.28rem;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-recent-item:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-recent-item.is-selected {
+  border-color: rgba(94, 234, 212, 0.85);
+  background: rgba(94, 234, 212, 0.16);
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-recent-item .journey-prop-palette-thumb {
+  width: 1rem;
+  height: 0.8rem;
+  flex: 0 0 auto;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-recent-name {
+  font-size: 0.52rem;
+  color: #fff;
+  max-width: 3.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: none;
+  flex: 1;
+  padding-right: 0.16rem;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-grid {
+  display: block;
+  grid-template-columns: none;
+  grid-template-rows: none;
+  grid-auto-flow: row;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 4px;
+  background: rgba(0,0,0,0.15);
+  padding: 0.22rem;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-list .journey-prop-palette-group-toggle {
+  display: flex !important;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.18rem 0.34rem;
+  min-height: auto;
+  border: 1px solid rgba(214, 158, 73, 0.25);
+  border-radius: 3px;
+  background: rgba(120, 53, 15, 0.22);
+  color: #fde68a;
+  cursor: pointer;
+  font-size: 0.58rem;
+  width: 100%;
+  text-align: left;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-group-toggle span {
+  font-size: 0.5rem;
+  opacity: 0.7;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-group-toggle strong {
+  flex: 1;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-group-toggle em {
+  font-size: 0.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.04rem 0.22rem;
+  border-radius: 99px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-group > button:not(.journey-prop-palette-group-toggle) {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  text-align: left;
+  gap: 0.34rem;
+  padding: 0.24rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  min-height: auto;
+  color: #f8fafc;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-group > button:not(.journey-prop-palette-group-toggle):hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(214, 158, 73, 0.35);
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-group > button:not(.journey-prop-palette-group-toggle).is-selected {
+  border-color: rgba(94, 234, 212, 0.85);
+  background: rgba(94, 234, 212, 0.15);
+  box-shadow: inset 0 0 4px rgba(94, 234, 212, 0.2);
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-thumb {
+  width: 3.5rem;
+  height: 2.2rem;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-thumb > span {
+  transform: scale(0.9) !important;
+  transition: transform 0.2s ease;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-group > button:hover .journey-prop-palette-thumb > span {
+  transform: scale(1.05) !important;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  min-width: 0;
+  text-align: left;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-copy strong {
+  font-size: 0.58rem;
+  color: #fff7ed;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-copy span {
+  display: block !important;
+  font-size: 0.5rem;
+  color: rgba(255, 247, 237, 0.5);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-details-box {
+  margin-top: 0.4rem;
+  padding: 0.46rem;
+  border: 1px solid rgba(214, 158, 73, 0.4);
+  border-radius: 5px;
+  background: rgba(15, 12, 10, 0.85);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.26rem;
+  flex-shrink: 0;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-details-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-details-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-details-title strong {
+  font-size: 0.68rem;
+  color: #fbbf24;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-details-category {
+  font-size: 0.52rem;
+  font-style: normal;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-details-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.34rem;
+  font-size: 0.54rem;
+  color: rgba(255, 247, 237, 0.8);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding-top: 0.24rem;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-details-meta code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: rgba(0,0,0,0.3);
+  padding: 0.02rem 0.16rem;
+  border-radius: 2px;
+  color: #99f6e4;
+  font-size: 0.5rem;
+}
+
+.journey-prop-palette-panel.is-sidebar-layout .journey-prop-palette-details-hint {
+  font-size: 0.52rem;
+  color: #a5f3fc;
+  font-style: italic;
+}

@@ -50,3 +50,18 @@ test('museum display label prompt asks students to explain what the find reveals
     placeholder: 'This find tells us that...',
   });
 });
+
+test('evidence image fallbacks use real raster museum images instead of old SVG placeholders', () => {
+  [
+    ['eg_missing', 'museum/egypt_canopic_jar.jpg'],
+    ['mg_missing', 'museum/mungo_lake_overview.jpg'],
+    ['ch_missing', 'museum/china_horse_skeletons.png'],
+    ['rh_missing', 'museum/modern_coin.jpg'],
+    ['unknown_missing', 'museum/modern_coin.jpg'],
+  ].forEach(([id, expectedPath]) => {
+    const resolved = gameLogic.getEvidenceImagePath({ id });
+
+    assert.match(resolved, new RegExp(`${expectedPath}$`));
+    assert.doesNotMatch(resolved, /\.svg$/);
+  });
+});

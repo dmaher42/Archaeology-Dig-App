@@ -1,0 +1,71 @@
+{
+  "image": "desert-entry-v3-candidate-backdrop-test.png",
+  "imageWidth": 2172,
+  "imageHeight": 724,
+  "runtimeMode": "layered-necropolis-playable-route",
+  "devCandidateMode": "v3-ground-lane-test",
+  "devCandidateLabel": "DEV V3 Desert Entry background test",
+  "status": "candidate-review-only-not-live-clean-ground-lane-test",
+  "sourceConcept": "public/assets/expedition/backgrounds/desert-entry/_review-long-route-panels-2026-06-28/continuous-master-route-strip-v3-cropped-framing.png",
+  "notes": "Candidate in-game test pack for the approved V3 Desert Entry concept. This pack deliberately uses one hazy backdrop plus the refined world-locked ground lane, while far/mid/foreground test plates are transparent to avoid doubled pyramids, temples, and road details during camera movement. It has not replaced the active manifest.",
+  "regions": {
+    "skyLight": {
+      "image": "desert-entry-v3-candidate-backdrop-test.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 724
+    },
+    "farPyramids": {
+      "image": "desert-entry-v3-candidate-transparent-full.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 724
+    },
+    "distantCliffs": {
+      "image": "desert-entry-v3-candidate-transparent-full.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 724
+    },
+    "midNecropolisRuins": {
+      "image": "desert-entry-v3-candidate-transparent-full.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 724
+    },
+    "groundBacking": {
+      "image": "desert-entry-v3-candidate-ground-backing.png",
+      "x": 0,
+      "y": 0,
+      "w": 4096,
+      "h": 220
+    },
+    "groundLane": {
+      "image": "desert-entry-v3-candidate-ground-lane-refined.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 313
+    },
+    "foregroundRubble": {
+      "image": "desert-entry-v3-candidate-transparent-foreground-rubble.png",
+      "x": 0,
+      "y": 0,
+      "w": 2172,
+      "h": 220
+    },
+    "foregroundDepth": {
+      "image": "desert-entry-v3-candidate-transparent-foreground-depth.png",
+      "x": 0,
+      "y": 0,
+      "w": 4096,
+      "h": 128
+    }
+  },
+  "candidateFootLineYInSourcePx": 593,
+  "nextStep": "Review composite. If approved, hand-clean groundLane alpha around ravine/bridge and create a temporary dev manifest switch for in-game camera/parallax testing."
+}

@@ -121,21 +121,23 @@ test('Rome Section One has a playable Forum-to-archive learning spine instead of
 
 test('Rome and China do not inherit Egypt-only rooms or Scarab runtime gates', async () => {
   const journeySource = await readFile(path.join(repoRoot, 'src', 'components', 'ExpeditionJourney.jsx'), 'utf8');
+  const journeySimulationSource = await readFile(path.join(repoRoot, 'src', 'components', 'expedition-journey', 'useJourneySimulation.js'), 'utf8');
+  const journeySnapshotSource = await readFile(path.join(repoRoot, 'src', 'components', 'expedition-journey', 'useJourneySnapshot.js'), 'utf8');
   const journeyUtilsSource = await readFile(path.join(repoRoot, 'src', 'components', 'expedition-journey', 'journeyUtils.js'), 'utf8');
 
   assert.match(journeySource, /const isEgyptJourney = !isChinaJourney && !isRomeJourney/);
   assert.match(journeySource, /EXTERIOR:\s*JOURNEY_EXTERIOR_SCENE_ID/);
   assert.match(journeyUtilsSource, /currentSceneId:\s*JOURNEY_EXTERIOR_SCENE_ID/);
   assert.match(journeySource, /loadEgyptOnlyPacks:\s*isEgyptJourney/);
-  assert.match(journeySource, /const templeThresholdDoorwayActive = (?:!TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD\s*&&\s*)?scopedJourneyAssetPacks\.isEgyptJourney/);
-  assert.match(journeySource, /const mummificationChamberDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
-  assert.match(journeySource, /const forgottenMuralDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
-  assert.match(journeySource, /const scribeDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
-  assert.match(journeySource, /if \(!inInteriorChamberScene && scopedJourneyAssetPacks\.isEgyptJourney && !current\.scarabSealActivated\)/);
-  assert.match(journeySource, /const shouldEchoOpeningFirstShard = scopedJourneyAssetPacks\.isEgyptJourney/);
-  assert.match(journeySource, /const scarabSealRequired = scopedJourneyAssetPacks\.isEgyptJourney/);
-  assert.match(journeySource, /const missingChinaEnemyGuardianSpriteAssets = scopedJourneyAssetPacks\.isChinaJourney/);
-  assert.match(journeySource, /assetFallbackActive:[\s\S]*scopedBackgroundFallbackActive/);
+  assert.match(journeySimulationSource, /const templeThresholdDoorwayActive = !TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD[\s\S]*?&& scopedJourneyAssetPacks\.isEgyptJourney/);
+  assert.match(journeySimulationSource, /const mummificationChamberDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
+  assert.match(journeySimulationSource, /const forgottenMuralDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
+  assert.match(journeySimulationSource, /const scribeDoorwayActive = scopedJourneyAssetPacks\.isEgyptJourney/);
+  assert.match(journeySimulationSource, /if \(!inInteriorChamberScene && scopedJourneyAssetPacks\.isEgyptJourney && !current\.scarabSealActivated\)/);
+  assert.match(journeySimulationSource, /const shouldEchoOpeningFirstShard = scopedJourneyAssetPacks\.isEgyptJourney/);
+  assert.match(journeySimulationSource, /const scarabSealRequired = scopedJourneyAssetPacks\.isEgyptJourney/);
+  assert.match(journeySnapshotSource, /const missingChinaEnemyGuardianSpriteAssets = scopedJourneyAssetPacks\.isChinaJourney/);
+  assert.match(journeySnapshotSource, /assetFallbackActive:[\s\S]*scopedBackgroundFallbackActive/);
   assert.doesNotMatch(journeySource, /backgroundPackId !== 'china-river-valley'/);
   assert.doesNotMatch(journeySource, /egypt-exterior-route/);
   assert.doesNotMatch(journeyUtilsSource, /egypt-exterior-route/);

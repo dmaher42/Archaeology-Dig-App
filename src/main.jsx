@@ -23,6 +23,7 @@ import './styles/dev-tools.css'
 import './styles/dig-phase.css'
 import './styles/journey-prop-palette-drawer.css'
 import './styles/mummification-quest.css'
+import './styles/naidoc-exploration.css'
 import App from './App.jsx'
 
 // A service worker installed by a previous production-build preview keeps

@@ -19,7 +19,7 @@ export const {
 export const resolveAssetPath = (path) => {
   if (!path) return '';
   // import.meta.env.BASE_URL is provided by Vite
-  const base = import.meta.env.BASE_URL || '/';
+  const base = import.meta.env?.BASE_URL || '/';
   // Ensure we don't double up slashes or miss them
   const cleanBase = base.endsWith('/') ? base : `${base}/`;
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
@@ -27,12 +27,12 @@ export const resolveAssetPath = (path) => {
 };
 
 const EVIDENCE_FALLBACK_IMAGES = {
-  eg: 'museum/egypt_generic.svg',
-  mg: 'museum/mungo_generic.svg',
+  eg: 'museum/egypt_canopic_jar.jpg',
+  mg: 'museum/mungo_lake_overview.jpg',
   rm: 'museum/roman_generic.jpg',
-  ch: 'museum/china_generic.svg',
-  rh: 'museum/modern_generic.svg',
-  default: 'museum/modern_generic.svg',
+  ch: 'museum/china_horse_skeletons.png',
+  rh: 'museum/modern_coin.jpg',
+  default: 'museum/modern_coin.jpg',
 };
 
 const EVIDENCE_IMAGE_OVERRIDES = {

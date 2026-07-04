@@ -25,12 +25,16 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) minmax(12rem, auto);
   align-items: center;
-  gap: 1rem;
-  border-color: rgba(168, 134, 97, 0.34);
-  background: linear-gradient(105deg, rgba(253, 248, 235, 0.97), rgba(236, 253, 245, 0.93));
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
-  color: var(--text-ink);
-  padding: clamp(1rem, 2vw, 1.35rem);
+  gap: 1.25rem;
+  border: 1px solid rgba(168, 134, 97, 0.35);
+  border-bottom: 3px solid rgba(168, 134, 97, 0.7);
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(18, 24, 22, 0.95), rgba(13, 10, 8, 0.98)),
+    url("https://www.transparenttextures.com/patterns/dark-wood.png");
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+  color: var(--sand-100);
+  padding: clamp(1rem, 2vw, 1.5rem);
 }
 
 .mummification-back-btn {
@@ -38,30 +42,32 @@
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  border: 1px solid rgba(41, 29, 17, 0.16);
+  border: 1px solid rgba(168, 134, 97, 0.4);
   border-radius: 6px;
-  background: var(--paper-dark);
-  color: var(--text-ink);
+  background: rgba(168, 134, 97, 0.12);
+  color: var(--sand-100);
   cursor: pointer;
   font-family: 'Cinzel', serif;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.06em;
-  padding: 0.55rem 0.7rem;
+  padding: 0.6rem 0.85rem;
   text-transform: uppercase;
+  transition: all 0.2s ease;
 }
 
 .mummification-back-btn:hover,
-.mummification-back-btn:focus-visible,
-.mummification-reset-btn:hover,
-.mummification-reset-btn:focus-visible {
-  border-color: rgba(5, 150, 105, 0.45);
-  background: #fffaf0;
+.mummification-back-btn:focus-visible {
+  border-color: rgba(52, 211, 153, 0.75);
+  background: rgba(52, 211, 153, 0.18);
+  color: #fff;
   outline: none;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.25);
 }
 
 .mummification-quest-title-block h2 {
-  color: var(--text-ink);
+  color: #fff;
+  text-shadow: 0 0 12px rgba(168, 134, 97, 0.3), 0 2px 4px rgba(0,0,0,0.8);
   font-family: 'Cinzel', serif;
   font-size: clamp(1.35rem, 3vw, 2.35rem);
   line-height: 1.05;
@@ -71,7 +77,7 @@
 }
 
 .mummification-quest-title-block p {
-  color: var(--text-ink-muted);
+  color: var(--sand-300);
   line-height: 1.45;
   margin: 0;
   max-width: 58rem;
@@ -86,8 +92,8 @@
   max-width: 100%;
   border: 1px solid rgba(52, 211, 153, 0.35);
   border-radius: 8px;
-  background: rgba(236, 253, 245, 0.82);
-  color: #14532d;
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
   font-size: 0.8rem;
   font-weight: 800;
   line-height: 1.25;
@@ -104,12 +110,12 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  border: 1px solid rgba(5, 150, 105, 0.26);
+  border: 1px solid rgba(52, 211, 153, 0.3);
   border-radius: 999px;
-  background: rgba(236, 253, 245, 0.86);
-  color: #065f46;
+  background: rgba(20, 83, 45, 0.45);
+  color: #6ee7b7;
   font-size: 0.78rem;
-  font-weight: 900;
+  font-weight: 800;
   padding: 0.42rem 0.65rem;
 }
 
@@ -119,19 +125,28 @@
   justify-content: center;
   gap: 0.35rem;
   max-width: 15rem;
-  border: 1px solid rgba(41, 29, 17, 0.16);
+  border: 1px solid rgba(168, 134, 97, 0.3);
   border-radius: 6px;
-  background: rgba(255, 250, 240, 0.82);
-  color: var(--text-ink);
+  background: rgba(23, 16, 10, 0.6);
+  color: var(--sand-300);
   cursor: pointer;
   font-family: 'Cinzel', serif;
   font-size: 0.68rem;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0.04em;
   line-height: 1.25;
   padding: 0.5rem 0.65rem;
   text-align: center;
   text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.mummification-reset-btn:hover,
+.mummification-reset-btn:focus-visible {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  outline: none;
 }
 
 .mummification-quest-layout {
@@ -156,35 +171,32 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.75rem;
   width: 100%;
-  border: 1px solid rgba(41, 29, 17, 0.12);
+  border: 1px solid rgba(168, 134, 97, 0.24);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.44);
+  background: rgba(255, 255, 255, 0.55);
   color: var(--text-ink);
   cursor: pointer;
   font: inherit;
-  padding: 0.65rem;
-  text-align: left;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
+  padding: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  transition: all 160ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mummification-stage-nav button:hover,
 .mummification-stage-nav button:focus-visible {
-  border-color: rgba(52, 211, 153, 0.45);
-  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(52, 211, 153, 0.6);
+  background: rgba(255, 255, 255, 0.85);
   outline: none;
-  transform: translateX(2px);
+  transform: translateX(4px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
 }
 
 .mummification-stage-nav button.is-active {
-  border-color: rgba(52, 211, 153, 0.55);
-  background: rgba(52, 211, 153, 0.14);
-  box-shadow: inset 3px 0 0 rgba(16, 185, 129, 0.8);
+  border-color: rgba(52, 211, 153, 0.7);
+  background: rgba(236, 253, 245, 0.8);
+  box-shadow: inset 4px 0 0 rgba(16, 185, 129, 0.9), 0 4px 12px rgba(16, 185, 129, 0.08);
 }
 
 .mummification-stage-nav strong,
@@ -208,12 +220,21 @@
 .mummification-stage-number {
   display: grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.2rem;
+  height: 2.2rem;
   border-radius: 50%;
   background: var(--text-ink);
   color: var(--paper);
   font-weight: 900;
+  font-size: 0.9rem;
+  border: 1.5px solid rgba(168, 134, 97, 0.3);
+  transition: all 160ms ease;
+}
+
+.mummification-stage-nav button.is-active .mummification-stage-number {
+  background: #065f46;
+  color: #fff;
+  border-color: #34d399;
 }
 
 .mummification-stage-panel {
@@ -295,6 +316,7 @@
 .mummification-evidence-card h3,
 .mummification-category-card strong,
 .mummification-image-card figcaption strong {
+  display: block;
   color: var(--text-ink);
   font-family: 'Cinzel', serif;
   margin: 0 0 0.45rem;
@@ -551,36 +573,35 @@
 
 .mummification-choice-row button,
 .mummification-symbol-bank button {
-  border: 1px solid rgba(41, 29, 17, 0.16);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(168, 134, 97, 0.35);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(245, 240, 230, 0.8));
   color: var(--text-ink);
   cursor: pointer;
   font-size: 0.75rem;
   font-weight: 800;
-  padding: 0.45rem 0.65rem;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 160ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mummification-choice-row button:hover,
 .mummification-choice-row button:focus-visible,
 .mummification-symbol-bank button:hover,
 .mummification-symbol-bank button:focus-visible {
-  border-color: rgba(5, 150, 105, 0.55);
-  background: rgba(236, 253, 245, 0.9);
+  border-color: rgba(52, 211, 153, 0.65);
+  background: rgba(236, 253, 245, 0.95);
   color: #064e3b;
   outline: none;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.15);
 }
 
 .mummification-choice-row button.is-selected {
-  border-color: rgba(5, 150, 105, 0.75);
-  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.85);
+  background: rgba(16, 185, 129, 0.18);
   color: #064e3b;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(16, 185, 129, 0.1);
 }
 
 .mummification-feedback {
@@ -601,16 +622,55 @@
 
 .mummification-check-item {
   display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
+  align-items: center;
+  gap: 0.75rem;
   color: var(--text-ink-muted);
   line-height: 1.35;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
 }
 
-.mummification-check-item input {
-  margin-top: 0.15rem;
-  width: 1rem;
-  height: 1rem;
+.mummification-check-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--paper-dark);
+  border: 1.5px solid rgba(168, 134, 97, 0.55);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  padding: 0;
+  border-radius: 4px;
+  width: 1.2rem;
+  height: 1.2rem;
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition: background 150ms, border-color 150ms;
+}
+
+.mummification-check-item input[type="checkbox"]:hover {
+  border-color: rgba(52, 211, 153, 0.65);
+  background-color: #fffaf0;
+}
+
+.mummification-check-item input[type="checkbox"]:checked {
+  background-color: rgba(52, 211, 153, 0.15);
+  border-color: rgba(16, 185, 129, 0.85);
+}
+
+.mummification-check-item input[type="checkbox"]::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  clip-path: polygon(14% 44%, 0 58%, 38% 96%, 100% 23%, 86% 9%, 38% 68%);
+  transform: scale(0);
+  transform-origin: bottom left;
+  transition: transform 120ms ease-in-out;
+  background-color: #047857;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+.mummification-check-item input[type="checkbox"]:checked::before {
+  transform: scale(1.15);
 }
 
 .mummification-field {
@@ -633,9 +693,10 @@
 .mummification-field textarea {
   width: 100%;
   min-width: 0;
-  border: 1px solid rgba(41, 29, 17, 0.16);
+  border: 1px solid rgba(168, 134, 97, 0.28);
   border-radius: 8px;
-  background: var(--paper);
+  background: rgba(253, 248, 235, 0.95);
+  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
   color: var(--text-ink);
   font: inherit;
   line-height: 1.45;
@@ -648,24 +709,28 @@
 }
 
 .mummification-field textarea:focus {
-  border-color: rgba(5, 150, 105, 0.7);
-  background: #fffaf0;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
+  border-color: rgba(52, 211, 153, 0.7);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.16);
   outline: none;
 }
 
 .mummification-report-preview pre {
-  overflow: auto;
-  max-height: 24rem;
-  border: 1px solid rgba(41, 29, 17, 0.12);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.52);
+  overflow-y: auto;
+  max-height: 28rem;
+  border: 1px solid rgba(168, 134, 97, 0.45);
+  border-bottom: 2px solid rgba(168, 134, 97, 0.65);
+  border-radius: 4px;
+  background:
+    linear-gradient(rgba(253, 248, 235, 0.95), rgba(244, 236, 225, 0.98)),
+    url("https://www.transparenttextures.com/patterns/natural-paper.png");
   color: var(--text-ink);
   font-family: 'Courier Prime', monospace;
-  line-height: 1.45;
+  line-height: 1.5;
   margin: 0.75rem 0;
-  padding: 0.85rem;
+  padding: 1.25rem;
   white-space: pre-wrap;
+  box-shadow: inset 0 0 15px rgba(168, 134, 97, 0.15), var(--shadow-dossier);
 }
 
 .mummification-report-fields {

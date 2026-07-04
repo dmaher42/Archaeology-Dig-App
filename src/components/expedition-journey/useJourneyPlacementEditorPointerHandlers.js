@@ -1,4 +1,36 @@
 import { useEffect } from 'react';
+import { CANVAS_WIDTH } from './journeyConstants.js';
+import { DESERT_LAYER_TUNING } from './desertLayerTuning.js';
+import { getRitualBuildingRect } from './ritualBuildingClimb.js';
+
+const getRitualBuildingLayerEditorBounds = (current = {}) => {
+  const rect = getRitualBuildingRect();
+  const tuning = DESERT_LAYER_TUNING.ritualPyramid;
+  const parallax = Number.isFinite(tuning?.parallax) ? tuning.parallax : 0.52;
+  const cameraX = Number.isFinite(current.cameraX) ? current.cameraX : 0;
+  const climbOffsetY = Number.isFinite(current.secretVerticalCameraOffset) ? current.secretVerticalCameraOffset : 0;
+  return {
+    x: (rect.centerX - cameraX) * parallax + CANVAS_WIDTH / 2 - rect.width / 2,
+    y: rect.top + climbOffsetY,
+    width: rect.width,
+    height: rect.height,
+  };
+};
+
+const isPointInBounds = (screenX, screenY, bounds) => (
+  bounds
+  && screenX >= bounds.x
+  && screenX <= bounds.x + bounds.width
+  && screenY >= bounds.y
+  && screenY <= bounds.y + bounds.height
+);
+
+const openRitualBuildingLayerEditor = () => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('journey:open-desert-layer-tuning', {
+    detail: { layerKey: 'ritualPyramid' },
+  }));
+};
 
 export function useJourneyPlacementEditorPointerHandlers({
   JOURNEY_VERTICAL_OFFSET,
@@ -232,6 +264,26 @@ export function useJourneyPlacementEditorPointerHandlers({
         ? null
         : findEditablePlatformAt(pointer.screenX, pointer.screenY, { floorOnly: true });
       const selectedPlatform = selectedForcedFloor || selectedSolidPlatform || selectedFallbackFloor;
+      const selectedAnyEditorEntity = selectedProp || selectedPlatform || selectedHazard || selectedArch || selectedCheckpoint || selectedLair;
+      if (!selectedAnyEditorEntity && isPointInBounds(
+        pointer.screenX,
+        pointer.screenY,
+        getRitualBuildingLayerEditorBounds(stateRef.current),
+      )) {
+        editor.selectedPropId = null;
+        editor.selectedPlatformId = null;
+        editor.selectedHazardId = null;
+        editor.selectedArchId = null;
+        editor.selectedCheckpointId = null;
+        editor.selectedLairId = null;
+        editor.selectedNestId = null;
+        editor.dragging = null;
+        openRitualBuildingLayerEditor();
+        e.preventDefault();
+        draw();
+        refreshPropEditorUi();
+        return;
+      }
       editor.selectedPropId = selectedProp?.id || null;
       editor.selectedPlatformId = selectedPlatform ? selectedPlatform.id || selectedPlatform.label : null;
       editor.selectedHazardId = selectedHazard?.id || null;
