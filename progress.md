@@ -23,6 +23,10 @@ Current source-of-truth note:
 - Regenerated the unsuitable ground support assets instead of continuing narrow tweaks: `desert-entry-generated-dry-plaza-ground-backing-2026-07-02.png` is a fully opaque matte dry plaza backing, and `desert-entry-generated-foreground-rubble-solid-2026-07-02.png` is a chroma-key cleaned rubble strip with solid stone interiors and transparent gaps.
 - Fixed the generated rubble draw order after playtest feedback: `foregroundRubble` is no longer drawn in the early atmosphere pass before `groundBacking`; it is now drawn in the Desert Entry ground-lane pass after backing/lane, so the solid rocks appear in front of the ground backing instead of being covered by it.
 
+2026-07-04 Desert Entry ground-backing detail pass:
+- Reworked the active non-colliding `groundBacking` into `desert-entry-warm-detailed-ground-backing-2026-07-04.png`, keeping the same layer slot but warming the colour and strengthening larger cracks/ruin texture so it should no longer read as a grey flat backing in-game.
+- Wired the new PNG through the existing Desert Entry parallax manifest and updated the focused manifest guard; collision, player movement, enemies, and layer order were not changed.
+
 2026-06-28 Mummification Lab local save and classroom support pass:
 - Extended the existing `src/components/mummification-quest/` implementation; no duplicate app, no drawing canvas, no AI chat, and no Lost Site Expedition gameplay changes.
 - Added device-local autosave for group responses using `archaeologyDigApp:mummificationQuest:v1`, plus a visible saved indicator and Reset Mummification Lab Progress action.
@@ -300,6 +304,27 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Landing an air strike refunds its small Endurance cost and gives Asha a slight lift, so jump becomes a combat answer without replacing dodge/parry/ground combos.
 - Verified focused combat tests, Journey source guards, enemy sprite/combat guards, lint, and a production build.
 - Next tuning target: playtest whether air J feels useful against wisps and committed enemies without making scorpion anti-air irrelevant.
+
+2026-07-03 combat wisp-dive slice:
+- Added a shared Wisp/Bat Aerial Dive combat pattern so flying enemies can actively harass Asha from above instead of waiting to be run past.
+- Wisps and bats now choose the dive when Asha is close underneath them, dip downward during the swing, show a pressure cue, and leave a clear counter window afterward.
+- The dive tells the player to jump-strike with J or dodge through it, giving the previous airborne attack slice a real enemy role to answer.
+- Verified the new combat helper test, Journey source guards, enemy sprite/combat guards, lint, production build, and a headless browser smoke load of the app menu.
+- Next tuning target: play the first Sand Wisp pocket and adjust dive range/speed if it feels unfair or too easy to outrun.
+
+2026-07-03 combat snake-ambush slice:
+- Added a shared Snake Ambush Lunge pattern so snakes can coil and attack from mid-range instead of only acting like another close-range obstacle.
+- Snakes now choose the low committed lunge when Asha is near but not already in melee range, with a clear warning line: jump or dodge the lunge, then punish the miss.
+- Existing snake venom-on-hit remains in the runtime, so getting clipped by the lunge has a stress consequence instead of only a small bump.
+- Created a non-runtime painted Sand Viper candidate at `public/assets/expedition/enemies/candidates/sand-viper-painted-candidate-2026-07-03-alpha.png`; it is deliberately not wired until the user approves the visual direction and it is repacked into the exact runtime atlas.
+- Verified combat tests, Journey source guards, enemy sprite/combat guards, lint, production build, candidate alpha metadata, and a headless browser smoke load of the app menu.
+- Next tuning target: play the first Sand Snake pocket and decide whether the painted candidate should replace the current cartoonish runtime snake sheet.
+
+2026-07-03 combat scarab-stun teaching slice:
+- Kept scarabs as armored front-shell enemies, but opened their armor while stunned, skidding, or in a counter window so Asha can damage them from either side after creating the opening.
+- Extended the existing jump-vault answer with a longer skid/punish window and added a perfect-dodge scarab-charge skid that uses impact, sand-skid, and counter-window effects instead of explicit tutorial text.
+- Removed the scarab-specific instructional notices for frontal shell hits and venom-boosted charges so players learn from deflect/skid visuals rather than a realism-breaking message.
+- Verified focused combat rules, Journey source guards, enemy sprite/combat guards, lint, production build, and a headless Chrome smoke load into the Journey canvas.
 
 2026-05-25 update:
 - Completed the UI makeover for the "Archeologist Training" screen (Training Phase).

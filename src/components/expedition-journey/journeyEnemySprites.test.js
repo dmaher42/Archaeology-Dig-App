@@ -105,7 +105,7 @@ test('scorpion sting is a high anti-jump attack that hits harder through existin
   assert.match(journeyGameplayContractSource, /const SCORPION_VENOM_ATTACK_PATTERN_TUNING = Object\.freeze\(\{[\s\S]*?windup:\s*0\.32[\s\S]*?cooldown:\s*1\.1[\s\S]*?staminaDamage:\s*SCORPION_VENOM_STAMINA_DAMAGE/);
   assert.match(journeyGameplayContractSource, /const shouldUseScorpionVenomSpit = \(\{[\s\S]*?venomSlowTimer[\s\S]*?SCORPION_VENOM_REFRESH_WINDOW/);
   assert.match(journeyComponentSource, /const shouldUseVenomSpit = shouldUseScorpionVenomSpit\(\{[\s\S]*?venomSlowTimer:\s*player\.venomSlowTimer \|\| 0/);
-  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && meleeReachesPlayer\) \|\| shouldUseScorpionAntiAir \|\| shouldUseVenomSpit \|\| scarabPoisonChargeCanReach;/);
+  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && meleeReachesPlayer\) \|\| shouldUseScorpionAntiAir \|\| shouldUseVenomSpit \|\| shouldUseWispDive \|\| shouldUseSnakeAmbush \|\| scarabPoisonChargeCanReach;/);
   assert.match(journeyComponentSource, /enemyCanStartAttack && e\.attackCooldown <= 0/);
   assert.match(journeyComponentSource, /const getAttackBox = useCallback\(\(attacker, range = 42, height = 28, direction = attacker\.direction \|\| 1, yOffset = 0, backReach = 0\) =>/);
   assert.match(journeyComponentSource, /const trailingReach = Math\.max\(0, backReach\);/);

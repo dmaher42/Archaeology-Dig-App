@@ -159,19 +159,63 @@ export const SCORPION_ANTI_AIR_ATTACK_PATTERN = {
   protectedDuringAttack: false,
   color: '#f59e0b',
 };
+const WISP_DIVE_ENEMY_TYPES = new Set(['sand-wisp', 'bat']);
+export const WISP_DIVE_HARASS_RANGE = CANVAS_WIDTH * 0.42;
+export const WISP_DIVE_ATTACK_PATTERN = {
+  id: 'aerial-dive',
+  label: 'Aerial Dive',
+  windup: 0.34,
+  duration: 0.32,
+  cooldown: 1.32,
+  recovery: 0.58,
+  vulnerableAfter: 0.72,
+  speed: 226,
+  range: 54,
+  height: 82,
+  yOffset: 24,
+  backReach: 20,
+  damageScale: 1.1,
+  airborneHarass: true,
+  shieldDuringWindup: false,
+  protectedDuringWindup: false,
+  protectedDuringAttack: false,
+  color: '#38bdf8',
+};
+export const SNAKE_AMBUSH_LUNGE_START_RANGE = CANVAS_WIDTH * 0.32;
+export const SNAKE_AMBUSH_LUNGE_PATTERN = {
+  id: 'ambush-lunge',
+  label: 'Ambush Lunge',
+  windup: 0.46,
+  duration: 0.34,
+  cooldown: 1.48,
+  recovery: 0.74,
+  vulnerableAfter: 0.9,
+  speed: 238,
+  range: 78,
+  height: 34,
+  yOffset: 4,
+  backReach: 8,
+  damageScale: 1.18,
+  lowLineThreat: true,
+  overshootsOnMiss: true,
+  shieldDuringWindup: false,
+  protectedDuringWindup: false,
+  protectedDuringAttack: false,
+  color: '#b45309',
+};
 const SCARAB_CHARGE_PATTERN_IDS = new Set(['charge', 'heavy-charge']);
 export const SCARAB_VAULT_OUTCOME = Object.freeze({
   bounceMultiplier: 0.62,
-  enemyStunTimer: 0.72,
-  attackRecovery: 0.78,
-  vulnerabilityTimer: 0.78,
-  attackCooldown: 0.9,
+  enemyStunTimer: 0.9,
+  attackRecovery: 0.95,
+  vulnerabilityTimer: 1.05,
+  attackCooldown: 1.05,
   hitStopTimer: 0.06,
   cameraShakeTimer: 0.09,
   cameraShakeStrength: 0.16,
   lastAttackResult: 'scarab-vault',
   damage: 0,
-  notice: 'Asha vaulted the scarab charge. Strike while it skids.',
+  notice: '',
 });
 export const ENEMY_COMBAT_INTENTS = Object.freeze({
   PATROL: 'patrol',
@@ -368,6 +412,39 @@ export const resolveEnemyCombatSide = ({
   return fallback >= 0 ? 1 : -1;
 };
 
+export const isScarabArmorOpen = (enemy = {}) => (
+  enemy?.type === 'scarab'
+  && (
+    (enemy.stunTimer || 0) > 0
+    || (enemy.attackRecovery || 0) > 0
+    || (enemy.vulnerabilityTimer || 0) > 0
+  )
+);
+
+export const shouldScarabFrontalArmorDeflect = ({
+  enemy,
+  player,
+} = {}) => {
+  if (enemy?.type !== 'scarab' || !player || isScarabArmorOpen(enemy)) return false;
+
+  const enemyCenter = (enemy.x ?? 0) + (enemy.width ?? 0) / 2;
+  const playerCenter = (player.x ?? 0) + (player.width ?? 0) / 2;
+  const playerSide = Math.sign(playerCenter - enemyCenter);
+  if (playerSide === 0) return false;
+
+  const enemyFacing = (enemy.direction || 1) >= 0 ? 1 : -1;
+  return playerSide === enemyFacing;
+};
+
+export const shouldStunScarabChargeOnDodge = ({
+  enemy,
+  pattern,
+} = {}) => (
+  enemy?.type === 'scarab'
+  && (enemy.attackTimer || 0) > 0
+  && SCARAB_CHARGE_PATTERN_IDS.has(enemy.attackPattern || pattern?.id)
+);
+
 export const shouldUseScorpionAntiAirSting = ({
   enemy,
   player,
@@ -406,15 +483,99 @@ export const shouldUseScorpionVenomSpit = ({
   && (venomSlowTimer || 0) <= SCORPION_VENOM_REFRESH_WINDOW
 );
 
+export const shouldUseWispDiveHarass = ({
+  enemy,
+  player,
+  distanceToPlayer = 0,
+  baseNearPlayerX = 0,
+  awarenessMultiplier = 1,
+  verticalAwareness = 178,
+  meleeReachesPlayer = false,
+} = {}) => {
+  if (!WISP_DIVE_ENEMY_TYPES.has(enemy?.type) || !player) return false;
+  if (
+    enemy.defeated
+    || (enemy.stunTimer || 0) > 0
+    || (enemy.attackCooldown || 0) > 0
+    || (enemy.attackWindup || 0) > 0
+    || (enemy.attackTimer || 0) > 0
+    || (enemy.attackRecovery || 0) > 0
+  ) {
+    return false;
+  }
+
+  const enemyCenterY = (enemy.y || 0) + (enemy.height || 0) / 2;
+  const playerCenterY = (player.y || 0) + (player.height || 0) / 2;
+  const verticalDeltaToPlayer = playerCenterY - enemyCenterY;
+  const tunedHorizontalAwareness = baseNearPlayerX > 0
+    ? baseNearPlayerX * awarenessMultiplier * 1.12
+    : WISP_DIVE_HARASS_RANGE;
+  const horizontalThreat = Math.max(
+    WISP_DIVE_ATTACK_PATTERN.range + WISP_DIVE_ATTACK_PATTERN.backReach + 36,
+    Math.min(WISP_DIVE_HARASS_RANGE, tunedHorizontalAwareness),
+  );
+  const verticalThreat = Math.max(verticalAwareness, WISP_DIVE_ATTACK_PATTERN.height + 86);
+  const playerIsAboveDiveLine = verticalDeltaToPlayer < -28;
+  const playerIsEscapingUpward = !player.onGround && (player.vy || 0) < -80 && playerIsAboveDiveLine;
+
+  return (
+    !playerIsEscapingUpward
+    && Math.abs(distanceToPlayer) <= horizontalThreat
+    && verticalDeltaToPlayer >= -28
+    && verticalDeltaToPlayer <= verticalThreat + 34
+    && (player.onGround || (player.vy || 0) >= -50 || meleeReachesPlayer)
+  );
+};
+
+export const shouldUseSnakeAmbushLunge = ({
+  enemy,
+  player,
+  distanceToPlayer = 0,
+  baseNearPlayerX = 0,
+  awarenessMultiplier = 1,
+  verticalAwareness = 142,
+  meleeReachesPlayer = false,
+} = {}) => {
+  if (enemy?.type !== 'snake' || !player || meleeReachesPlayer) return false;
+  if (
+    enemy.defeated
+    || (enemy.stunTimer || 0) > 0
+    || (enemy.attackCooldown || 0) > 0
+    || (enemy.attackWindup || 0) > 0
+    || (enemy.attackTimer || 0) > 0
+    || (enemy.attackRecovery || 0) > 0
+  ) {
+    return false;
+  }
+
+  const enemyCenterY = (enemy.y || 0) + (enemy.height || 0) / 2;
+  const playerCenterY = (player.y || 0) + (player.height || 0) / 2;
+  const verticalDeltaToPlayer = playerCenterY - enemyCenterY;
+  const tunedHorizontalAwareness = baseNearPlayerX > 0
+    ? baseNearPlayerX * awarenessMultiplier * 1.22
+    : SNAKE_AMBUSH_LUNGE_START_RANGE;
+  const horizontalThreat = Math.max(
+    SNAKE_AMBUSH_LUNGE_PATTERN.range + 72,
+    Math.min(SNAKE_AMBUSH_LUNGE_START_RANGE, tunedHorizontalAwareness),
+  );
+  const minimumCommitRange = SNAKE_AMBUSH_LUNGE_PATTERN.range + 18;
+  const playerAboveLowLine = !player.onGround && verticalDeltaToPlayer < -42;
+
+  return (
+    !playerAboveLowLine
+    && Math.abs(distanceToPlayer) >= minimumCommitRange
+    && Math.abs(distanceToPlayer) <= horizontalThreat
+    && Math.abs(verticalDeltaToPlayer) <= verticalAwareness
+  );
+};
+
 export const shouldVaultScarabCharge = ({
   enemy,
   contact,
   pattern,
 } = {}) => (
   contact?.type === 'stomp'
-  && enemy?.type === 'scarab'
-  && (enemy.attackTimer || 0) > 0
-  && SCARAB_CHARGE_PATTERN_IDS.has(enemy.attackPattern || pattern?.id)
+  && shouldStunScarabChargeOnDodge({ enemy, pattern })
 );
 
 export const getScarabVaultOutcome = ({ jumpSpeed = 0 } = {}) => ({

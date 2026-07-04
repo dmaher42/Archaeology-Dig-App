@@ -225,6 +225,7 @@ export const applyJourneyPropPlacementEdit = (prop = {}, edit = {}) => {
   if (typeof edit.mirrorX === 'boolean') next.mirrorX = edit.mirrorX;
   if (typeof edit.mirrorY === 'boolean') next.mirrorY = edit.mirrorY;
   if (Number.isFinite(edit.brightness)) next.brightness = Math.max(0.4, Math.min(1.8, Math.round(edit.brightness * 100) / 100));
+  if (Number.isFinite(edit.alpha)) next.alpha = Math.max(0, Math.min(1, Math.round(edit.alpha * 100) / 100));
   if (typeof edit.depth === 'string' && edit.depth.trim()) next.depth = edit.depth;
   if (typeof edit.layer === 'string' && edit.layer.trim()) next.layer = edit.layer;
   if (Number.isFinite(edit.zIndex)) next.zIndex = edit.zIndex;

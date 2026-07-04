@@ -15,6 +15,8 @@ import {
   getEnemyFacingDirectionToPlayer,
   getEnemyIntentTuning,
   getEnemyVenomPressureTuning,
+  shouldScarabFrontalArmorDeflect,
+  shouldStunScarabChargeOnDodge,
   resolveEnemyCombatSide,
   shouldVaultScarabCharge,
   getScarabVaultOutcome,
@@ -48,11 +50,15 @@ import {
   SCORPION_VENOM_SLOW_MULTIPLIER,
   SCORPION_VENOM_STAMINA_DAMAGE,
   SCORPION_VENOM_SPIT_RANGE,
+  SNAKE_AMBUSH_LUNGE_PATTERN,
   shouldUseScorpionAntiAirSting,
   shouldUseScorpionVenomSpit,
+  shouldUseSnakeAmbushLunge,
+  shouldUseWispDiveHarass,
   suppressEnemyForBossFocus,
   updateEnemyCombatTimers,
   updateEnemyDefeatedVisibility,
+  WISP_DIVE_ATTACK_PATTERN,
 } from './journeyCombat.js';
 import {
   getEnemyAttackTelegraph,
@@ -2989,8 +2995,10 @@ export function useJourneySimulation({
       current.cameraShakeTimer = Math.max(current.cameraShakeTimer, vaultOutcome.cameraShakeTimer);
       current.cameraShakeStrength = Math.max(current.cameraShakeStrength, vaultOutcome.cameraShakeStrength);
       current.lastAttackResult = vaultOutcome.lastAttackResult;
-      current.notice = vaultOutcome.notice;
-      current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.2);
+      if (vaultOutcome.notice) {
+        current.notice = vaultOutcome.notice;
+        current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.2);
+      }
       addCombatEffect(current, {
         type: 'combat-impact',
         x: enemy.x + enemy.width / 2,
@@ -3006,6 +3014,14 @@ export function useJourneySimulation({
         color: 'rgba(202, 138, 4, 0.45)',
         timer: 0.34,
         maxTimer: 0.34,
+      });
+      addCombatEffect(current, {
+        type: 'enemy-counter-window',
+        x: enemy.x + enemy.width / 2,
+        y: enemy.y + enemy.height * 0.48,
+        color: '#facc15',
+        timer: 0.46,
+        maxTimer: 0.46,
       });
       audioControls?.playExpeditionSfx?.('jump', { volume: 0.82, playbackRate: 1.16 });
     };
@@ -3045,7 +3061,13 @@ export function useJourneySimulation({
         const endedScorpionAntiAirPattern = e.type === 'scorpion' && e.attackPattern === SCORPION_ANTI_AIR_ATTACK_PATTERN.id
           ? SCORPION_ANTI_AIR_ATTACK_PATTERN
           : null;
-        const pattern = endedScorpionAntiAirPattern || (endedHeavyPattern && e.attackPattern === endedHeavyPattern.id
+        const endedWispDivePattern = e.attackPattern === WISP_DIVE_ATTACK_PATTERN.id
+          ? WISP_DIVE_ATTACK_PATTERN
+          : null;
+        const endedSnakeAmbushPattern = e.attackPattern === SNAKE_AMBUSH_LUNGE_PATTERN.id
+          ? SNAKE_AMBUSH_LUNGE_PATTERN
+          : null;
+        const pattern = endedScorpionAntiAirPattern || endedWispDivePattern || endedSnakeAmbushPattern || (endedHeavyPattern && e.attackPattern === endedHeavyPattern.id
           ? endedHeavyPattern
           : getEnemyPatternConfig(e));
         openEnemyCounterWindow(e, pattern);
@@ -3104,6 +3126,24 @@ export function useJourneySimulation({
         shouldUseScorpionAntiAir,
         venomSlowTimer: player.venomSlowTimer || 0,
       });
+      const shouldUseWispDive = shouldUseWispDiveHarass({
+        enemy: e,
+        player,
+        distanceToPlayer,
+        baseNearPlayerX,
+        awarenessMultiplier,
+        verticalAwareness,
+        meleeReachesPlayer,
+      });
+      const shouldUseSnakeAmbush = shouldUseSnakeAmbushLunge({
+        enemy: e,
+        player,
+        distanceToPlayer,
+        baseNearPlayerX,
+        awarenessMultiplier,
+        verticalAwareness,
+        meleeReachesPlayer,
+      });
       const scarabPoisonChargeCanReach = e.type === 'scarab'
         && playerIsVenomSlowed
         && nearPlayer
@@ -3112,8 +3152,8 @@ export function useJourneySimulation({
         && !player.onGround
         && Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier * 1.35)
         && Math.abs((player.y + player.height / 2) - (e.y + e.height / 2)) < verticalAwareness + 34;
-      const enemyCanStartAttack = (nearPlayer && meleeReachesPlayer) || shouldUseScorpionAntiAir || shouldUseVenomSpit || scarabPoisonChargeCanReach;
-      if (nearPlayer || shouldUseVenomSpit || scarabPoisonChargeCanReach || airborneIntentCanReach || (e.type === 'scorpion' && playerIsVenomSlowed && scorpionVenomCanReach)) {
+      const enemyCanStartAttack = (nearPlayer && meleeReachesPlayer) || shouldUseScorpionAntiAir || shouldUseVenomSpit || shouldUseWispDive || shouldUseSnakeAmbush || scarabPoisonChargeCanReach;
+      if (nearPlayer || shouldUseVenomSpit || shouldUseWispDive || shouldUseSnakeAmbush || scarabPoisonChargeCanReach || airborneIntentCanReach || (e.type === 'scorpion' && playerIsVenomSlowed && scorpionVenomCanReach)) {
         e.aggroMemoryTimer = Math.max(
           e.aggroMemoryTimer || 0,
           ENEMY_AGGRO_MEMORY_SECONDS * (tacticalPattern.aggroMemoryMultiplier || 1) * venomPressureTuning.aggroMemoryMultiplier,
@@ -3142,21 +3182,31 @@ export function useJourneySimulation({
           && e.attackCount % heavyInterval === 0
           && !shouldUseVenomSpit
           && !shouldUseScorpionAntiAir
+          && !shouldUseWispDive
+          && !shouldUseSnakeAmbush
         );
         const pattern = shouldUseScorpionAntiAir
           ? SCORPION_ANTI_AIR_ATTACK_PATTERN
           : shouldUseVenomSpit
             ? SCORPION_VENOM_ATTACK_PATTERN
-            : isHeavyAttack
-              ? HEAVY_ATTACK_PATTERNS[e.type]
-              : tacticalPattern;
+            : shouldUseWispDive
+              ? WISP_DIVE_ATTACK_PATTERN
+              : shouldUseSnakeAmbush
+                ? SNAKE_AMBUSH_LUNGE_PATTERN
+                : isHeavyAttack
+                  ? HEAVY_ATTACK_PATTERNS[e.type]
+                  : tacticalPattern;
         const selectedAbilityReason = shouldUseScorpionAntiAir
           ? 'anti-air jump punish'
           : shouldUseVenomSpit
             ? 'venom control'
-            : isHeavyAttack
-              ? 'heavy cadence'
-              : 'standard pressure';
+            : shouldUseWispDive
+              ? 'aerial dive harassment'
+              : shouldUseSnakeAmbush
+                ? 'ambush lunge from mid-range'
+                : isHeavyAttack
+                  ? 'heavy cadence'
+                  : 'standard pressure';
         e.selectedAbility = pattern.id;
         e.selectedAbilityReason = selectedAbilityReason;
         e.targetReason = selectedAbilityReason;
@@ -3173,6 +3223,10 @@ export function useJourneySimulation({
           attackDirection: attackDirectionToPlayer,
           attackCooldown,
         });
+        if (shouldUseWispDive) {
+          e.diveHomeY = Number.isFinite(e.diveHomeY) ? e.diveHomeY : e.y;
+          e.diveTargetY = Math.min(player.y + player.height * 0.1, e.diveHomeY + 92);
+        }
         if (e.encounterRole) {
           addCombatEffect(current, {
             type: 'enemy-pressure',
@@ -3209,6 +3263,26 @@ export function useJourneySimulation({
             maxTimer: 0.42,
           });
         }
+        if (pattern.id === WISP_DIVE_ATTACK_PATTERN.id) {
+          addCombatEffect(current, {
+            type: 'enemy-pressure',
+            x: e.x + e.width / 2,
+            y: e.y + e.height / 2,
+            color: 'rgba(56, 189, 248, 0.5)',
+            timer: 0.4,
+            maxTimer: 0.4,
+          });
+        }
+        if (pattern.id === SNAKE_AMBUSH_LUNGE_PATTERN.id) {
+          addCombatEffect(current, {
+            type: 'enemy-pressure',
+            x: e.x + e.width / 2,
+            y: e.y + e.height * 0.35,
+            color: 'rgba(180, 83, 9, 0.5)',
+            timer: 0.4,
+            maxTimer: 0.4,
+          });
+        }
         if (isHeavyAttack) {
           current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.14);
           current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.18);
@@ -3218,8 +3292,21 @@ export function useJourneySimulation({
         if (shouldUseScorpionAntiAir) {
           current.notice = `${e.name} raises its tail. Jump is unsafe - land away or counter after the sting.`;
           current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.6);
+        } else if (shouldUseWispDive) {
+          current.notice = `${e.name} dives from above. Jump-strike with J or dodge through it.`;
+          current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.45);
+        } else if (shouldUseSnakeAmbush) {
+          current.notice = `${e.name} coils low. Jump or dodge the lunge, then punish the miss.`;
+          current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.45);
         } else if (scarabPoisonedChargeNotice) {
-          current.notice = 'Scarab charges faster while venom slows Asha. Dodge behind it.';
+          addCombatEffect(current, {
+            type: 'enemy-pressure',
+            x: e.x + e.width / 2,
+            y: e.y + e.height / 2,
+            color: 'rgba(250, 204, 21, 0.48)',
+            timer: 0.4,
+            maxTimer: 0.4,
+          });
         } else if ((current.itemPurposeNoticeTimer || 0) <= 0 && (current.damageNoticeTimer || 0) <= 0) {
           if (isUnblockableAttack) {
             if (!current.redAttackHintShown) {
@@ -3246,6 +3333,13 @@ export function useJourneySimulation({
         const pattern = getEnemyPatternConfig(e);
         const scarabPoisonChargeBoost = e.type === 'scarab' && playerIsVenomSlowed ? SCARAB_POISONED_CHARGE_SPEED_MULTIPLIER : 1;
         e.x += e.attackDirection * pattern.speed * scarabPoisonChargeBoost * dt;
+        if (pattern.airborneHarass) {
+          const diveHomeY = Number.isFinite(e.diveHomeY) ? e.diveHomeY : e.y;
+          const diveTargetY = Number.isFinite(e.diveTargetY)
+            ? e.diveTargetY
+            : Math.min(player.y + player.height * 0.1, diveHomeY + 92);
+          e.y = approach(e.y, diveTargetY, 236 * dt);
+        }
         const enemyAttackBox = getAttackBox(e, pattern.range, pattern.height, e.attackDirection, pattern.yOffset || 0, pattern.backReach || 0);
         const contact = resolveEnemyContact(player, previousPlayer, e);
         const playerBodyHitbox = getPlayerBodyHitbox(player);
@@ -3268,23 +3362,36 @@ export function useJourneySimulation({
           // dodge i-frames, she deflects it (any colour, including red) and the
           // enemy is left staggered for a punish.
           const playerIsPerfectDodging = current.dodgeInvulnerableTimer > 0;
+          const scarabChargeDodged = shouldStunScarabChargeOnDodge({
+            enemy: e,
+            pattern,
+          });
           const playerIsParrying = attackRect
             && e.attackTimer <= PARRY_WINDOW_DURATION
             && !current.attackHitIds.has(e.id)
             && getEnemyAttackTelegraph(e, HEAVY_ATTACK_PATTERNS).parryable
             && rectsOverlap(attackRect, getAttackHurtbox(e));
           if (playerIsPerfectDodging) {
+            const scarabDodgeOutcome = scarabChargeDodged ? getScarabVaultOutcome({ jumpSpeed: JUMP_SPEED }) : null;
             e.attackTimer = 0;
             e.attackWindup = 0;
             e.attackReady = false;
-            e.stunTimer = Math.max(e.stunTimer || 0, 1.3);
-            e.attackCooldown = Math.max(e.attackCooldown || 0, 1.3);
-            e.attackRecovery = 0.6;
-            e.vulnerabilityTimer = Math.max(e.vulnerabilityTimer || 0, 0.6);
+            e.stunTimer = Math.max(e.stunTimer || 0, scarabDodgeOutcome?.enemyStunTimer ?? 1.3);
+            e.attackCooldown = Math.max(e.attackCooldown || 0, scarabDodgeOutcome?.attackCooldown ?? 1.3);
+            e.attackRecovery = Math.max(e.attackRecovery || 0, scarabDodgeOutcome?.attackRecovery ?? 0.6);
+            e.vulnerabilityTimer = Math.max(e.vulnerabilityTimer || 0, scarabDodgeOutcome?.vulnerabilityTimer ?? 0.6);
+            e.shieldTimer = 0;
+            if (scarabChargeDodged) {
+              e.selectedAbility = 'dodged-charge';
+              e.selectedAbilityReason = 'Asha slipped past the charge';
+              e.targetReason = e.selectedAbilityReason;
+            }
             current.resources.stamina = Math.min(maxStamina, current.resources.stamina + PERFECT_DODGE_ENDURANCE_REWARD);
-            current.lastAttackResult = 'perfect-dodge';
+            current.lastAttackResult = scarabChargeDodged ? 'scarab-skid-dodge' : 'perfect-dodge';
+            if (!scarabChargeDodged) {
             current.notice = `Perfect dodge! ${e.name} is staggered — strike now.`;
             current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.4);
+            }
             current.hitStopTimer = Math.max(current.hitStopTimer, 0.08);
             current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
             current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.35);
@@ -3296,6 +3403,25 @@ export function useJourneySimulation({
               timer: 0.42,
               maxTimer: 0.42,
             });
+            if (scarabChargeDodged) {
+              addCombatEffect(current, {
+                type: 'enemy-counter-window',
+                x: e.x + e.width / 2,
+                y: e.y + e.height * 0.48,
+                color: '#facc15',
+                timer: 0.48,
+                maxTimer: 0.48,
+              });
+              addCombatEffect(current, {
+                type: 'sand-skid',
+                x: e.x + e.width / 2,
+                y: e.y + e.height,
+                direction: -(e.attackDirection || e.direction || 1),
+                color: 'rgba(202, 138, 4, 0.45)',
+                timer: 0.42,
+                maxTimer: 0.42,
+              });
+            }
             audioControls?.playExpeditionSfx?.('parryClash', { volume: 0.7 });
           } else if (playerIsParrying) {
             e.parried = true;
@@ -3324,6 +3450,16 @@ export function useJourneySimulation({
               player.sandBlindTimer = Math.max(player.sandBlindTimer || 0, 2.2);
             }
           }
+        }
+      }
+
+      if (Number.isFinite(e.diveHomeY) && e.attackTimer <= 0) {
+        const returnSpeed = e.attackRecovery > 0 ? 124 : 176;
+        e.y = approach(e.y, e.diveHomeY, returnSpeed * dt);
+        if (Math.abs(e.y - e.diveHomeY) <= 0.5 && e.attackWindup <= 0 && e.attackRecovery <= 0) {
+          e.y = e.diveHomeY;
+          delete e.diveHomeY;
+          delete e.diveTargetY;
         }
       }
 
@@ -3413,13 +3549,13 @@ export function useJourneySimulation({
           current.notice = `${e.name} blocked the rushed hit. Wait for an opening.`;
           return;
         }
-        const isScarabFrontalHit = e.type === 'scarab'
-          && Math.sign((player.x + player.width / 2) - (e.x + e.width / 2)) === Math.sign(e.direction);
+        const isScarabFrontalHit = shouldScarabFrontalArmorDeflect({
+          enemy: e,
+          player,
+        });
         if (isScarabFrontalHit) {
           current.lastAttackResult = 'shell-deflect';
           resetPlayerCombo(current);
-          current.notice = 'Scarab shell absorbed the blow. Dodge behind it after the charge.';
-          current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.1);
           applyCombatHitImpact({
             current,
             target: e,

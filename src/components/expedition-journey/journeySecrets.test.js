@@ -5214,7 +5214,7 @@ test('conservative sign cleanup moves route signs onto atlas-backed props', () =
 
 test('desert entry asset manifest records the layered necropolis gameplay-background rebuild', () => {
   assert.equal(desertEntryBackgroundAtlas.runtimeMode, 'layered-necropolis-playable-route');
-  assert.equal(desertEntryBackgroundAtlas.visualPass, 'processional-road-and-ruin-props-refresh-2026-07-03');
+  assert.equal(desertEntryBackgroundAtlas.visualPass, 'warm-detailed-ground-backing-refresh-2026-07-04');
   assert.match(desertEntryBackgroundAtlas.notes, /processional-road gameplay lane refresh/);
   assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-v4-hybrid-open-sky-2026-07-02.png');
   assert.equal(desertEntryBackgroundAtlas.imageWidth, 2172);
@@ -5223,7 +5223,7 @@ test('desert entry asset manifest records the layered necropolis gameplay-backgr
   assert.equal(desertEntryBackgroundAtlas.regions.farPyramids.image, 'desert-entry-egypt-true-far-pyramids-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.distantCliffs.image, 'desert-entry-egypt-true-distant-cliffs-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-v4-hybrid-mid-necropolis-soft-depth-2026-07-02.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.image, 'desert-entry-generated-dry-plaza-ground-backing-2026-07-02.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.image, 'desert-entry-warm-detailed-ground-backing-2026-07-04.png');
   assert.equal(desertEntryBackgroundAtlas.regions.dustHaze.image, 'desert-entry-dust-haze-tile-2026-07-03.png');
   assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-processional-road-groundlane-2026-07-03.png');
   assert.equal(desertEntryBackgroundAtlas.regions.desertSphinx.image, 'desert-entry-landmark-sphinx-fragment-2026-07-03.png');
@@ -6138,6 +6138,44 @@ test('scorpion anti-air slice makes careless jumps a readable combat threat', ()
   assert.match(journeyComponentSource, /raises its tail/);
 });
 
+test('wisp dive slice makes flying enemies a jump-or-dodge combat threat', () => {
+  assert.match(journeyCombatContractSource, /const WISP_DIVE_ATTACK_PATTERN = \{/);
+  assert.match(journeyCombatContractSource, /id:\s*'aerial-dive'/);
+  assert.match(journeyCombatContractSource, /airborneHarass:\s*true/);
+  assert.match(journeyCombatContractSource, /protectedDuringWindup:\s*false/);
+  assert.match(journeyCombatContractSource, /protectedDuringAttack:\s*false/);
+  assert.match(journeyCombatContractSource, /const shouldUseWispDiveHarass = \(\{/);
+  assert.match(journeyComponentSource, /WISP_DIVE_ATTACK_PATTERN/);
+  assert.match(journeyComponentSource, /enemy\.attackPattern === WISP_DIVE_ATTACK_PATTERN\.id/);
+  assert.match(journeyComponentSource, /const endedWispDivePattern = e\.attackPattern === WISP_DIVE_ATTACK_PATTERN\.id/);
+  assert.match(journeyComponentSource, /const shouldUseWispDive = shouldUseWispDiveHarass\(\{/);
+  assert.match(journeyComponentSource, /const enemyCanStartAttack =[\s\S]*?shouldUseWispDive/);
+  assert.match(journeyComponentSource, /const pattern = shouldUseScorpionAntiAir[\s\S]*?shouldUseWispDive[\s\S]*?WISP_DIVE_ATTACK_PATTERN/);
+  assert.match(journeyComponentSource, /selectedAbilityReason = shouldUseScorpionAntiAir[\s\S]*?aerial dive harassment/);
+  assert.match(journeyComponentSource, /pattern\.airborneHarass[\s\S]*?e\.y = approach\(e\.y, diveTargetY, 236 \* dt\)/);
+  assert.match(journeyComponentSource, /dives from above\. Jump-strike with J or dodge through it\./);
+  assert.match(journeyComponentSource, /selectedAbility:\s*enemy\.selectedAbility \|\| enemy\.attackPattern \|\| null/);
+});
+
+test('snake ambush slice makes ground serpents punish blind sprinting', () => {
+  assert.match(journeyCombatContractSource, /const SNAKE_AMBUSH_LUNGE_PATTERN = \{/);
+  assert.match(journeyCombatContractSource, /id:\s*'ambush-lunge'/);
+  assert.match(journeyCombatContractSource, /lowLineThreat:\s*true/);
+  assert.match(journeyCombatContractSource, /overshootsOnMiss:\s*true/);
+  assert.match(journeyCombatContractSource, /protectedDuringWindup:\s*false/);
+  assert.match(journeyCombatContractSource, /protectedDuringAttack:\s*false/);
+  assert.match(journeyCombatContractSource, /const shouldUseSnakeAmbushLunge = \(\{/);
+  assert.match(journeyComponentSource, /SNAKE_AMBUSH_LUNGE_PATTERN/);
+  assert.match(journeyComponentSource, /enemy\.attackPattern === SNAKE_AMBUSH_LUNGE_PATTERN\.id/);
+  assert.match(journeyComponentSource, /const endedSnakeAmbushPattern = e\.attackPattern === SNAKE_AMBUSH_LUNGE_PATTERN\.id/);
+  assert.match(journeyComponentSource, /const shouldUseSnakeAmbush = shouldUseSnakeAmbushLunge\(\{/);
+  assert.match(journeyComponentSource, /const enemyCanStartAttack =[\s\S]*?shouldUseSnakeAmbush/);
+  assert.match(journeyComponentSource, /const pattern = shouldUseScorpionAntiAir[\s\S]*?shouldUseSnakeAmbush[\s\S]*?SNAKE_AMBUSH_LUNGE_PATTERN/);
+  assert.match(journeyComponentSource, /selectedAbilityReason = shouldUseScorpionAntiAir[\s\S]*?ambush lunge from mid-range/);
+  assert.match(journeyComponentSource, /coils low\. Jump or dodge the lunge, then punish the miss\./);
+  assert.match(journeyComponentSource, /if \(e\.type === 'snake' && !player\.poisonTimer\)/);
+});
+
 test('scarab vault slice lets Asha jump-answer an active charge without stomp damage', () => {
   assert.match(journeyCombatContractSource, /const SCARAB_VAULT_OUTCOME = Object\.freeze\(\{/);
   assert.match(journeyCombatContractSource, /lastAttackResult:\s*'scarab-vault'/);
@@ -6164,9 +6202,14 @@ test('scorpion and scarab combo creates tactical poison and armor pressure', () 
   assert.match(journeyComponentSource, /const scarabPoisonChargeCanReach = e\.type === 'scarab'[\s\S]*?playerIsVenomSlowed[\s\S]*?nearPlayer[\s\S]*?SCARAB_POISONED_CHARGE_START_BONUS/);
   assert.match(journeyComponentSource, /const scarabPoisonChargeBoost = e\.type === 'scarab' && playerIsVenomSlowed \? SCARAB_POISONED_CHARGE_SPEED_MULTIPLIER : 1/);
   assert.match(journeyComponentSource, /e\.x \+= e\.attackDirection \* pattern\.speed \* scarabPoisonChargeBoost \* dt/);
-  assert.match(journeyComponentSource, /Scarab charges faster while venom slows Asha\. Dodge behind it\./);
+  assert.doesNotMatch(journeyComponentSource, /Scarab charges faster while venom slows Asha\. Dodge behind it\./);
+  assert.match(journeyComponentSource, /const scarabPoisonedChargeNotice = e\.type === 'scarab' && playerIsVenomSlowed/);
+  assert.match(journeyComponentSource, /scarabPoisonedChargeNotice[\s\S]*?type:\s*'enemy-pressure'/);
   assert.doesNotMatch(journeyComponentSource, /drawScarabFrontalArmorCue/);
-  assert.match(journeyComponentSource, /current\.notice = 'Scarab shell absorbed the blow\. Dodge behind it after the charge\.'/);
+  assert.match(journeyCombatContractSource, /const isScarabArmorOpen = \(enemy = \{\}\) =>/);
+  assert.match(journeyCombatContractSource, /const shouldScarabFrontalArmorDeflect = \(\{/);
+  assert.match(journeyComponentSource, /const isScarabFrontalHit = shouldScarabFrontalArmorDeflect\(\{/);
+  assert.doesNotMatch(journeyComponentSource, /Scarab shell absorbed the blow\. Dodge behind it after the charge\./);
   assert.match(journeyComponentSource, /const playerHeight = PLAYER_HEIGHT/);
   assert.match(journeyComponentSource, /const groundPlayerY = GROUND_Y - playerHeight/);
 
@@ -6311,7 +6354,8 @@ test('perfect dodge deflects any attack and the single Esc/"?" menu teaches the 
   // Perfect dodge: a last-instant dodge (still in i-frames) deflects + staggers and refunds Endurance.
   assert.match(journeyComponentSource, /const PERFECT_DODGE_ENDURANCE_REWARD = \d+/);
   assert.match(journeyComponentSource, /const playerIsPerfectDodging = current\.dodgeInvulnerableTimer > 0;/);
-  assert.match(journeyComponentSource, /current\.lastAttackResult = 'perfect-dodge';/);
+  assert.match(journeyComponentSource, /current\.lastAttackResult = scarabChargeDodged \? 'scarab-skid-dodge' : 'perfect-dodge';/);
+  assert.match(journeyComponentSource, /const scarabChargeDodged = shouldStunScarabChargeOnDodge\(\{/);
   assert.match(journeyComponentSource, /current\.resources\.stamina \+ PERFECT_DODGE_ENDURANCE_REWARD/);
   // Perfect dodge is evaluated before the parry/damage branches, so it wins even on red attacks.
   assert.match(journeyComponentSource, /if \(playerIsPerfectDodging\) \{[\s\S]*?\} else if \(playerIsParrying\)/);
@@ -6653,7 +6697,8 @@ test('opening enemy role overrides preserve first-route fairness and readable co
   assert.match(egyptEnemies, /id:\s*'scorpion-guardian-path-1'[\s\S]*?name:\s*'Guardian Path Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?x:\s*X\(2130\)/);
   assert.match(egyptEnemies, /id:\s*'sand-wisp-start-1'[\s\S]*?damage:\s*4[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?vulnerableAfter:\s*0\.72/);
   assert.match(egyptEnemies, /id:\s*'snake-1'[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.68[\s\S]*?range:\s*48/);
-  assert.match(journeyComponentSource, /Scarab face armor blocks frontal hits\. Let it charge past, then strike from behind\./);
+  assert.doesNotMatch(journeyComponentSource, /Scarab face armor blocks frontal hits\. Let it charge past, then strike from behind\./);
+  assert.match(journeyCombatContractSource, /const shouldScarabFrontalArmorDeflect = \(\{/);
   assert.match(journeyComponentSource, /Scorpion venom slows Asha\. If a scarab is nearby, its charge gets faster\./);
   assert.match(journeyComponentSource, /Warrior mummies guard the threshold\. Wait for the sweep, then counter\./);
   assert.match(journeyComponentSource, /Snake lunges from mid-range\. Watch the coil\./);

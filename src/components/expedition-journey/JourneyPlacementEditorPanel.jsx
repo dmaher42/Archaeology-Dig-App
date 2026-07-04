@@ -1049,6 +1049,21 @@ export function JourneyPlacementEditorPanel({
                             />
                             <output>{Math.round(grade.hue)}°</output>
                           </div>
+                          <div className="journey-prop-editor-slider">
+                            <span>Alpha</span>
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.05"
+                              value={propEditorUi.selectedProp.alpha ?? 1}
+                              onChange={(event) => {
+                                const next = clamp(Number(event.target.value), 0, 1);
+                                if (Number.isFinite(next)) updateSelectedPropEditorNumberField('alpha', next, { min: 0, max: 1, decimals: 2 });
+                              }}
+                            />
+                            <output>{Number(propEditorUi.selectedProp.alpha ?? 1).toFixed(2)}</output>
+                          </div>
                           <label className="journey-prop-editor-color-advanced">
                             <span>Filter (advanced)</span>
                             <input

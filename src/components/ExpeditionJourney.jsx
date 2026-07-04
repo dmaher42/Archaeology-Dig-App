@@ -241,6 +241,8 @@ import {
   SCORPION_VENOM_SLOW_DURATION,
   SCORPION_VENOM_SLOW_MULTIPLIER,
   SCORPION_VENOM_SPIT_RANGE,
+  SNAKE_AMBUSH_LUNGE_PATTERN,
+  WISP_DIVE_ATTACK_PATTERN,
 } from './expedition-journey/journeyCombat.js';
 
 import {
@@ -1524,7 +1526,6 @@ const HEAVY_ATTACK_PATTERNS = {
 };
 
 const ENEMY_TYPE_STAKE_MESSAGES = {
-  scarab: 'Scarab face armor blocks frontal hits. Let it charge past, then strike from behind.',
   scorpion: 'Scorpion venom slows Asha. If a scarab is nearby, its charge gets faster.',
   'sand-wisp': 'Sand wisps tense before they burst. Wait for the opening.',
   snake: 'Snake lunges from mid-range. Watch the coil.',
@@ -5801,6 +5802,18 @@ export default function ExpeditionJourney({
       && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
     ) {
       return SCORPION_ANTI_AIR_ATTACK_PATTERN;
+    }
+    if (
+      (enemy.type === 'sand-wisp' || enemy.type === 'bat') && enemy.attackPattern === WISP_DIVE_ATTACK_PATTERN.id
+      && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
+    ) {
+      return WISP_DIVE_ATTACK_PATTERN;
+    }
+    if (
+      enemy.type === 'snake' && enemy.attackPattern === SNAKE_AMBUSH_LUNGE_PATTERN.id
+      && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
+    ) {
+      return SNAKE_AMBUSH_LUNGE_PATTERN;
     }
     // While a heavy attack is in flight (windup -> swing), resolve the heavy pattern so the
     // swing carries heavy damage, reach, speed, and duration. attackPattern keeps the last-used

@@ -32,16 +32,23 @@ import {
   SCORPION_VENOM_REFRESH_WINDOW,
   SCORPION_VENOM_SLOW_MULTIPLIER,
   SCORPION_VENOM_STAMINA_DAMAGE,
+  SNAKE_AMBUSH_LUNGE_PATTERN,
+  WISP_DIVE_ATTACK_PATTERN,
   getScarabVaultOutcome,
   getEnemyCombatIntent,
   getEnemyIntentTuning,
   getEnemyVenomPressureTuning,
+  isScarabArmorOpen,
   getPlayerAttackProfile,
   getEnemyFacingDirectionToPlayer,
   resolveEnemyCombatSide,
+  shouldScarabFrontalArmorDeflect,
+  shouldStunScarabChargeOnDodge,
   shouldVaultScarabCharge,
   shouldUseScorpionAntiAirSting,
   shouldUseScorpionVenomSpit,
+  shouldUseSnakeAmbushLunge,
+  shouldUseWispDiveHarass,
   beginEnemyAttackWindup,
   beginEnemyAttackSwing,
   openEnemyCounterWindow,
@@ -481,6 +488,168 @@ test('scorpion venom pressure is quick enough to matter without overriding melee
   }), false);
 });
 
+test('sand wisps and bats dive harass Asha from above with a clean counter window', () => {
+  assert.equal(WISP_DIVE_ATTACK_PATTERN.id, 'aerial-dive');
+  assert.equal(WISP_DIVE_ATTACK_PATTERN.label, 'Aerial Dive');
+  assert.equal(WISP_DIVE_ATTACK_PATTERN.airborneHarass, true);
+  assert.equal(WISP_DIVE_ATTACK_PATTERN.protectedDuringWindup, false);
+  assert.equal(WISP_DIVE_ATTACK_PATTERN.protectedDuringAttack, false);
+  assert.ok(WISP_DIVE_ATTACK_PATTERN.windup <= 0.38);
+  assert.ok(WISP_DIVE_ATTACK_PATTERN.height >= PLAYER_AIR_ATTACK_HEIGHT);
+  assert.ok(WISP_DIVE_ATTACK_PATTERN.yOffset > 0);
+  assert.ok(WISP_DIVE_ATTACK_PATTERN.vulnerableAfter >= 0.68);
+
+  const playerBelow = {
+    onGround: true,
+    x: 160,
+    y: 420,
+    width: 38,
+    height: 70,
+  };
+  const wispAbove = {
+    type: 'sand-wisp',
+    x: 110,
+    y: 342,
+    width: 58,
+    height: 42,
+    attackCooldown: 0,
+    attackWindup: 0,
+    attackTimer: 0,
+    attackRecovery: 0,
+    stunTimer: 0,
+  };
+
+  assert.equal(shouldUseWispDiveHarass({
+    enemy: wispAbove,
+    player: playerBelow,
+    distanceToPlayer: 79,
+    baseNearPlayerX: 240,
+    awarenessMultiplier: 1,
+    verticalAwareness: 178,
+  }), true);
+  assert.equal(shouldUseWispDiveHarass({
+    enemy: { ...wispAbove, type: 'bat' },
+    player: playerBelow,
+    distanceToPlayer: 79,
+    baseNearPlayerX: 240,
+    awarenessMultiplier: 1,
+    verticalAwareness: 178,
+  }), true);
+  assert.equal(shouldUseWispDiveHarass({
+    enemy: { ...wispAbove, type: 'scarab' },
+    player: playerBelow,
+    distanceToPlayer: 79,
+    baseNearPlayerX: 240,
+    awarenessMultiplier: 1,
+    verticalAwareness: 178,
+  }), false);
+  assert.equal(shouldUseWispDiveHarass({
+    enemy: wispAbove,
+    player: playerBelow,
+    distanceToPlayer: 460,
+    baseNearPlayerX: 240,
+    awarenessMultiplier: 1,
+    verticalAwareness: 178,
+  }), false);
+  assert.equal(shouldUseWispDiveHarass({
+    enemy: wispAbove,
+    player: { ...playerBelow, onGround: false, y: 268, vy: -120 },
+    distanceToPlayer: 79,
+    baseNearPlayerX: 240,
+    awarenessMultiplier: 1,
+    verticalAwareness: 178,
+  }), false);
+});
+
+test('snake ambush lunge starts from mid-range and overshoots into a punish window', () => {
+  assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.id, 'ambush-lunge');
+  assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.label, 'Ambush Lunge');
+  assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.lowLineThreat, true);
+  assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.protectedDuringWindup, false);
+  assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.protectedDuringAttack, false);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.windup <= 0.5);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.speed >= 230);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.range >= 70);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.height <= PLAYER_AIR_ATTACK_HEIGHT);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.vulnerableAfter >= 0.82);
+
+  const snake = {
+    type: 'snake',
+    x: 100,
+    y: 430,
+    width: 52,
+    height: 24,
+    attackCooldown: 0,
+    attackWindup: 0,
+    attackTimer: 0,
+    attackRecovery: 0,
+    stunTimer: 0,
+  };
+  const groundedPlayer = {
+    onGround: true,
+    x: 242,
+    y: 386,
+    width: 38,
+    height: 70,
+    vx: 120,
+  };
+
+  assert.equal(shouldUseSnakeAmbushLunge({
+    enemy: snake,
+    player: groundedPlayer,
+    distanceToPlayer: 161,
+    baseNearPlayerX: 210,
+    awarenessMultiplier: 1,
+    verticalAwareness: 142,
+    meleeReachesPlayer: false,
+  }), true);
+  assert.equal(shouldUseSnakeAmbushLunge({
+    enemy: snake,
+    player: groundedPlayer,
+    distanceToPlayer: 32,
+    baseNearPlayerX: 210,
+    awarenessMultiplier: 1,
+    verticalAwareness: 142,
+    meleeReachesPlayer: true,
+  }), false);
+  assert.equal(shouldUseSnakeAmbushLunge({
+    enemy: snake,
+    player: groundedPlayer,
+    distanceToPlayer: 340,
+    baseNearPlayerX: 210,
+    awarenessMultiplier: 1,
+    verticalAwareness: 142,
+    meleeReachesPlayer: false,
+  }), false);
+  assert.equal(shouldUseSnakeAmbushLunge({
+    enemy: snake,
+    player: { ...groundedPlayer, onGround: false, y: 286, vy: -80 },
+    distanceToPlayer: 161,
+    baseNearPlayerX: 210,
+    awarenessMultiplier: 1,
+    verticalAwareness: 142,
+    meleeReachesPlayer: false,
+  }), false);
+  assert.equal(shouldUseSnakeAmbushLunge({
+    enemy: { ...snake, type: 'scarab' },
+    player: groundedPlayer,
+    distanceToPlayer: 161,
+    baseNearPlayerX: 210,
+    awarenessMultiplier: 1,
+    verticalAwareness: 142,
+    meleeReachesPlayer: false,
+  }), false);
+  assert.equal(shouldUseSnakeAmbushLunge({
+    enemy: { ...snake, attackRecovery: 0.2 },
+    player: groundedPlayer,
+    distanceToPlayer: 161,
+    baseNearPlayerX: 210,
+    awarenessMultiplier: 1,
+    verticalAwareness: 142,
+    meleeReachesPlayer: false,
+  }), false);
+});
+
 test('scarab vault only triggers when Asha stomps an active charge', () => {
   const chargingScarab = {
     type: 'scarab',
@@ -520,12 +689,72 @@ test('scarab vault outcome bounces Asha and opens a punish window without stomp 
 
   assert.equal(outcome.lastAttackResult, 'scarab-vault');
   assert.equal(outcome.playerVy, -322.4);
-  assert.equal(outcome.enemyStunTimer, 0.72);
-  assert.equal(outcome.attackRecovery, 0.78);
-  assert.equal(outcome.vulnerabilityTimer, 0.78);
-  assert.equal(outcome.attackCooldown, 0.9);
+  assert.equal(outcome.enemyStunTimer, 0.9);
+  assert.equal(outcome.attackRecovery, 0.95);
+  assert.equal(outcome.vulnerabilityTimer, 1.05);
+  assert.equal(outcome.attackCooldown, 1.05);
   assert.equal(outcome.damage, 0);
-  assert.match(outcome.notice, /vaulted/i);
+  assert.equal(outcome.notice, '');
+});
+
+test('scarab front armor only deflects while the shell is closed', () => {
+  const playerInFront = { x: 154, width: 38 };
+  const closedScarab = {
+    type: 'scarab',
+    x: 100,
+    width: 44,
+    direction: 1,
+    stunTimer: 0,
+    attackRecovery: 0,
+    vulnerabilityTimer: 0,
+  };
+
+  assert.equal(isScarabArmorOpen(closedScarab), false);
+  assert.equal(shouldScarabFrontalArmorDeflect({
+    enemy: closedScarab,
+    player: playerInFront,
+  }), true);
+  assert.equal(shouldScarabFrontalArmorDeflect({
+    enemy: { ...closedScarab, stunTimer: 0.4 },
+    player: playerInFront,
+  }), false);
+  assert.equal(shouldScarabFrontalArmorDeflect({
+    enemy: { ...closedScarab, attackRecovery: 0.3 },
+    player: playerInFront,
+  }), false);
+  assert.equal(shouldScarabFrontalArmorDeflect({
+    enemy: { ...closedScarab, vulnerabilityTimer: 0.2 },
+    player: playerInFront,
+  }), false);
+  assert.equal(shouldScarabFrontalArmorDeflect({
+    enemy: closedScarab,
+    player: { ...playerInFront, x: 36 },
+  }), false);
+});
+
+test('dodging an active scarab charge should skid it into the stun opening', () => {
+  const chargingScarab = {
+    type: 'scarab',
+    attackPattern: 'charge',
+    attackTimer: 0.22,
+  };
+
+  assert.equal(shouldStunScarabChargeOnDodge({
+    enemy: chargingScarab,
+    pattern: { id: 'charge' },
+  }), true);
+  assert.equal(shouldStunScarabChargeOnDodge({
+    enemy: { ...chargingScarab, attackPattern: 'heavy-charge' },
+    pattern: { id: 'heavy-charge' },
+  }), true);
+  assert.equal(shouldStunScarabChargeOnDodge({
+    enemy: { ...chargingScarab, attackTimer: 0 },
+    pattern: { id: 'charge' },
+  }), false);
+  assert.equal(shouldStunScarabChargeOnDodge({
+    enemy: { ...chargingScarab, type: 'snake' },
+    pattern: { id: 'ambush-lunge' },
+  }), false);
 });
 
 test('boss attack phase data lives with combat contracts', () => {

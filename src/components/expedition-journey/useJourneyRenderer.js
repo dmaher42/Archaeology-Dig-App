@@ -2795,7 +2795,7 @@ export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = nul
     const shouldGroundLock = shouldGroundLockAtmosphereProp(propForAsset, propDepth);
     if (shouldGroundLock) {
       if (propDepth === 'grounded') propSize.depth = 'grounded';
-      propSize.alpha = Math.max(propSize.alpha ?? 0.82, 0.86);
+      propSize.alpha = Number.isFinite(propForAsset.alpha) ? propForAsset.alpha : Math.max(propSize.alpha ?? 0.82, 0.86);
       propSize.shadow = Math.max(propSize.shadow ?? 0.14, 0.2);
       propSize.dust = Math.max(propSize.dust ?? 0.72, 0.84);
       propSize.bury = Math.max(propSize.bury ?? 0.12, 0.2);
@@ -3951,6 +3951,31 @@ function drawDesertEntryLayerCohesionGrade(ctx, canvasWidth, canvasHeight, optio
   ctx.restore();
 }
 
+function drawDesertEntryRitualTempleNearLane(ctx, section, cameraX, assets, canvasWidth) {
+  const T = DESERT_LAYER_TUNING;
+  const ritualRegion = assets.atlas?.regions?.ritualPyramid;
+  const ritualImage = ritualRegion?.image ? assets.images?.[ritualRegion.image] : null;
+  if (!ritualImage || !ritualRegion || T.ritualPyramid.alpha <= 0.01) return false;
+
+  const cfg = T.ritualPyramid;
+  const ritualSectionWidth = Math.max(1, section.end - section.start);
+  const ritualWorldX = section.start + ritualSectionWidth * cfg.sectionFraction;
+  const ritualWidth = cfg.height * (ritualRegion.w / ritualRegion.h) * (cfg.widthScale ?? 1);
+  const ritualX = (ritualWorldX - cameraX) * cfg.parallax + canvasWidth / 2 - ritualWidth / 2;
+  if (ritualX <= -ritualWidth || ritualX >= canvasWidth + ritualWidth) return false;
+
+  ctx.save();
+  ctx.globalAlpha = cfg.alpha;
+  ctx.filter = `sepia(5%) brightness(${cfg.brightness ?? 1}) saturate(${cfg.saturate ?? 1}) contrast(${cfg.contrast ?? 1})`;
+  ctx.drawImage(
+    ritualImage,
+    ritualRegion.x, ritualRegion.y, ritualRegion.w, ritualRegion.h,
+    Math.round(ritualX), Math.round(cfg.baseY - cfg.height), Math.round(ritualWidth), cfg.height,
+  );
+  ctx.restore();
+  return true;
+}
+
 function drawDesertEntryPlayableFloorGrade(ctx, canvasWidth, options = {}) {
   const {
     groundY = 520,
@@ -4010,7 +4035,6 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     desertBackgroundAssetsRef,
     drawDesertBackgroundLayer,
     getSectionBackgroundAssets,
-    stateRef,
   } = deps;
   const isNearDesertEntry = section.id === 'desert-entry';
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'desert-entry');
@@ -4165,34 +4189,6 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     }
   }
 
-  // Placed Ritual Chamber building: a tall, climbable stepped-pyramid facade drawn
-  // world-locked (parallax ~1) at gameplay depth -- behind the player, who climbs
-  // invisible platforms laid onto its terraces. Position / scale / base / opacity
-  // are dev-tunable via the layer panel (ritualPyramid).
-  const ritualRegion = assets.atlas?.regions?.ritualPyramid;
-  const ritualImage = ritualRegion?.image ? assets.images?.[ritualRegion.image] : null;
-  if (ritualImage && ritualRegion && T.ritualPyramid.alpha > 0.01) {
-    const cfg = T.ritualPyramid;
-    const ritualSectionWidth = Math.max(1, section.end - section.start);
-    const ritualWorldX = section.start + ritualSectionWidth * cfg.sectionFraction;
-    const ritualWidth = cfg.height * (ritualRegion.w / ritualRegion.h) * (cfg.widthScale ?? 1);
-    const ritualX = (ritualWorldX - cameraX) * cfg.parallax + CANVAS_WIDTH / 2 - ritualWidth / 2;
-    // Track the vertical climb-camera: the background frame draws BEFORE the
-    // world's secretVerticalCameraOffset translate, so without this the building
-    // stays screen-pinned while the platforms/player slide down as Asha climbs.
-    const climbOffsetY = stateRef?.current?.secretVerticalCameraOffset || 0;
-    if (ritualX > -ritualWidth && ritualX < CANVAS_WIDTH + ritualWidth) {
-      ctx.save();
-      ctx.globalAlpha = cfg.alpha;
-      ctx.filter = `sepia(5%) brightness(${cfg.brightness ?? 1}) saturate(${cfg.saturate ?? 1}) contrast(${cfg.contrast ?? 1})`;
-      ctx.drawImage(
-        ritualImage,
-        ritualRegion.x, ritualRegion.y, ritualRegion.w, ritualRegion.h,
-        Math.round(ritualX), Math.round(cfg.baseY - cfg.height + climbOffsetY), Math.round(ritualWidth), cfg.height,
-      );
-      ctx.restore();
-    }
-  }
   if (!isV3ProductionCandidate) {
     drawDesertEntryLayerCohesionGrade(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, {
       groundY: T.groundLane.y,
@@ -4262,6 +4258,14 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
       },
     );
 
+  const ritualTempleDrawn = drawDesertEntryRitualTempleNearLane(
+    ctx,
+    section,
+    cameraX,
+    assets,
+    CANVAS_WIDTH,
+  );
+
   const drawn = isV3ProductionCandidate
     ? drawSingleGroundLayer(
       ctx,
@@ -4322,7 +4326,10 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   if (rubbleDrawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.desertEntryForegroundRubbleActive = true;
   }
-  return drawn || backingDrawn || rubbleDrawn;
+  if (ritualTempleDrawn && stateRef.current.renderStats) {
+    stateRef.current.renderStats.desertEntryRitualTempleDepthSlot = 'between-ground-backing-and-lane';
+  }
+  return drawn || backingDrawn || ritualTempleDrawn || rubbleDrawn;
 }
 
 export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
