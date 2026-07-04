@@ -69,6 +69,7 @@ const HEAVY_WINDUP_FRAME_KEYS = {
     frames: ['scorpionHeavyWindup1', 'scorpionHeavyWindup2'],
   },
 };
+const SCORPION_VENOM_ATTACK_PATTERN_ID = 'venom-spit';
 export const WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set([
   'cursedStatue',
 ]);
@@ -582,6 +583,7 @@ export const shouldUseEnemySpritePack = (enemy) => {
 export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
   const family = getEnemySpriteFamily(enemy);
   if (!family) return null;
+  const isScorpionVenomSpit = family === 'scorpion' && enemy?.attackPattern === SCORPION_VENOM_ATTACK_PATTERN_ID;
 
   // Rome families use 3-pose walk cycles
   const ROME_FAMILIES = new Set(['legionShade', 'gladiatorRevenant', 'forumRat', 'vestibuleWisp', 'marbleGolem']);
@@ -607,7 +609,7 @@ export const getEnemySpriteFrame = (enemy, combatMode, now = 0) => {
     }
     return `${family}Windup`;
   }
-  if (combatMode === 'attacking') return `${family}Attack`;
+  if (combatMode === 'attacking') return isScorpionVenomSpit ? 'scorpionWindup' : `${family}Attack`;
   if (combatMode === 'cooldown' && (family === 'scarab' || family === 'scorpion')) return `${family}Hit`;
 
   if (family === 'scarab') return `scarabWalk${walkFrame}`;
@@ -650,10 +652,14 @@ export const getEnemyBodyLanguagePose = (enemy, combatMode) => {
   }
 
   if (family === 'scorpion') {
+    const isVenomSpit = enemy?.attackPattern === SCORPION_VENOM_ATTACK_PATTERN_ID;
     if (combatMode === 'windup') {
       return { offsetX: -direction * 2, offsetY: -3, scaleX: 0.98, scaleY: 1.07, rotation: -direction * 0.035 };
     }
     if (combatMode === 'attacking') {
+      if (isVenomSpit) {
+        return { offsetX: -direction * 1, offsetY: -3, scaleX: 0.99, scaleY: 1.05, rotation: -direction * 0.03 };
+      }
       return { offsetX: direction * 5, offsetY: -1, scaleX: 1.05, scaleY: 0.98, rotation: direction * 0.025 };
     }
     if (combatMode === 'cooldown') {

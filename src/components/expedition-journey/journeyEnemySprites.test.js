@@ -34,6 +34,7 @@ const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta
 const journeyCombatSource = readFileSync(new URL('./journeyCombat.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
+const journeySimulationSource = readFileSync(new URL('./useJourneySimulation.js', import.meta.url), 'utf8');
 const useJourneyRendererSource = readFileSync(new URL('./useJourneyRenderer.js', import.meta.url), 'utf8');
 const enemySpriteGeneratorSource = readFileSync(new URL('../../../scripts/generate_enemy_sprite_sheets.py', import.meta.url), 'utf8');
 const scarabQueenBuilderSource = readFileSync(new URL('../../../scripts/build_scarab_queen_atlas.py', import.meta.url), 'utf8');
@@ -88,6 +89,44 @@ test('scorpion sprites read larger than before while staying grounded', () => {
   assert.ok(drawBox.width <= 280, `scorpion draw width should stay readable, received ${drawBox.width}`);
   assert.ok(drawBox.height <= 190, `scorpion draw height should stay readable, received ${drawBox.height}`);
   assert.equal(drawBox.y + drawBox.height, scorpion.y + scorpion.height + 15, 'scorpion sprite should stay grounded to the sand');
+});
+
+test('scorpion venom spit holds the tail instead of using the sting attack pose', () => {
+  const venomScorpion = {
+    id: 'scorpion-venom-readability',
+    name: 'Sand Scorpion',
+    type: 'scorpion',
+    attackPattern: 'venom-spit',
+    attackDirection: 1,
+    direction: 1,
+  };
+  const stingScorpion = {
+    ...venomScorpion,
+    attackPattern: 'sting',
+  };
+
+  assert.equal(getEnemySpriteFrame(venomScorpion, 'windup', 0), 'scorpionWindup');
+  assert.equal(getEnemySpriteFrame(venomScorpion, 'attacking', 0), 'scorpionWindup');
+
+  const venomPose = getEnemyBodyLanguagePose(venomScorpion, 'attacking');
+  const stingPose = getEnemyBodyLanguagePose(stingScorpion, 'attacking');
+
+  assert.ok(venomPose.offsetX <= 0, 'venom spit should hold/recoil instead of lunging into a sting');
+  assert.ok(stingPose.offsetX > 0, 'close sting should keep the forward tail-strike body language');
+  assert.ok(venomPose.rotation < 0, 'venom spit should retain the raised-tail aim pose');
+});
+
+test('scorpion venom projectile releases at attack start instead of windup start', () => {
+  assert.doesNotMatch(
+    journeySimulationSource,
+    /beginEnemyAttackWindup\(e,\s*pattern,[\s\S]{0,1800}type:\s*'venom-spit'/,
+    'venom-spit visual should not be spawned inside the windup-start branch',
+  );
+  assert.match(
+    journeySimulationSource,
+    /const releasePattern = getEnemyPatternConfig\(e\);[\s\S]{0,260}beginEnemyAttackSwing\(e,\s*releasePattern\);[\s\S]{0,900}if \(releasePattern\.id === SCORPION_VENOM_ATTACK_PATTERN\.id\) \{[\s\S]{0,900}type:\s*'venom-spit'/,
+    'venom-spit visual should be spawned when the attack is released',
+  );
 });
 
 test('scorpion sting is a high anti-jump attack that hits harder through existing pattern data', () => {

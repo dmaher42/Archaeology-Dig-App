@@ -5198,9 +5198,11 @@ export function drawLinkedEnemySpriteFrame(ctx, enemy, screenX, now, shakeX = 0,
       drawContactShadow(ctx, centerX, baseY + 3, enemy.width * (defeated ? 0.55 : 0.78), defeated ? 0.08 : 0.18, 0.9);
       ctx.globalAlpha = defeated ? 0.52 : 0.96;
 
-      const abdomenSx = isAttacking ? 0.94 : isWindup ? 1.06 : 1 + slowPulse * 0.025;
-      const abdomenSy = isAttacking ? 1.06 : isWindup ? 0.94 : 1;
-      const bodyOffsetY = isWindup ? -2 : isAttacking ? 1 : isCooldown ? 3 : stunned ? 2 : 0;
+      const attackLashesTail = isAttacking && !isVenomAttack;
+      const attackHoldsTail = isAttacking && isVenomAttack;
+      const abdomenSx = attackLashesTail ? 0.94 : (isWindup || attackHoldsTail) ? 1.06 : 1 + slowPulse * 0.025;
+      const abdomenSy = attackLashesTail ? 1.06 : (isWindup || attackHoldsTail) ? 0.94 : 1;
+      const bodyOffsetY = (isWindup || attackHoldsTail) ? -2 : attackLashesTail ? 1 : isCooldown ? 3 : stunned ? 2 : 0;
       ctx.strokeStyle = stunned ? 'rgba(210, 190, 165, 0.88)' : '#7c2d12';
       ctx.fillStyle = stunned ? '#8a6535' : '#a16207';
       ctx.lineWidth = 1.8;
@@ -5209,14 +5211,14 @@ export function drawLinkedEnemySpriteFrame(ctx, enemy, screenX, now, shakeX = 0,
       ctx.fill();
       ctx.stroke();
 
-      const headShift = isAttacking ? facing * 3 : isWindup ? -facing * 1 : 0;
+      const headShift = attackLashesTail ? facing * 3 : (isWindup || attackHoldsTail) ? -facing * 1 : 0;
       ctx.fillStyle = stunned ? '#6b4e28' : '#78350f';
       ctx.beginPath();
       ctx.ellipse(centerX + facing * enemy.width * 0.27 + headShift, bodyY - 2 + bodyOffsetY, enemy.width * 0.18, enemy.height * 0.22, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      const pinchSpread = isAttacking ? 7 : isWindup ? 5 : 3.5;
+      const pinchSpread = attackLashesTail ? 7 : (isWindup || attackHoldsTail) ? 5 : 3.5;
       const pinchBaseX = centerX + facing * enemy.width * 0.42 + headShift;
       ctx.strokeStyle = stunned ? 'rgba(160, 130, 90, 0.8)' : '#6b2d0e';
       ctx.lineWidth = 1.3;
@@ -5229,7 +5231,7 @@ export function drawLinkedEnemySpriteFrame(ctx, enemy, screenX, now, shakeX = 0,
 
       ctx.strokeStyle = stunned ? 'rgba(160, 130, 90, 0.75)' : '#92400e';
       ctx.lineWidth = 1.3;
-      const legSplay = isCooldown ? 1.18 : isWindup ? 1.08 : isAttacking ? 0.86 : defeated ? 0.7 : 1;
+      const legSplay = isCooldown ? 1.18 : (isWindup || attackHoldsTail) ? 1.08 : attackLashesTail ? 0.86 : defeated ? 0.7 : 1;
       const legLen = enemy.width * 0.38 * legSplay;
       const walkAnim = (isAttacking || isWindup || isCooldown || stunned || defeated) ? 0 : walkCycle * 3;
       for (let i = -1; i <= 1; i += 1) {
@@ -5252,10 +5254,10 @@ export function drawLinkedEnemySpriteFrame(ctx, enemy, screenX, now, shakeX = 0,
       if (defeated) {
         tailCpX = centerX - facing * enemy.width * 0.12; tailCpY = bodyY + 4;
         tailTipX = centerX - facing * enemy.width * 0.28; tailTipY = bodyY + 10;
-      } else if (isWindup) {
+      } else if (isWindup || attackHoldsTail) {
         tailCpX = centerX - facing * enemy.width * 0.42; tailCpY = bodyY - 42;
         tailTipX = centerX - facing * enemy.width * 0.04; tailTipY = bodyY - 44 - fastPulse * 2;
-      } else if (isAttacking) {
+      } else if (attackLashesTail) {
         tailCpX = centerX - facing * enemy.width * 0.08; tailCpY = bodyY - 16;
         tailTipX = centerX + facing * enemy.width * 0.24; tailTipY = bodyY - 20;
       } else if (isCooldown) {
