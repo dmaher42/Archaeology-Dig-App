@@ -26,7 +26,6 @@ import {
   PLAYER_COMBO_WINDOW_DURATION,
   PLAYER_DODGE_FRAME_SEQUENCE,
   PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL,
-  SCORPION_ANTI_AIR_ATTACK_PATTERN,
   SCORPION_CHASE_SPEED_MULTIPLIER,
   SCORPION_VENOM_ATTACK_PATTERN_TUNING,
   SCORPION_VENOM_REFRESH_WINDOW,
@@ -45,7 +44,6 @@ import {
   shouldScarabFrontalArmorDeflect,
   shouldStunScarabChargeOnDodge,
   shouldVaultScarabCharge,
-  shouldUseScorpionAntiAirSting,
   shouldUseScorpionVenomSpit,
   shouldUseSnakeAmbushLunge,
   shouldUseWispDiveHarass,
@@ -379,65 +377,7 @@ test('venom slow makes scarabs and scorpions more aggressive predators', () => {
   assert.equal(getEnemyVenomPressureTuning({ type: 'scarab' }, 0).active, false);
 });
 
-test('scorpion anti-air sting punishes careless jumps with a readable counter window', () => {
-  assert.equal(SCORPION_ANTI_AIR_ATTACK_PATTERN.id, 'anti-air-sting');
-  assert.equal(SCORPION_ANTI_AIR_ATTACK_PATTERN.label, 'Tail Raise');
-  assert.equal(SCORPION_ANTI_AIR_ATTACK_PATTERN.airbornePunish, true);
-  assert.equal(SCORPION_ANTI_AIR_ATTACK_PATTERN.protectedDuringWindup, false);
-  assert.equal(SCORPION_ANTI_AIR_ATTACK_PATTERN.height, 104);
-  assert.equal(SCORPION_ANTI_AIR_ATTACK_PATTERN.yOffset, -82);
-  assert.ok(SCORPION_ANTI_AIR_ATTACK_PATTERN.vulnerableAfter >= 0.86);
-
-  const scorpion = {
-    type: 'scorpion',
-    x: 100,
-    y: 420,
-    width: 44,
-    height: 30,
-  };
-  const airbornePlayer = {
-    onGround: false,
-    x: 132,
-    y: 340,
-    width: 38,
-    height: 70,
-  };
-
-  assert.equal(shouldUseScorpionAntiAirSting({
-    enemy: scorpion,
-    player: airbornePlayer,
-    distanceToPlayer: 48,
-    baseNearPlayerX: 210,
-    awarenessMultiplier: 1,
-    verticalAwareness: 168,
-  }), true);
-  assert.equal(shouldUseScorpionAntiAirSting({
-    enemy: scorpion,
-    player: { ...airbornePlayer, onGround: true },
-    distanceToPlayer: 48,
-    baseNearPlayerX: 210,
-    awarenessMultiplier: 1,
-    verticalAwareness: 168,
-  }), false);
-  assert.equal(shouldUseScorpionAntiAirSting({
-    enemy: scorpion,
-    player: airbornePlayer,
-    distanceToPlayer: 420,
-    baseNearPlayerX: 210,
-    awarenessMultiplier: 1,
-    verticalAwareness: 168,
-  }), false);
-  assert.equal(shouldUseScorpionAntiAirSting({
-    enemy: { ...scorpion, type: 'scarab' },
-    player: airbornePlayer,
-    distanceToPlayer: 48,
-    baseNearPlayerX: 210,
-    awarenessMultiplier: 1,
-    verticalAwareness: 168,
-  }), false);
-});
-
-test('scorpion venom pressure is quick enough to matter without overriding melee or anti-air', () => {
+test('scorpion venom pressure is quick enough to matter and can replace close sting pressure', () => {
   assert.equal(SCORPION_VENOM_ATTACK_PATTERN_TUNING.windup, 0.32);
   assert.ok(SCORPION_VENOM_ATTACK_PATTERN_TUNING.cooldown <= 1.15);
   assert.ok(SCORPION_VENOM_ATTACK_PATTERN_TUNING.recovery <= 0.46);
@@ -446,44 +386,27 @@ test('scorpion venom pressure is quick enough to matter without overriding melee
 
   assert.equal(shouldUseScorpionVenomSpit({
     enemy: { type: 'scorpion' },
-    meleeReachesPlayer: false,
     scorpionVenomCanReach: true,
-    shouldUseScorpionAntiAir: false,
     venomSlowTimer: 0,
   }), true);
   assert.equal(shouldUseScorpionVenomSpit({
     enemy: { type: 'scorpion' },
-    meleeReachesPlayer: false,
     scorpionVenomCanReach: true,
-    shouldUseScorpionAntiAir: false,
     venomSlowTimer: 0.5,
   }), true);
   assert.equal(shouldUseScorpionVenomSpit({
     enemy: { type: 'scorpion' },
-    meleeReachesPlayer: false,
     scorpionVenomCanReach: true,
-    shouldUseScorpionAntiAir: false,
     venomSlowTimer: 2.4,
   }), false);
   assert.equal(shouldUseScorpionVenomSpit({
     enemy: { type: 'scorpion' },
-    meleeReachesPlayer: true,
     scorpionVenomCanReach: true,
-    shouldUseScorpionAntiAir: false,
     venomSlowTimer: 0,
-  }), false);
-  assert.equal(shouldUseScorpionVenomSpit({
-    enemy: { type: 'scorpion' },
-    meleeReachesPlayer: false,
-    scorpionVenomCanReach: true,
-    shouldUseScorpionAntiAir: true,
-    venomSlowTimer: 0,
-  }), false);
+  }), true);
   assert.equal(shouldUseScorpionVenomSpit({
     enemy: { type: 'scarab' },
-    meleeReachesPlayer: false,
     scorpionVenomCanReach: true,
-    shouldUseScorpionAntiAir: false,
     venomSlowTimer: 0,
   }), false);
 });
@@ -675,7 +598,7 @@ test('scarab vault only triggers when Asha stomps an active charge', () => {
   assert.equal(shouldVaultScarabCharge({
     enemy: { ...chargingScarab, type: 'scorpion' },
     contact: { type: 'stomp' },
-    pattern: { id: 'sting' },
+    pattern: { id: 'venom-skitter' },
   }), false);
   assert.equal(shouldVaultScarabCharge({
     enemy: chargingScarab,

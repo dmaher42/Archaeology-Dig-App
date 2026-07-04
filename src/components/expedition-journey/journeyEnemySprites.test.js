@@ -129,22 +129,22 @@ test('scorpion venom projectile releases at attack start instead of windup start
   );
 });
 
-test('scorpion sting is a high anti-jump attack that hits harder through existing pattern data', () => {
-  assert.match(journeyComponentSource, /scorpion: \{[\s\S]*?height: 58,[\s\S]*?yOffset: -34,[\s\S]*?backReach: 38,[\s\S]*?damageScale: 1\.45,/);
-  assert.match(journeyGameplayContractSource, /const SCORPION_ATTACK_RANGE_MULTIPLIER = 1\.4;/);
-  assert.match(journeyComponentSource, /range: basePattern\.range \* SCORPION_ATTACK_RANGE_MULTIPLIER/);
+test('scorpion combat uses mobile venom pressure instead of tail-sting attacks', () => {
+  assert.doesNotMatch(journeyComponentSource, /id:\s*'sting'/);
+  assert.doesNotMatch(journeyComponentSource, /id:\s*'power-sting'/);
+  assert.doesNotMatch(journeyComponentSource, /shouldUseScorpionAntiAir/);
+  assert.doesNotMatch(journeyComponentSource, /SCORPION_ANTI_AIR_ATTACK_PATTERN/);
   assert.match(journeyGameplayContractSource, /const SCORPION_CHASE_SPEED_MULTIPLIER = 1\.15;/);
   assert.match(journeyGameplayContractSource, /const ENEMY_VENOM_PRESSURE_CHASE_SPEED_MULTIPLIER = 1\.42/);
   assert.match(journeyGameplayContractSource, /const getEnemyVenomPressureTuning = \(enemy = \{\}, venomSlowTimer = 0\) => \{/);
   assert.match(journeyComponentSource, /const venomPressureTuning = getEnemyVenomPressureTuning\(e, player\.venomSlowTimer \|\| 0\)/);
   assert.match(journeyComponentSource, /venomPursuitBoost \* \(e\.type === 'scorpion' \? SCORPION_CHASE_SPEED_MULTIPLIER : 1\)/);
   assert.match(journeyComponentSource, /const meleeReachesPlayer = rectsOverlap\(/);
-  assert.match(journeyGameplayContractSource, /const SCORPION_ANTI_AIR_ATTACK_PATTERN = \{[\s\S]*?id:\s*'anti-air-sting'[\s\S]*?height:\s*104[\s\S]*?airbornePunish:\s*true/);
-  assert.match(journeyComponentSource, /const shouldUseScorpionAntiAir = shouldUseScorpionAntiAirSting\(\{/);
+  assert.match(journeyComponentSource, /const SCORPION_VENOM_ATTACK_PATTERN = \{[\s\S]*?speed:\s*54,/);
   assert.match(journeyGameplayContractSource, /const SCORPION_VENOM_ATTACK_PATTERN_TUNING = Object\.freeze\(\{[\s\S]*?windup:\s*0\.32[\s\S]*?cooldown:\s*1\.1[\s\S]*?staminaDamage:\s*SCORPION_VENOM_STAMINA_DAMAGE/);
   assert.match(journeyGameplayContractSource, /const shouldUseScorpionVenomSpit = \(\{[\s\S]*?venomSlowTimer[\s\S]*?SCORPION_VENOM_REFRESH_WINDOW/);
   assert.match(journeyComponentSource, /const shouldUseVenomSpit = shouldUseScorpionVenomSpit\(\{[\s\S]*?venomSlowTimer:\s*player\.venomSlowTimer \|\| 0/);
-  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && meleeReachesPlayer\) \|\| shouldUseScorpionAntiAir \|\| shouldUseVenomSpit \|\| shouldUseWispDive \|\| shouldUseSnakeAmbush \|\| scarabPoisonChargeCanReach;/);
+  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(e\.type !== 'scorpion' && nearPlayer && meleeReachesPlayer\) \|\| shouldUseVenomSpit \|\| shouldUseWispDive \|\| shouldUseSnakeAmbush \|\| scarabPoisonChargeCanReach;/);
   assert.match(journeyComponentSource, /enemyCanStartAttack && e\.attackCooldown <= 0/);
   assert.match(journeyComponentSource, /const getAttackBox = useCallback\(\(attacker, range = 42, height = 28, direction = attacker\.direction \|\| 1, yOffset = 0, backReach = 0\) =>/);
   assert.match(journeyComponentSource, /const trailingReach = Math\.max\(0, backReach\);/);
@@ -422,7 +422,7 @@ test('Phase 5C animation-led desert telegraphs use body language instead of larg
   assert.doesNotMatch(useJourneyRendererSource, /drawDeflectRing\(16 \+ \(1 - progress\) \* 16/);
 });
 
-test('Egypt heavy windups use dedicated premium atlas frames without changing normal windups', () => {
+test('Egypt heavy windups use dedicated scarab atlas frames without keeping scorpion sting attacks alive', () => {
   const scarabScout = {
     id: 'scarab-scout-1',
     name: 'Scarab Scout',
@@ -433,26 +433,14 @@ test('Egypt heavy windups use dedicated premium atlas frames without changing no
     ...scarabScout,
     attackPattern: 'heavy-charge',
   };
-  const sealWarden = {
-    id: 'scorpion-seal-path-1',
-    name: 'Seal Warden Scorpion',
-    type: 'scorpion',
-    attackPattern: 'sting',
-  };
-  const heavyScorpion = {
-    ...sealWarden,
-    attackPattern: 'power-sting',
-  };
 
   assert.equal(getEnemySpriteFrame(scarabScout, 'windup', 0), 'scarabWindup');
-  assert.equal(getEnemySpriteFrame(sealWarden, 'windup', 0), 'scorpionWindup');
   assert.equal(getEnemySpriteFrame(heavyScarab, 'windup', 0), 'scarabHeavyWindup1');
   assert.equal(getEnemySpriteFrame(heavyScarab, 'windup', 180), 'scarabHeavyWindup2');
-  assert.equal(getEnemySpriteFrame(heavyScorpion, 'windup', 0), 'scorpionHeavyWindup1');
-  assert.equal(getEnemySpriteFrame(heavyScorpion, 'windup', 180), 'scorpionHeavyWindup2');
   assert.equal(getEnemySpriteFrame(heavyScarab, 'attacking', 0), 'scarabAttack');
   assert.match(journeyEnemySpritesSource, /scarabHeavyWindup1/);
-  assert.match(journeyEnemySpritesSource, /scorpionHeavyWindup1/);
+  assert.doesNotMatch(journeyEnemySpritesSource, /scorpionHeavyWindup1/);
+  assert.doesNotMatch(journeyEnemySpritesSource, /power-sting/);
   assert.match(journeyEnemySpritesSource, /desert-scarab-intimidating-sprites-heavy-windup-attack-2026-06-03\.json/);
 });
 

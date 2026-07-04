@@ -6091,7 +6091,8 @@ test('regular enemy families use distinct combat role timings without a new AI s
   assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?awareness:\s*1\.70[\s\S]*?chase:\s*2\.05/);
   assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?awareness:\s*1\.60[\s\S]*?chase:\s*1\.85/);
   assert.match(journeyComponentSource, /scarab:\s*\{[\s\S]*?id:\s*'charge'[\s\S]*?windup:\s*0\.42[\s\S]*?speed:\s*185[\s\S]*?range:\s*38/);
-  assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?id:\s*'sting'[\s\S]*?windup:\s*0\.6[\s\S]*?duration:\s*0\.3[\s\S]*?speed:\s*54[\s\S]*?range:\s*28[\s\S]*?height:\s*58[\s\S]*?yOffset:\s*-34[\s\S]*?backReach:\s*38[\s\S]*?damageScale:\s*1\.45/);
+  assert.doesNotMatch(journeyComponentSource, /scorpion:\s*\{[\s\S]*?id:\s*'sting'/);
+  assert.match(journeyComponentSource, /const SCORPION_VENOM_ATTACK_PATTERN = \{[\s\S]*?id:\s*'venom-spit'[\s\S]*?speed:\s*54[\s\S]*?range:\s*SCORPION_VENOM_SPIT_RANGE/);
   assert.match(journeyComponentSource, /snake:\s*\{[\s\S]*?id:\s*'lunge'[\s\S]*?windup:\s*0\.62[\s\S]*?speed:\s*166[\s\S]*?range:\s*52/);
   assert.match(journeyComponentSource, /'sand-wisp':\s*\{[\s\S]*?id:\s*'sand-burst'[\s\S]*?windup:\s*0\.5[\s\S]*?speed:\s*150/);
   assert.match(journeyComponentSource, /guardian:\s*\{[\s\S]*?id:\s*'slam'[\s\S]*?windup:\s*0\.84[\s\S]*?speed:\s*52[\s\S]*?shieldDuringWindup:\s*true/);
@@ -6126,19 +6127,19 @@ test('combat intent slice maps battlefield jobs into live enemy pursuit and snap
   assert.match(journeyComponentSource, /combatIntentLabel:\s*enemy\.combatIntentLabel \|\| getEnemyCombatIntent\(enemy\)\.label/);
 });
 
-test('scorpion anti-air slice makes careless jumps a readable combat threat', () => {
-  assert.match(journeyCombatContractSource, /const SCORPION_ANTI_AIR_ATTACK_PATTERN = \{/);
-  assert.match(journeyCombatContractSource, /id:\s*'anti-air-sting'/);
-  assert.match(journeyCombatContractSource, /airbornePunish:\s*true/);
-  assert.match(journeyCombatContractSource, /const shouldUseScorpionAntiAirSting = \(\{/);
-  assert.match(journeyComponentSource, /SCORPION_ANTI_AIR_ATTACK_PATTERN/);
-  assert.match(journeyComponentSource, /enemy\.type === 'scorpion' && enemy\.attackPattern === SCORPION_ANTI_AIR_ATTACK_PATTERN\.id/);
-  assert.match(journeyComponentSource, /const shouldUseScorpionAntiAir = shouldUseScorpionAntiAirSting\(\{/);
-  assert.match(journeyComponentSource, /const enemyCanStartAttack =[\s\S]*?shouldUseScorpionAntiAir/);
-  assert.match(journeyComponentSource, /const pattern = shouldUseScorpionAntiAir[\s\S]*?SCORPION_ANTI_AIR_ATTACK_PATTERN[\s\S]*?shouldUseVenomSpit/);
+test('scorpion venom slice removes tail-sting attacks and keeps spit pressure mobile', () => {
+  assert.doesNotMatch(journeyComponentSource, /SCORPION_ANTI_AIR_ATTACK_PATTERN/);
+  assert.doesNotMatch(journeyComponentSource, /shouldUseScorpionAntiAir/);
+  assert.doesNotMatch(journeyComponentSource, /id:\s*'sting'/);
+  assert.doesNotMatch(journeyComponentSource, /id:\s*'power-sting'/);
+  assert.doesNotMatch(journeyComponentSource, /raises its tail/);
+  assert.match(journeyComponentSource, /const SCORPION_VENOM_ATTACK_PATTERN = \{[\s\S]*?speed:\s*54/);
+  assert.doesNotMatch(journeyCombatContractSource, /shouldUseScorpionAntiAirSting/);
+  assert.match(journeyCombatContractSource, /const shouldUseScorpionVenomSpit = \(\{[\s\S]*?scorpionVenomCanReach[\s\S]*?\(venomSlowTimer \|\| 0\) <= SCORPION_VENOM_REFRESH_WINDOW/);
+  assert.match(journeyComponentSource, /const enemyCanStartAttack = \(e\.type !== 'scorpion' && nearPlayer && meleeReachesPlayer\) \|\| shouldUseVenomSpit \|\| shouldUseWispDive \|\| shouldUseSnakeAmbush \|\| scarabPoisonChargeCanReach;/);
+  assert.match(journeyComponentSource, /const pattern = shouldUseVenomSpit[\s\S]*?SCORPION_VENOM_ATTACK_PATTERN/);
   assert.match(journeyComponentSource, /selectedAbility:\s*enemy\.selectedAbility \|\| enemy\.attackPattern \|\| null/);
   assert.match(journeyComponentSource, /selectedAbilityReason:\s*enemy\.selectedAbilityReason \|\| null/);
-  assert.match(journeyComponentSource, /raises its tail/);
 });
 
 test('wisp dive slice makes flying enemies a jump-or-dodge combat threat', () => {
@@ -6153,8 +6154,8 @@ test('wisp dive slice makes flying enemies a jump-or-dodge combat threat', () =>
   assert.match(journeyComponentSource, /const endedWispDivePattern = e\.attackPattern === WISP_DIVE_ATTACK_PATTERN\.id/);
   assert.match(journeyComponentSource, /const shouldUseWispDive = shouldUseWispDiveHarass\(\{/);
   assert.match(journeyComponentSource, /const enemyCanStartAttack =[\s\S]*?shouldUseWispDive/);
-  assert.match(journeyComponentSource, /const pattern = shouldUseScorpionAntiAir[\s\S]*?shouldUseWispDive[\s\S]*?WISP_DIVE_ATTACK_PATTERN/);
-  assert.match(journeyComponentSource, /selectedAbilityReason = shouldUseScorpionAntiAir[\s\S]*?aerial dive harassment/);
+  assert.match(journeyComponentSource, /const pattern = shouldUseVenomSpit[\s\S]*?shouldUseWispDive[\s\S]*?WISP_DIVE_ATTACK_PATTERN/);
+  assert.match(journeyComponentSource, /const selectedAbilityReason = shouldUseVenomSpit[\s\S]*?aerial dive harassment/);
   assert.match(journeyComponentSource, /pattern\.airborneHarass[\s\S]*?e\.y = approach\(e\.y, diveTargetY, 236 \* dt\)/);
   assert.match(journeyComponentSource, /dives from above\. Jump-strike with J or dodge through it\./);
   assert.match(journeyComponentSource, /selectedAbility:\s*enemy\.selectedAbility \|\| enemy\.attackPattern \|\| null/);
@@ -6173,8 +6174,8 @@ test('snake ambush slice makes ground serpents punish blind sprinting', () => {
   assert.match(journeyComponentSource, /const endedSnakeAmbushPattern = e\.attackPattern === SNAKE_AMBUSH_LUNGE_PATTERN\.id/);
   assert.match(journeyComponentSource, /const shouldUseSnakeAmbush = shouldUseSnakeAmbushLunge\(\{/);
   assert.match(journeyComponentSource, /const enemyCanStartAttack =[\s\S]*?shouldUseSnakeAmbush/);
-  assert.match(journeyComponentSource, /const pattern = shouldUseScorpionAntiAir[\s\S]*?shouldUseSnakeAmbush[\s\S]*?SNAKE_AMBUSH_LUNGE_PATTERN/);
-  assert.match(journeyComponentSource, /selectedAbilityReason = shouldUseScorpionAntiAir[\s\S]*?ambush lunge from mid-range/);
+  assert.match(journeyComponentSource, /const pattern = shouldUseVenomSpit[\s\S]*?shouldUseSnakeAmbush[\s\S]*?SNAKE_AMBUSH_LUNGE_PATTERN/);
+  assert.match(journeyComponentSource, /const selectedAbilityReason = shouldUseVenomSpit[\s\S]*?ambush lunge from mid-range/);
   assert.match(journeyComponentSource, /coils low\. Jump or dodge the lunge, then punish the miss\./);
   assert.match(journeyComponentSource, /if \(e\.type === 'snake' && !player\.poisonTimer\)/);
 });

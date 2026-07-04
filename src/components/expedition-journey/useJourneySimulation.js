@@ -44,14 +44,12 @@ import {
   PLAYER_HIT_SCREEN_SHAKE_DURATION,
   getPlayerAttackProfile,
   PROTECTED_HIT_EXTRA_STAMINA_COST,
-  SCORPION_ANTI_AIR_ATTACK_PATTERN,
   SCORPION_CHASE_SPEED_MULTIPLIER,
   SCORPION_VENOM_SLOW_DURATION,
   SCORPION_VENOM_SLOW_MULTIPLIER,
   SCORPION_VENOM_STAMINA_DAMAGE,
   SCORPION_VENOM_SPIT_RANGE,
   SNAKE_AMBUSH_LUNGE_PATTERN,
-  shouldUseScorpionAntiAirSting,
   shouldUseScorpionVenomSpit,
   shouldUseSnakeAmbushLunge,
   shouldUseWispDiveHarass,
@@ -3058,16 +3056,13 @@ export function useJourneySimulation({
         // The swing just ended, so the in-flight timers are already zero — resolve the
         // heavy pattern by id here so heavies open their longer counter windows.
         const endedHeavyPattern = HEAVY_ATTACK_PATTERNS[e.type];
-        const endedScorpionAntiAirPattern = e.type === 'scorpion' && e.attackPattern === SCORPION_ANTI_AIR_ATTACK_PATTERN.id
-          ? SCORPION_ANTI_AIR_ATTACK_PATTERN
-          : null;
         const endedWispDivePattern = e.attackPattern === WISP_DIVE_ATTACK_PATTERN.id
           ? WISP_DIVE_ATTACK_PATTERN
           : null;
         const endedSnakeAmbushPattern = e.attackPattern === SNAKE_AMBUSH_LUNGE_PATTERN.id
           ? SNAKE_AMBUSH_LUNGE_PATTERN
           : null;
-        const pattern = endedScorpionAntiAirPattern || endedWispDivePattern || endedSnakeAmbushPattern || (endedHeavyPattern && e.attackPattern === endedHeavyPattern.id
+        const pattern = endedWispDivePattern || endedSnakeAmbushPattern || (endedHeavyPattern && e.attackPattern === endedHeavyPattern.id
           ? endedHeavyPattern
           : getEnemyPatternConfig(e));
         openEnemyCounterWindow(e, pattern);
@@ -3111,19 +3106,9 @@ export function useJourneySimulation({
         getAttackBox(e, ENEMY_ATTACK_TRIGGER_REACH, tacticalPattern.height, attackDirectionToPlayer, tacticalPattern.yOffset || 0, 0),
         getPlayerBodyHitbox(player),
       );
-      const shouldUseScorpionAntiAir = shouldUseScorpionAntiAirSting({
-        enemy: e,
-        player,
-        distanceToPlayer,
-        baseNearPlayerX,
-        awarenessMultiplier,
-        verticalAwareness,
-      });
       const shouldUseVenomSpit = shouldUseScorpionVenomSpit({
         enemy: e,
-        meleeReachesPlayer,
         scorpionVenomCanReach,
-        shouldUseScorpionAntiAir,
         venomSlowTimer: player.venomSlowTimer || 0,
       });
       const shouldUseWispDive = shouldUseWispDiveHarass({
@@ -3152,7 +3137,7 @@ export function useJourneySimulation({
         && !player.onGround
         && Math.abs(distanceToPlayer) < (baseNearPlayerX * awarenessMultiplier * 1.35)
         && Math.abs((player.y + player.height / 2) - (e.y + e.height / 2)) < verticalAwareness + 34;
-      const enemyCanStartAttack = (nearPlayer && meleeReachesPlayer) || shouldUseScorpionAntiAir || shouldUseVenomSpit || shouldUseWispDive || shouldUseSnakeAmbush || scarabPoisonChargeCanReach;
+      const enemyCanStartAttack = (e.type !== 'scorpion' && nearPlayer && meleeReachesPlayer) || shouldUseVenomSpit || shouldUseWispDive || shouldUseSnakeAmbush || scarabPoisonChargeCanReach;
       if (nearPlayer || shouldUseVenomSpit || shouldUseWispDive || shouldUseSnakeAmbush || scarabPoisonChargeCanReach || airborneIntentCanReach || (e.type === 'scorpion' && playerIsVenomSlowed && scorpionVenomCanReach)) {
         e.aggroMemoryTimer = Math.max(
           e.aggroMemoryTimer || 0,
@@ -3181,32 +3166,27 @@ export function useJourneySimulation({
           && heavyInterval
           && e.attackCount % heavyInterval === 0
           && !shouldUseVenomSpit
-          && !shouldUseScorpionAntiAir
           && !shouldUseWispDive
           && !shouldUseSnakeAmbush
         );
-        const pattern = shouldUseScorpionAntiAir
-          ? SCORPION_ANTI_AIR_ATTACK_PATTERN
-          : shouldUseVenomSpit
-            ? SCORPION_VENOM_ATTACK_PATTERN
-            : shouldUseWispDive
-              ? WISP_DIVE_ATTACK_PATTERN
-              : shouldUseSnakeAmbush
-                ? SNAKE_AMBUSH_LUNGE_PATTERN
-                : isHeavyAttack
-                  ? HEAVY_ATTACK_PATTERNS[e.type]
-                  : tacticalPattern;
-        const selectedAbilityReason = shouldUseScorpionAntiAir
-          ? 'anti-air jump punish'
-          : shouldUseVenomSpit
-            ? 'venom control'
-            : shouldUseWispDive
-              ? 'aerial dive harassment'
-              : shouldUseSnakeAmbush
-                ? 'ambush lunge from mid-range'
-                : isHeavyAttack
-                  ? 'heavy cadence'
-                  : 'standard pressure';
+        const pattern = shouldUseVenomSpit
+          ? SCORPION_VENOM_ATTACK_PATTERN
+          : shouldUseWispDive
+            ? WISP_DIVE_ATTACK_PATTERN
+            : shouldUseSnakeAmbush
+              ? SNAKE_AMBUSH_LUNGE_PATTERN
+              : isHeavyAttack
+                ? HEAVY_ATTACK_PATTERNS[e.type]
+                : tacticalPattern;
+        const selectedAbilityReason = shouldUseVenomSpit
+          ? 'venom control'
+          : shouldUseWispDive
+            ? 'aerial dive harassment'
+            : shouldUseSnakeAmbush
+              ? 'ambush lunge from mid-range'
+              : isHeavyAttack
+                ? 'heavy cadence'
+                : 'standard pressure';
         e.selectedAbility = pattern.id;
         e.selectedAbilityReason = selectedAbilityReason;
         e.targetReason = selectedAbilityReason;
@@ -3237,16 +3217,6 @@ export function useJourneySimulation({
             maxTimer: 0.38,
           });
         }
-        if (pattern.id === SCORPION_ANTI_AIR_ATTACK_PATTERN.id) {
-          addCombatEffect(current, {
-            type: 'enemy-pressure',
-            x: e.x + e.width / 2,
-            y: e.y,
-            color: 'rgba(245, 158, 11, 0.52)',
-            timer: 0.42,
-            maxTimer: 0.42,
-          });
-        }
         if (pattern.id === WISP_DIVE_ATTACK_PATTERN.id) {
           addCombatEffect(current, {
             type: 'enemy-pressure',
@@ -3273,10 +3243,7 @@ export function useJourneySimulation({
         }
         const scarabPoisonedChargeNotice = e.type === 'scarab' && playerIsVenomSlowed;
         const isUnblockableAttack = isHeavyAttack && pattern.protectedDuringWindup;
-        if (shouldUseScorpionAntiAir) {
-          current.notice = `${e.name} raises its tail. Jump is unsafe - land away or counter after the sting.`;
-          current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.6);
-        } else if (shouldUseWispDive) {
+        if (shouldUseWispDive) {
           current.notice = `${e.name} dives from above. Jump-strike with J or dodge through it.`;
           current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.45);
         } else if (shouldUseSnakeAmbush) {

@@ -139,26 +139,6 @@ export const ENEMY_VENOM_PRESSURE_CHASE_SPEED_MULTIPLIER = 1.42;
 export const ENEMY_VENOM_PRESSURE_AGGRO_REACH_BONUS = 120;
 export const ENEMY_VENOM_PRESSURE_AGGRO_MEMORY_MULTIPLIER = 1.22;
 const ENEMY_VENOM_PRESSURE_TYPES = new Set(['scarab', 'scorpion']);
-export const SCORPION_ANTI_AIR_ATTACK_PATTERN = {
-  id: 'anti-air-sting',
-  label: 'Tail Raise',
-  windup: 0.54,
-  duration: 0.32,
-  cooldown: 1.75,
-  recovery: 0.82,
-  vulnerableAfter: 0.9,
-  speed: 22,
-  range: 38,
-  height: 104,
-  yOffset: -82,
-  backReach: 34,
-  damageScale: 1.35,
-  airbornePunish: true,
-  shieldDuringWindup: false,
-  protectedDuringWindup: false,
-  protectedDuringAttack: false,
-  color: '#f59e0b',
-};
 const WISP_DIVE_ENEMY_TYPES = new Set(['sand-wisp', 'bat']);
 export const WISP_DIVE_HARASS_RANGE = CANVAS_WIDTH * 0.42;
 export const WISP_DIVE_ATTACK_PATTERN = {
@@ -445,40 +425,12 @@ export const shouldStunScarabChargeOnDodge = ({
   && SCARAB_CHARGE_PATTERN_IDS.has(enemy.attackPattern || pattern?.id)
 );
 
-export const shouldUseScorpionAntiAirSting = ({
-  enemy,
-  player,
-  distanceToPlayer = 0,
-  baseNearPlayerX = 0,
-  awarenessMultiplier = 1,
-  verticalAwareness = 168,
-} = {}) => {
-  if (enemy?.type !== 'scorpion' || !player || player.onGround) return false;
-  const enemyCenterY = (enemy.y || 0) + (enemy.height || 0) / 2;
-  const playerCenterY = (player.y || 0) + (player.height || 0) / 2;
-  const playerFootY = (player.y || 0) + (player.height || 0);
-  const enemyLowThreatLine = (enemy.y || 0) + (enemy.height || 0) + 42;
-  const horizontalThreat = Math.max(
-    SCORPION_ANTI_AIR_ATTACK_PATTERN.range + SCORPION_ANTI_AIR_ATTACK_PATTERN.backReach,
-    baseNearPlayerX * awarenessMultiplier * 0.72,
-  );
-  return (
-    Math.abs(distanceToPlayer) <= horizontalThreat
-    && Math.abs(playerCenterY - enemyCenterY) <= verticalAwareness + 28
-    && playerFootY <= enemyLowThreatLine
-  );
-};
-
 export const shouldUseScorpionVenomSpit = ({
   enemy,
-  meleeReachesPlayer = false,
   scorpionVenomCanReach = false,
-  shouldUseScorpionAntiAir = false,
   venomSlowTimer = 0,
 } = {}) => (
   enemy?.type === 'scorpion'
-  && !shouldUseScorpionAntiAir
-  && !meleeReachesPlayer
   && scorpionVenomCanReach
   && (venomSlowTimer || 0) <= SCORPION_VENOM_REFRESH_WINDOW
 );

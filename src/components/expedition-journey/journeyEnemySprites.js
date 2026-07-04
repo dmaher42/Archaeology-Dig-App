@@ -64,10 +64,6 @@ const HEAVY_WINDUP_FRAME_KEYS = {
     patternId: 'heavy-charge',
     frames: ['scarabHeavyWindup1', 'scarabHeavyWindup2'],
   },
-  scorpion: {
-    patternId: 'power-sting',
-    frames: ['scorpionHeavyWindup1', 'scorpionHeavyWindup2'],
-  },
 };
 const SCORPION_VENOM_ATTACK_PATTERN_ID = 'venom-spit';
 export const WITHHELD_EGYPT_CREATURE_SPRITE_FAMILIES = new Set([
@@ -166,8 +162,6 @@ export const EXPECTED_SCORPION_SPRITE_KEYS = [
   'scorpionWalk2',
   'scorpionWalk3',
   'scorpionWindup',
-  'scorpionHeavyWindup1',
-  'scorpionHeavyWindup2',
   'scorpionAttack',
   'scorpionHit',
   'scorpionDefeated',

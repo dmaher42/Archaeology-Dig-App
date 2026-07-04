@@ -235,8 +235,6 @@ import {
   PLAYER_FINISHER_SLASH_EFFECT_SRC,
   PLAYER_FINISHER_SLASH_EFFECT_VERSION,
   PLAYER_HEAVY_FOLLOWUP_PROMPT_LABEL,
-  SCORPION_ANTI_AIR_ATTACK_PATTERN,
-  SCORPION_ATTACK_RANGE_MULTIPLIER,
   SCORPION_VENOM_ATTACK_PATTERN_TUNING,
   SCORPION_VENOM_SLOW_DURATION,
   SCORPION_VENOM_SLOW_MULTIPLIER,
@@ -1215,8 +1213,8 @@ const ENEMY_ATTACK_PATTERNS = {
   },
   scorpion: {
     ...DEFAULT_ENEMY_ATTACK_PATTERN,
-    id: 'sting',
-    label: 'Sting',
+    id: 'venom-skitter',
+    label: 'Venom Skitter',
     windup: 0.6,
     duration: 0.3,
     cooldown: 1.15,
@@ -1362,25 +1360,6 @@ const HEAVY_ATTACK_PATTERNS = {
     speed: 240,
     range: 44,
     damageScale: 1.6,
-    shieldDuringWindup: true,
-    protectedDuringWindup: true,
-    color: '#b45309',
-  },
-  scorpion: {
-    ...DEFAULT_ENEMY_ATTACK_PATTERN,
-    id: 'power-sting',
-    label: 'Power Sting',
-    windup: 1.0,
-    duration: 0.36,
-    cooldown: 2.2,
-    recovery: 0.88,
-    vulnerableAfter: 0.96,
-    speed: 48,
-    range: 32,
-    height: 68,
-    yOffset: -38,
-    backReach: 44,
-    damageScale: 1.7,
     shieldDuringWindup: true,
     protectedDuringWindup: true,
     color: '#b45309',
@@ -1558,7 +1537,7 @@ const SCORPION_VENOM_ATTACK_PATTERN = {
   id: 'venom-spit',
   label: 'Venom Spit',
   ...SCORPION_VENOM_ATTACK_PATTERN_TUNING,
-  speed: 0,
+  speed: 54,
   range: SCORPION_VENOM_SPIT_RANGE,
   height: 44,
   yOffset: -28,
@@ -5798,12 +5777,6 @@ export default function ExpeditionJourney({
       return SCORPION_VENOM_ATTACK_PATTERN;
     }
     if (
-      enemy.type === 'scorpion' && enemy.attackPattern === SCORPION_ANTI_AIR_ATTACK_PATTERN.id
-      && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
-    ) {
-      return SCORPION_ANTI_AIR_ATTACK_PATTERN;
-    }
-    if (
       (enemy.type === 'sand-wisp' || enemy.type === 'bat') && enemy.attackPattern === WISP_DIVE_ATTACK_PATTERN.id
       && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
     ) {
@@ -5825,20 +5798,13 @@ export default function ExpeditionJourney({
       && enemy.attackPattern === heavyPattern.id
       && (enemy.attackWindup > 0 || enemy.attackTimer > 0 || enemy.attackReady)
     ) {
-      return enemy.type === 'scorpion'
-        ? { ...heavyPattern, range: heavyPattern.range * SCORPION_ATTACK_RANGE_MULTIPLIER }
-        : heavyPattern;
+      return heavyPattern;
     }
     const basePattern = {
       ...(ENEMY_ATTACK_PATTERNS[enemy.type] || DEFAULT_ENEMY_ATTACK_PATTERN),
       ...(enemy.attackPatternTuning || {}),
     };
-    const tunedPattern = enemy.type === 'scorpion'
-      ? {
-        ...basePattern,
-        range: basePattern.range * SCORPION_ATTACK_RANGE_MULTIPLIER,
-      }
-      : basePattern;
+    const tunedPattern = basePattern;
     const pressure = ENEMY_TACTICAL_PRESSURE[enemy.type] || null;
     if (enemy.openingRouteRamp) {
       return {
