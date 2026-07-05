@@ -495,10 +495,10 @@ export const createChamberDoorVisuals = ({
   {
     id: 'temple-threshold-hall-entry-door',
     roomId: JOURNEY_EXTERIOR_SCENE_ID,
-    routeId: 'temple-threshold-hall-route',
-    entryPlatformId: 'desert-entry-platform-11',
     trigger: TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER,
     returnFallback: TEMPLE_THRESHOLD_HALL_RETURN_FALLBACK,
+    preserveTriggerBounds: true,
+    useReturnFallbackPosition: true,
     title: 'Threshold Hall',
     prompt: 'E Enter',
     seal: 'scarab',

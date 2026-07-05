@@ -152,6 +152,10 @@ export const getStageEntranceTriggerX = (feature) => {
   return feature.x - width / 2 + width * (feature.walkThroughTriggerX ?? passageVisual.centerX ?? 0.5);
 };
 
+export const TEMPLE_THRESHOLD_HALL_ENTRY_DOORWAY_X = Math.round(
+  getStageEntranceTriggerX(STAGE_ENTRANCE_FEATURES.find(feature => feature.id === 'ruined-temple-colossus-gate')),
+);
+
 export const getTimelineRequirementProgress = (sequence = [], current = {}) => {
   const requiredIds = sequence
     .map(item => (typeof item === 'string' ? item : item?.id))
@@ -355,19 +359,19 @@ export const TEMPLE_THRESHOLD_HALL_ENTRY_SPAWN = {
   direction: 1,
 };
 export const TEMPLE_THRESHOLD_HALL_RETURN_FALLBACK = {
-  x: 865,
+  x: TEMPLE_THRESHOLD_HALL_ENTRY_DOORWAY_X - 96,
   y: GROUND_Y,
   cameraAnchorRatio: 0.5,
   direction: -1,
 };
 export const TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = {
-  minX: 805,
-  maxX: 935,
+  minX: TEMPLE_THRESHOLD_HALL_ENTRY_DOORWAY_X - 58,
+  maxX: TEMPLE_THRESHOLD_HALL_ENTRY_DOORWAY_X + 58,
   maxY: GROUND_Y + 10,
   footY: GROUND_Y,
   footTolerance: 36,
 };
-export const TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD = true;
+export const TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD = false;
 export const TEMPLE_THRESHOLD_HALL_CAMERA_X = scaleJourneyX(80);
 export const TEMPLE_THRESHOLD_HALL_BOUNDS = {
   minX: scaleJourneyX(80),

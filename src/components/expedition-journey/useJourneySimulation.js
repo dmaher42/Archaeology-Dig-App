@@ -1874,9 +1874,14 @@ export function useJourneySimulation({
     const mummificationReturnPoint = (direction = 1) => resolveChamberReturnPoint(mummificationEntryDoor, direction);
     const forgottenMuralReturnPoint = (direction = 1) => resolveChamberReturnPoint(forgottenMuralEntryDoor, direction);
     const scribeReturnPoint = (direction = 1) => resolveChamberReturnPoint(scribeEntryDoor, direction);
+    const templeThresholdHallGate = ROUTE_GATES.find(gate => gate.id === 'desert-seal');
+    const templeThresholdHallGateReady = !templeThresholdHallGate
+      || !getGateGuidance(templeThresholdHallGate, current).activeGateLocked;
 
     const templeThresholdDoorwayActive = !TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD
       && scopedJourneyAssetPacks.isEgyptJourney
+      && templeThresholdHallGateReady
+      && !current.templeThresholdHallCleared
       && currentSceneId === JOURNEY_SCENE_IDS.EXTERIOR
       && player.onGround
       && forgottenMuralPlayerCenterX >= templeThresholdEntryTrigger.minX
@@ -1894,6 +1899,7 @@ export function useJourneySimulation({
       && player.y < TEMPLE_THRESHOLD_HALL_SEAL_TRIGGER.maxY
       && Math.abs(forgottenMuralPlayerFootY - TEMPLE_THRESHOLD_HALL_SEAL_TRIGGER.footY) <= TEMPLE_THRESHOLD_HALL_SEAL_TRIGGER.footTolerance;
     if (templeThresholdDoorwayActive && !(current.sceneTransition || current.forgottenMuralChamberTransition)) {
+      if (templeThresholdHallGate) current.openedRouteGateIds.add(templeThresholdHallGate.id);
       current.templeThresholdHallEntranceDiscovered = true;
       current.hiddenRoomsFound?.add('temple-threshold-hall');
       current.discoveredHiddenRouteIds?.add('temple-threshold-hall-route');
@@ -2327,7 +2333,9 @@ export function useJourneySimulation({
     });
 
     const currentSectionId = getSectionForX(player.x).id;
-    const activeLevelEntrance = !inInteriorChamberScene && STAGE_ENTRANCE_FEATURES.find(feature => (
+    const activeLevelEntrance = !inInteriorChamberScene
+      && !(current.sceneTransition || current.forgottenMuralChamberTransition)
+      && STAGE_ENTRANCE_FEATURES.find(feature => (
       feature.levelTransition
       && feature.from === currentSectionId
       && !current.templeThresholdTransition

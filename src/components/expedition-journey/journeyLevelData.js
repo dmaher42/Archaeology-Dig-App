@@ -1,8 +1,7 @@
-import { GROUND_Y, JOURNEY_VERTICAL_OFFSET, WORLD_WIDTH, scaleJourneyX } from './journeyConstants.js';
+import { DESERT_ENTRY_EXTERIOR_SPAWN_X, GROUND_Y, JOURNEY_VERTICAL_OFFSET, OPENING_PYRAMID_DOORWAY_X, WORLD_WIDTH, scaleJourneyX } from './journeyConstants.js';
 
 import { sacredMuralExteriorX, sacredScribeExteriorX } from './journeyConstants.js';
 import {
-  SCRIBE_CHAMBER_EXTERIOR_APPROACH_X,
   SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X,
   SCRIBE_CHAMBER_EXTERIOR_STRUCTURE_X,
 } from './journeyConstants.js';
@@ -154,7 +153,7 @@ export const SCARAB_SEAL_TRIGGER = {
   sectionId: 'desert-entry',
   bossId: 'scarab-queen',
   name: 'Sacred Scarab Seal',
-  x: 925,
+  x: OPENING_PYRAMID_DOORWAY_X,
   y: JY(-117),
   width: 160,
   height: 90,
@@ -424,7 +423,7 @@ export const UPGRADES = [
 ];
 
 export const CHECKPOINTS = [
-  { id: 'desert-entry', name: 'Desert Entry', x: SCRIBE_CHAMBER_EXTERIOR_APPROACH_X + 24, markerX: SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X + 72, y: JY(282) },
+  { id: 'desert-entry', name: 'Desert Entry', x: DESERT_ENTRY_EXTERIOR_SPAWN_X + 24, markerX: OPENING_PYRAMID_DOORWAY_X + 260, y: JY(282) },
   { id: 'mummification-bridge', name: 'Ravine Bridge', x: X(410), y: JY(282) },
   { id: 'desert-survey-marker', name: 'Desert Survey Checkpoint', x: X(930), y: JY(282) },
   { id: 'ruined-temple', name: 'Ruined Temple', x: X(2420), y: JY(282) },

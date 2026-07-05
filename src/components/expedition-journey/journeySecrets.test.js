@@ -31,7 +31,7 @@ import {
   makeEnemy,
   snapJourneyPropCoordinate,
 } from './journeyUtils.js';
-import { CHECKPOINTS, CHINA_ENEMIES, ENEMIES, HIDDEN_ROUTES, RELIC_SHARDS, STORY_PROPS } from './journeyLevelData.js';
+import { CHECKPOINTS, CHINA_ENEMIES, ENEMIES, HIDDEN_ROUTES, RELIC_SHARDS, SCARAB_SEAL_TRIGGER, STORY_PROPS } from './journeyLevelData.js';
 import { getJourneyMiniBosses } from './journeyDataRouter.js';
 import { ROME_SECTION_OBJECTIVES } from './romeJourneyData.js';
 import {
@@ -39,8 +39,6 @@ import {
   COMBAT_DAMAGE_SCALE,
   DESERT_ENTRY_EXTERIOR_SPAWN_X,
   PLAYER_WIDTH,
-  SCRIBE_CHAMBER_EXTERIOR_APPROACH_X,
-  SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X,
   GROUND_Y,
   JOURNEY_HORIZONTAL_SCALE,
   WORLD_WIDTH,
@@ -1261,7 +1259,7 @@ test('journey editor prop palette exposes premium modular floor kit inserts', ()
 });
 
 test('desert entry ground collision uses the integrated painted route instead of a separate strip', () => {
-  assert.equal(DESERT_ENTRY_EXTERIOR_SPAWN_X, SCRIBE_CHAMBER_EXTERIOR_APPROACH_X - PLAYER_WIDTH / 2);
+  assert.equal(DESERT_ENTRY_EXTERIOR_SPAWN_X, SCARAB_SEAL_TRIGGER.x - PLAYER_WIDTH / 2);
   assert.match(journeyUtilsSource, /x:\s*DESERT_ENTRY_EXTERIOR_SPAWN_X/);
   assert.match(journeyComponentSource, /current\.player\.x = DESERT_ENTRY_EXTERIOR_SPAWN_X/);
   assert.doesNotMatch(journeyComponentSource, /current\.player\.x = 44/);
@@ -1730,12 +1728,20 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(journeyComponentSource, /JOURNEY_SCENE_IDS = Object\.freeze/);
   assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL:\s*'temple-threshold-hall'/);
   assert.match(journeyComponentSource, /FORGOTTEN_MURAL_CHAMBER:\s*'forgotten-mural-chamber'/);
-  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*805[\s\S]*?maxX:\s*935/);
-  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD = true/);
-  assert.match(journeyComponentSource, /const templeThresholdDoorwayActive = !TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD[\s\S]*?&& scopedJourneyAssetPacks\.isEgyptJourney/);
+  assert.match(journeyChamberTriggersSource, /TEMPLE_THRESHOLD_HALL_ENTRY_DOORWAY_X = Math\.round\([\s\S]*?getStageEntranceTriggerX\([\s\S]*?'ruined-temple-colossus-gate'[\s\S]*?\)/);
+  assert.match(journeyChamberTriggersSource, /TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*TEMPLE_THRESHOLD_HALL_ENTRY_DOORWAY_X - 58[\s\S]*?maxX:\s*TEMPLE_THRESHOLD_HALL_ENTRY_DOORWAY_X \+ 58/);
+  assert.match(journeyChamberTriggersSource, /TEMPLE_THRESHOLD_HALL_RETURN_FALLBACK = \{[\s\S]*?x:\s*TEMPLE_THRESHOLD_HALL_ENTRY_DOORWAY_X - 96/);
+  assert.doesNotMatch(journeyChamberTriggersSource, /TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*805/);
+  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD = false/);
+  assert.match(journeyComponentSource, /const templeThresholdHallGate = ROUTE_GATES\.find\(gate => gate\.id === 'desert-seal'\)/);
+  assert.match(journeyComponentSource, /const templeThresholdHallGateReady = !templeThresholdHallGate[\s\S]*?!getGateGuidance\(templeThresholdHallGate, current\)\.activeGateLocked/);
+  assert.match(journeyComponentSource, /const templeThresholdDoorwayActive = !TEMPLE_THRESHOLD_HALL_ENTRY_DISABLED_FOR_BUILD[\s\S]*?&& scopedJourneyAssetPacks\.isEgyptJourney[\s\S]*?&& templeThresholdHallGateReady[\s\S]*?&& !current\.templeThresholdHallCleared/);
+  assert.match(journeyComponentSource, /const activeLevelEntrance = !inInteriorChamberScene[\s\S]*?&& !\(current\.sceneTransition \|\| current\.forgottenMuralChamberTransition\)[\s\S]*?&& STAGE_ENTRANCE_FEATURES\.find/);
   assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_EXIT_TRIGGER = \{[\s\S]*?minX:\s*scaleJourneyX\(96\)[\s\S]*?maxX:\s*scaleJourneyX\(126\)/);
   assert.match(journeyComponentSource, /id:\s*'temple-threshold-hall-doorway'[\s\S]*?toSceneId:\s*JOURNEY_SCENE_IDS\.TEMPLE_THRESHOLD_HALL/);
   assert.match(journeyComponentSource, /id:\s*'temple-threshold-hall-exit'[\s\S]*?toSceneId:\s*JOURNEY_SCENE_IDS\.EXTERIOR/);
+  assert.match(journeySacredRoomsSource, /id:\s*'temple-threshold-hall-entry-door'[\s\S]*?preserveTriggerBounds:\s*true[\s\S]*?useReturnFallbackPosition:\s*true/);
+  assert.doesNotMatch(journeySacredRoomsSource, /id:\s*'temple-threshold-hall-entry-door'[\s\S]*?entryPlatformId:\s*'desert-entry-platform-11'/);
   assert.match(journeyComponentSource, /drawTempleThresholdHallInterior/);
   assert.match(platforms, /id:\s*'temple-threshold-hall-floor'[\s\S]*?sceneId:\s*'temple-threshold-hall'/);
   assert.match(journeyComponentSource, /currentSceneId:\s*getJourneySceneId\(current\)/);
@@ -2681,9 +2687,11 @@ test('Bes uses a dedicated guardian sprite pack through the existing mini-boss s
 
 test('Egypt Journey opening stages a dramatic entrance before the first checkpoint', () => {
   const openingCheckpoint = CHECKPOINTS.find(checkpoint => checkpoint.id === 'desert-entry');
+  const scarabQueen = getJourneyMiniBosses('Ancient Egypt').find(boss => boss.id === 'scarab-queen');
   assert.ok(openingCheckpoint, 'Desert Entry should keep a first checkpoint for retry safety');
-  assert.equal(DESERT_ENTRY_EXTERIOR_SPAWN_X, SCRIBE_CHAMBER_EXTERIOR_APPROACH_X - PLAYER_WIDTH / 2);
-  assert.equal(openingCheckpoint.x, SCRIBE_CHAMBER_EXTERIOR_APPROACH_X + 24);
+  assert.ok(scarabQueen, 'the first boss should stay findable for start-distance checks');
+  assert.equal(DESERT_ENTRY_EXTERIOR_SPAWN_X, SCARAB_SEAL_TRIGGER.x - PLAYER_WIDTH / 2);
+  assert.equal(openingCheckpoint.x, DESERT_ENTRY_EXTERIOR_SPAWN_X + 24);
   assert.ok(
     openingCheckpoint.markerX > CANVAS_WIDTH,
     'the first checkpoint marker should sit just beyond the initial camera frame, not dominate the opening shot',
@@ -2692,6 +2700,10 @@ test('Egypt Journey opening stages a dramatic entrance before the first checkpoi
     DESERT_ENTRY_EXTERIOR_SPAWN_X < openingCheckpoint.x,
     'Asha should still begin before the first checkpoint trigger area',
   );
+  assert.ok(
+    scarabQueen.x - DESERT_ENTRY_EXTERIOR_SPAWN_X > CANVAS_WIDTH * 8,
+    'Asha should start at the first building doorway, not in the Scarab Queen approach',
+  );
   assert.match(journeyOpeningScenesSource, /export const OPENING_ENTRANCE_STAGE = Object\.freeze\(\{/);
   assert.match(journeyOpeningScenesSource, /The lost site lies ahead/);
   assert.match(journeyOpeningScenesSource, /field tools/);
@@ -2699,17 +2711,15 @@ test('Egypt Journey opening stages a dramatic entrance before the first checkpoi
   assert.match(journeyOpeningScenesSource, /guardians/);
   assert.match(journeyOpeningScenesSource, /excavation site/);
   assert.ok(
-    Math.abs(OPENING_ENTRANCE_STAGE.cameraFocusX - SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X) <= 90,
-    'the opening camera focus should frame the Scribe building when the start spawn is at that doorway',
+    Math.abs(OPENING_ENTRANCE_STAGE.cameraFocusX - SCARAB_SEAL_TRIGGER.x) <= 90,
+    'the opening camera focus should frame the first building doorway when the start spawn is moved there',
   );
   assert.match(journeyUtilsSource, /openingEntranceStageTimer:\s*0/);
   assert.match(journeyUtilsSource, /openingCameraRevealMode:\s*null/);
   assert.match(journeyComponentSource, /applyOpeningEntranceStage\(current/);
   assert.match(journeyComponentSource, /const openingStartCamera = getCameraFollowTarget\(current\)[\s\S]*?current\.cameraX = openingStartCamera\.targetCameraX/);
-  assert.match(journeyComponentSource, /const markScribeExteriorStartKnown = useCallback/);
-  assert.match(journeyComponentSource, /current\?\.hiddenRoomsFound\?\.add\('scribe-locked-chamber'\)/);
-  assert.match(journeyComponentSource, /current\?\.discoveredHiddenRouteIds\?\.add\('scribe-locked-chamber-route'\)/);
-  assert.match(journeyComponentSource, /markScribeExteriorStartKnown\(current\)[\s\S]*?frameOpeningStartCamera\(current\)/);
+  assert.doesNotMatch(journeyComponentSource, /const markScribeExteriorStartKnown = useCallback/);
+  assert.doesNotMatch(journeyComponentSource, /markScribeExteriorStartKnown\(current\)/);
   assert.match(journeyComponentSource, /current\.openingCameraRevealMode = 'entrance-stage'/);
   assert.match(journeyComponentSource, /current\.openingEntranceStageTimer = OPENING_ENTRANCE_STAGE\.duration/);
   assert.match(journeyComponentSource, /current\.cinematicEvent = createOpeningEntranceStageEvent\(\)/);
@@ -2971,7 +2981,8 @@ test('opening pyramid uses exactly four invisible platforms aligned to the marke
     ],
   );
 
-  assert.match(sealTrigger, /x:\s*925/);
+  assert.match(journeyConstantsSource, /OPENING_PYRAMID_DOORWAY_X\s*=\s*925/);
+  assert.match(sealTrigger, /x:\s*OPENING_PYRAMID_DOORWAY_X/);
   assert.match(sealTrigger, /y:\s*JY\(-117\)/);
   assert.match(sealTrigger, /width:\s*160/);
   assert.match(sealTrigger, /height:\s*90/);
@@ -5837,7 +5848,7 @@ test('Temple Approach entry uses the flat integrated background floor', () => {
     assert.ok(deletedPlatformIds.has(id), `${id} should remain retired while the flat integrated background owns the route`);
   });
 
-  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*805[\s\S]*?maxX:\s*935[\s\S]*?maxY:\s*GROUND_Y \+ 10[\s\S]*?footY:\s*GROUND_Y/);
+  assert.match(journeyComponentSource, /TEMPLE_THRESHOLD_HALL_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*TEMPLE_THRESHOLD_HALL_ENTRY_DOORWAY_X - 58[\s\S]*?maxX:\s*TEMPLE_THRESHOLD_HALL_ENTRY_DOORWAY_X \+ 58[\s\S]*?maxY:\s*GROUND_Y \+ 10[\s\S]*?footY:\s*GROUND_Y/);
   assert.equal(platformOverridesById.get('desert-entry-platform-11'), undefined);
   assert.equal(platformOverridesById.get('desert-entry-ramp-approach-step-17'), undefined);
   assert.match(journeyComponentSource, /TEMPLE_APPROACH_RAMP_WALK_SURFACE = \[[\s\S]*?\{ x:\s*245,\s*y:\s*GROUND_Y \}[\s\S]*?\{ x:\s*935,\s*y:\s*GROUND_Y \}/);

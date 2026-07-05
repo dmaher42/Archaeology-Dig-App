@@ -4,6 +4,17 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-06 Egypt Journey opening spawn reset:
+- Moved the real Desert Entry start and first retry checkpoint from the late Scribe/Scarab Queen approach back to the opening pyramid / first building doorway.
+- Reframed the quick-play opening camera around that first doorway and removed the old startup shortcut that pre-marked the Scribe route as already discovered.
+- Added focused Journey guards so Asha cannot quietly start near the Scarab Queen again when quick-play or checkpoint startup uses the shared spawn constant.
+
+2026-07-06 Temple Threshold Hall handoff restored:
+- Removed the temporary build-disable on the existing Temple Approach doorway handoff, so the real exterior route can enter Temple Threshold Hall again through the shared chamber doorway/room transition system.
+- Re-anchored the Hall trigger to the live Desert Map Seal / Temple Approach gatehouse doorway instead of the old pre-rebuild coordinate and removed the stale deleted-platform pointer.
+- Kept the existing scene return, interior floor, and Temple Threshold Hall room code; added a Desert Map Seal readiness check so the Hall cannot bypass the locked exterior gate.
+- Updated the focused Journey source guard so this doorway cannot quietly return to the disabled or stale-coordinate build state.
+
 2026-07-06 Scribe exterior asset pointer correction:
 - Confirmed the game was still wired to the older `house-of-life-per-ankh` / `final-nostairs` Scribe exterior file, even though the later progress note identified the monumental Keeper of Names Archive as the intended replacement.
 - Repointed the canonical Scribe exterior runtime asset to `public/assets/expedition/environment/desert-temple/scribe-locked-chamber-keeper-names-archive-monumental-2026-07-05.png`.
