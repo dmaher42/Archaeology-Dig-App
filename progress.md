@@ -4,6 +4,11 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-05 Desert Entry ground-tile seam breakup finish:
+- Finished the active renderer pass in `rendererBackgrounds.js` by overlapping the tiled Desert Entry ground layers and adding irregular dust/crack strokes at tile joins, so the opening route floor should read less like repeated pasted panels.
+- Kept the work inside the existing layered Desert Entry background path; no collision, route data, player movement, enemies, or asset manifests were changed.
+- Verified focused Journey source/placement tests, direct lint on the touched renderer/test files, `git diff --check`, production build, and live quick-play canvas captures at `output/playwright/desert-entry-seam-breakup/after-x1179-camera744.png` and `after-x1289-camera853.png`.
+
 2026-07-04 Stuck-chase watchdog:
 - Playtest feedback: enemies froze mid-chase. Cause: pursuit is leashed to patrolMin/Max plus ENEMY_AGGRO_PATROL_PADDING, and many opening-route enemies have very narrow patrol zones, so a chasing enemy pinned at the leash clamp stood facing Asha at an invisible wall indefinitely.
 - Added a watchdog in the standoff movement branch: if the leash clamp holds the enemy away from Asha and it has already reached the clamped spot for ~0.9s, it drops aggro, turns toward its patrol centre, and walks home under a 2.2s patrolReturnTimer that gates pressing/chasing (attack initiation while defending is unaffected).

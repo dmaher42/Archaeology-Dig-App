@@ -5307,6 +5307,26 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.farPyramids.parallax, 0.14);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.midNecropolisRuins.parallax, 0.28);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.alpha, 1);
+  assert.match(
+    useJourneyRendererSource,
+    /drawDesertEntryGroundLayerTileSeamBreakup/,
+    'Desert Entry ground layers should soften vertical tile joins so the playable floor does not read as pasted panels',
+  );
+  assert.match(
+    useJourneyRendererSource,
+    /layerTileWidth/,
+    'the seam-softening pass should use the same tile width as the drawn ground layer',
+  );
+  assert.match(
+    useJourneyRendererSource,
+    /tileOverlap/,
+    'Desert Entry ground tiles should overlap slightly so the source-image edge is not a hard vertical join',
+  );
+  assert.match(
+    useJourneyRendererSource,
+    /quadraticCurveTo/,
+    'Desert Entry seam breakup should use irregular wavy dust strokes rather than only a straight vertical band',
+  );
   assert.doesNotMatch(useJourneyRendererSource, /'skyPlate'/);
   assert.ok(
     !journeyPlacementOverrides.props.some((prop) => (
