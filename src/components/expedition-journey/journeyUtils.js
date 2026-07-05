@@ -81,6 +81,15 @@ export const resolveJourneyChamberEntryTrigger = ({
 } = {}) => {
   const fallback = door?.trigger;
   if (!fallback) return null;
+  if (door?.preserveTriggerBounds) {
+    return {
+      ...fallback,
+      footY: Number.isFinite(platform?.y) ? platform.y : fallback.footY,
+      footTolerance: Math.max(fallback.footTolerance || 0, Number.isFinite(platform?.height) ? platform.height + 6 : 0),
+      routeId: door.routeId || null,
+      entryPlatformId: door.entryPlatformId || null,
+    };
+  }
   if (!route && !platform) return fallback;
 
   const fallbackWidth = Math.max(1, (fallback.maxX || 0) - (fallback.minX || 0));
@@ -132,10 +141,15 @@ export const resolveJourneyChamberReturnPoint = ({
 } = {}) => {
   const fallback = door?.returnFallback || {};
   const trigger = resolveJourneyChamberEntryTrigger({ door, route, platform });
-  const x = trigger
+  const useFallbackPosition = Boolean(door?.useReturnFallbackPosition);
+  const x = useFallbackPosition && Number.isFinite(fallback.x)
+    ? fallback.x
+    : trigger
     ? (trigger.minX + trigger.maxX) / 2
     : fallback.x;
-  const y = Number.isFinite(trigger?.footY) ? trigger.footY : fallback.y;
+  const y = useFallbackPosition && Number.isFinite(fallback.y)
+    ? fallback.y
+    : Number.isFinite(trigger?.footY) ? trigger.footY : fallback.y;
   const cameraAnchorRatio = fallback.cameraAnchorRatio;
 
   return {
@@ -1996,6 +2010,8 @@ export const makeInitialState = ({ targetCivilisation, permanentUpgradeIds = [],
   templeThresholdTransition: null,
   openingCameraRevealTimer: 0,
   openingCameraRevealDuration: 1.55,
+  openingEntranceStageTimer: 0,
+  openingCameraRevealMode: null,
   brokenEnvironmentIds: new Set(),
   triggeredEnvironmentIds: new Set(),
   collapsedPlatformIds: new Set(),

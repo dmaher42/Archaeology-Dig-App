@@ -1,7 +1,7 @@
 import { CANVAS_HEIGHT, CANVAS_WIDTH, GROUND_Y } from './journeyConstants';
 import { SCARAB_SEAL_TRIGGER, STAGE_ENTRANCE_FEATURES } from './journeyDataRouter';
 import { clampCameraX, getCameraFollowTarget as getLayoutCameraFollowTarget, worldToScreenX } from './journeyLayout';
-import { easeInOutCubic } from './journeyOpeningScenes';
+import { OPENING_ENTRANCE_STAGE, easeInOutCubic } from './journeyOpeningScenes';
 import { PROP_EDITOR_HANDLE_HIT, PROP_EDITOR_ROTATE_OFFSET } from './journeyRenderPrimitives.js';
 import { clamp, rectsOverlap } from './journeyUtils';
 import { EGYPT_HAZARD_DECAL_PLACEMENT, EGYPT_HAZARD_DECAL_PLACEMENT_BY_HAZARD, FORGOTTEN_MURAL_CHAMBER_CAMERA_X, MUMMIFICATION_CHAMBER_CAMERA_X, OPENING_HAZARD_DECAL_BY_HAZARD, OPENING_TRAP_DECAL_BY_HAZARD, SCRIBE_CHAMBER_CAMERA_X, TEMPLE_THRESHOLD_HALL_CAMERA_X, isStageEntranceAvailableForState } from './journeyChamberTriggers.js';
@@ -1150,10 +1150,19 @@ export const getOpeningCameraRevealTarget = (current) => {
   );
   const playerCenterX = current.player.x + current.player.width / 2;
   const startCameraX = getLayoutCameraFollowTarget({ playerCenterX }).targetCameraX;
-  const sealFocusX = SCARAB_SEAL_TRIGGER.x + SCARAB_SEAL_TRIGGER.width / 2;
-  const sealCameraX = Math.min(
-    clampCameraX(sealFocusX - CANVAS_WIDTH * 0.64),
-    clampCameraX(startCameraX + CANVAS_WIDTH * 0.18),
+  const entranceStageReveal = current.openingCameraRevealMode === 'entrance-stage';
+  const revealFocusX = entranceStageReveal
+    ? OPENING_ENTRANCE_STAGE.cameraFocusX
+    : SCARAB_SEAL_TRIGGER.x + SCARAB_SEAL_TRIGGER.width / 2;
+  const cameraAnchorRatio = entranceStageReveal
+    ? OPENING_ENTRANCE_STAGE.cameraAnchorRatio
+    : 0.64;
+  const maxForwardPanRatio = entranceStageReveal
+    ? OPENING_ENTRANCE_STAGE.maxForwardPanRatio
+    : 0.18;
+  const revealCameraX = Math.min(
+    clampCameraX(revealFocusX - CANVAS_WIDTH * cameraAnchorRatio),
+    clampCameraX(startCameraX + CANVAS_WIDTH * maxForwardPanRatio),
   );
 
   let revealWeight = 1;
@@ -1165,11 +1174,10 @@ export const getOpeningCameraRevealTarget = (current) => {
   }
 
   return {
-    mode: 'opening-reveal',
-    focusTarget: Math.round(sealFocusX),
-    targetCameraX: clampCameraX(startCameraX + (sealCameraX - startCameraX) * revealWeight),
+    mode: entranceStageReveal ? 'opening-entrance-stage' : 'opening-reveal',
+    focusTarget: Math.round(revealFocusX),
+    targetCameraX: clampCameraX(startCameraX + (revealCameraX - startCameraX) * revealWeight),
     progress: Number(revealWeight.toFixed(3)),
     secondsRemaining: Number(timer.toFixed(2)),
   };
 };
-

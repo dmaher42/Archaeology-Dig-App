@@ -604,6 +604,112 @@ export function drawForgottenMuralGeneratedAssetFrame(ctx, prop, x, deps) {
     return true;
 }
 
+function drawScribeDoorwayGroundPocket(ctx, doorwayCenterX, groundY, width, visualAlpha, now = 0) {
+  const pulse = 0.92 + Math.sin(now / 840) * 0.03;
+  const pocketWidth = width * 0.42;
+  ctx.save();
+
+  const coreShadow = ctx.createRadialGradient(
+    doorwayCenterX,
+    groundY - 10,
+    pocketWidth * 0.08,
+    doorwayCenterX,
+    groundY - 3,
+    pocketWidth * 0.58,
+  );
+  coreShadow.addColorStop(0, `rgba(25, 15, 8, ${0.3 * visualAlpha * pulse})`);
+  coreShadow.addColorStop(0.48, `rgba(48, 29, 13, ${0.18 * visualAlpha})`);
+  coreShadow.addColorStop(1, 'rgba(48, 29, 13, 0)');
+  ctx.fillStyle = coreShadow;
+  ctx.beginPath();
+  ctx.ellipse(doorwayCenterX, groundY + 2, pocketWidth * 0.54, 42, -0.03, 0, Math.PI * 2);
+  ctx.fill();
+
+  const sideShadow = ctx.createLinearGradient(
+    doorwayCenterX - pocketWidth * 0.62,
+    0,
+    doorwayCenterX + pocketWidth * 0.72,
+    0,
+  );
+  sideShadow.addColorStop(0, 'rgba(48, 29, 13, 0)');
+  sideShadow.addColorStop(0.2, `rgba(43, 25, 12, ${0.12 * visualAlpha})`);
+  sideShadow.addColorStop(0.48, `rgba(26, 15, 7, ${0.2 * visualAlpha})`);
+  sideShadow.addColorStop(0.72, `rgba(76, 49, 23, ${0.1 * visualAlpha})`);
+  sideShadow.addColorStop(1, 'rgba(76, 49, 23, 0)');
+  ctx.fillStyle = sideShadow;
+  ctx.beginPath();
+  ctx.ellipse(doorwayCenterX + width * 0.02, groundY + 12, pocketWidth * 0.66, 26, 0.02, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = `rgba(75, 47, 22, ${0.16 * visualAlpha})`;
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 1.4;
+  for (let i = 0; i < 9; i += 1) {
+    const seed = Math.sin((doorwayCenterX + i * 71.3 + now * 0.03) * 0.017);
+    const startX = doorwayCenterX - pocketWidth * (0.36 + (i % 3) * 0.07) + seed * 12;
+    const startY = groundY + 2 + (i % 4) * 7;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.quadraticCurveTo(
+      doorwayCenterX + seed * pocketWidth * 0.18,
+      startY + 7 + seed * 4,
+      doorwayCenterX + pocketWidth * (0.24 + (i % 4) * 0.05),
+      startY + seed * 5,
+    );
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawScribeDoorwayForegroundOcclusion(ctx, left, width, doorwayCenterX, groundY, visualAlpha, now = 0) {
+  ctx.save();
+  const apronLeft = doorwayCenterX - width * 0.29;
+  const apronRight = doorwayCenterX + width * 0.37;
+  const sediment = ctx.createLinearGradient(0, groundY - 30, 0, groundY + 34);
+  sediment.addColorStop(0, `rgba(111, 71, 32, ${0.04 * visualAlpha})`);
+  sediment.addColorStop(0.48, `rgba(183, 123, 55, ${0.2 * visualAlpha})`);
+  sediment.addColorStop(1, `rgba(238, 184, 102, ${0.07 * visualAlpha})`);
+  ctx.fillStyle = sediment;
+  ctx.beginPath();
+  ctx.moveTo(apronLeft, groundY - 8);
+  ctx.quadraticCurveTo(doorwayCenterX - width * 0.18, groundY - 26, doorwayCenterX - width * 0.04, groundY - 14);
+  ctx.quadraticCurveTo(doorwayCenterX + width * 0.14, groundY - 3, apronRight, groundY - 18);
+  ctx.lineTo(apronRight + width * 0.04, groundY + 28);
+  ctx.quadraticCurveTo(doorwayCenterX + width * 0.1, groundY + 40, apronLeft - width * 0.04, groundY + 26);
+  ctx.closePath();
+  ctx.fill();
+
+  [
+    { x: left + width * 0.22, w: width * 0.22, h: 30, a: 0.18, r: -0.04 },
+    { x: doorwayCenterX, w: width * 0.34, h: 36, a: 0.24, r: 0.01 },
+    { x: left + width * 0.74, w: width * 0.2, h: 26, a: 0.14, r: 0.05 },
+  ].forEach((patch) => {
+    const g = ctx.createRadialGradient(patch.x, groundY, 8, patch.x, groundY + 6, patch.w * 0.58);
+    g.addColorStop(0, `rgba(99, 60, 27, ${patch.a * visualAlpha})`);
+    g.addColorStop(0.58, `rgba(168, 106, 45, ${patch.a * 0.5 * visualAlpha})`);
+    g.addColorStop(1, 'rgba(168, 106, 45, 0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(patch.x, groundY + 8, patch.w * 0.5, patch.h, patch.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  for (let i = 0; i < 18; i += 1) {
+    const seed = Math.sin((doorwayCenterX * 0.011) + i * 1.93 + now * 0.001);
+    const pebbleX = doorwayCenterX - width * 0.24 + ((i * 41) % Math.max(1, width * 0.52)) + seed * 9;
+    const pebbleY = groundY - 18 + ((i * 17) % 52);
+    ctx.fillStyle = i % 3 === 0
+      ? `rgba(64, 40, 19, ${0.14 * visualAlpha})`
+      : `rgba(205, 151, 78, ${0.12 * visualAlpha})`;
+    ctx.beginPath();
+    ctx.ellipse(pebbleX, pebbleY, 3 + (i % 4), 1.4 + (i % 2), seed * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 export function drawScribeChamberDoorwayStructureFrame(ctx, prop, x, section, now, deps) {
   const {
     GROUND_Y,
@@ -620,6 +726,9 @@ export function drawScribeChamberDoorwayStructureFrame(ctx, prop, x, section, no
     const top = prop.y;
     const baseY = top + height;
     const centerX = x;
+    const visualAlpha = prop.alpha ?? 1;
+    const doorwayXRatio = Number.isFinite(prop.assetDoorwayXRatio) ? prop.assetDoorwayXRatio : 0.35;
+    const doorwayCenterX = left + width * doorwayXRatio;
     const pulse = 0.76 + Math.sin(now / 310) * 0.16;
     const lamp = 0.78 + Math.sin(now / 93) * 0.12;
     const current = stateRef.current;
@@ -628,28 +737,53 @@ export function drawScribeChamberDoorwayStructureFrame(ctx, prop, x, section, no
 
     if (structureAsset.loaded && structureAsset.image) {
       ctx.save();
-      ctx.globalAlpha = prop.alpha ?? 1;
-      const groundY = Math.min(GROUND_Y - 3, baseY - 8);
+      const groundY = Number.isFinite(prop.visualGroundY)
+        ? prop.visualGroundY
+        : Math.min(GROUND_Y - 3, baseY - 8);
       const underlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'underlay');
-      ctx.filter = `sepia(4%) saturate(108%) brightness(${98 + pulse * 4}%) contrast(106%)`;
+
+      ctx.save();
+      ctx.globalAlpha = 0.28 * visualAlpha;
+      ctx.filter = 'brightness(0) sepia(30%) saturate(130%) blur(4px)';
+      ctx.drawImage(structureAsset.image, left + width * 0.014, top + 10, width * 1.008, height * 1.006);
+      ctx.restore();
+
+      ctx.save();
+      const baseShadow = ctx.createRadialGradient(centerX, groundY - 4, width * 0.08, centerX, groundY - 4, width * 0.52);
+      baseShadow.addColorStop(0, `rgba(31, 18, 9, ${0.3 * visualAlpha})`);
+      baseShadow.addColorStop(0.52, `rgba(39, 23, 12, ${0.18 * visualAlpha})`);
+      baseShadow.addColorStop(1, 'rgba(39, 23, 12, 0)');
+      ctx.fillStyle = baseShadow;
+      ctx.beginPath();
+      ctx.ellipse(centerX, groundY + 10, width * 0.5, 38, -0.02, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      drawScribeDoorwayGroundPocket(ctx, doorwayCenterX, groundY, width, visualAlpha, now);
+
+      ctx.globalAlpha = visualAlpha;
+      ctx.filter = 'sepia(5%) saturate(104%) brightness(96%) contrast(102%)';
       ctx.drawImage(structureAsset.image, left, top, width, height);
       ctx.filter = 'none';
 
       drawEgyptStructureWeatheringOverlay(ctx, left, width, groundY, { alpha: 0.92 });
       const overlayContact = drawEgyptStructureGroundContactLayer(ctx, prop.groundContactLayer, left, width, groundY, 'overlay');
       const groundBlendCount = underlayContact.count + overlayContact.count;
+      drawScribeDoorwayForegroundOcclusion(ctx, left, width, doorwayCenterX, groundY, visualAlpha, now);
 
       ctx.globalCompositeOperation = 'screen';
-      const doorwayGlow = ctx.createRadialGradient(centerX, top + height * 0.38, 28, centerX, top + height * 0.38, width * 0.22);
+      const doorwayGlow = ctx.createRadialGradient(doorwayCenterX, top + height * 0.42, 28, doorwayCenterX, top + height * 0.42, width * 0.2);
       doorwayGlow.addColorStop(0, `rgba(250, 204, 21, ${0.14 * pulse})`);
       doorwayGlow.addColorStop(0.52, `rgba(180, 83, 9, ${0.08 * pulse})`);
       doorwayGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = doorwayGlow;
-      ctx.fillRect(centerX - width * 0.28, top + height * 0.12, width * 0.56, height * 0.48);
+      ctx.fillRect(doorwayCenterX - width * 0.24, top + height * 0.17, width * 0.48, height * 0.44);
       ctx.globalCompositeOperation = 'source-over';
       if (stateRef.current.renderStats) {
         stateRef.current.renderStats.scribeChamberExteriorVersion = SCRIBE_CHAMBER_EXTERIOR_VERSION;
         stateRef.current.renderStats.scribeChamberExteriorLoaded = true;
+        stateRef.current.renderStats.scribeChamberDoorwayAnchorX = Math.round(doorwayCenterX);
+        stateRef.current.renderStats.scribeChamberDoorwayGroundPocket = true;
         stateRef.current.renderStats.scribeChamberGroundBlendAssetKeys = Array.from(new Set([
           ...underlayContact.keys,
           ...overlayContact.keys,

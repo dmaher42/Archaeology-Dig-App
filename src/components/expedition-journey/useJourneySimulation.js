@@ -330,6 +330,7 @@ export function useJourneySimulation({
   updateArrivalThresholdTrial,
   updateHostileStepMultiplier,
   wasGroundedRef,
+  applyOpeningEntranceStage,
 }) {
   const update = useCallback((dt) => {
     const current = stateRef.current;
@@ -373,16 +374,18 @@ export function useJourneySimulation({
         current.player.y = GROUND_Y - current.player.height;
         current.cameraX = 0;
         current.targetCameraX = 0;
-        current.notice = openingArrivalNotice;
-        current.cinematicEvent = {
-          id: 'opening-arrival-aftershock',
-          name: 'Asha',
-          message: openingArrivalNotice,
-          temporary: true,
-        };
-        current.cinematicTimer = 3.4;
-        audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.64 });
-        current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+        if (!applyOpeningEntranceStage?.(current)) {
+          current.notice = openingArrivalNotice;
+          current.cinematicEvent = {
+            id: 'opening-arrival-aftershock',
+            name: 'Asha',
+            message: openingArrivalNotice,
+            temporary: true,
+          };
+          current.cinematicTimer = 3.4;
+          audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.64 });
+          current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+        }
         current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.24);
         current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.12);
       } else if (Math.abs(elapsed - spellImpactAt) < dt + 0.02) {
@@ -486,7 +489,12 @@ export function useJourneySimulation({
     if (current.postBossRewardTimer <= 0 && current.postBossReward) current.postBossReward = null;
     current.itemPurposeNoticeTimer = Math.max(0, (current.itemPurposeNoticeTimer || 0) - dt);
     current.damageNoticeTimer = Math.max(0, (current.damageNoticeTimer || 0) - dt);
+    current.openingEntranceStageTimer = Math.max(0, (current.openingEntranceStageTimer || 0) - dt);
     current.openingCameraRevealTimer = Math.max(0, (current.openingCameraRevealTimer || 0) - dt);
+    if (current.openingCameraRevealTimer <= 0 && current.openingCameraRevealMode) {
+      current.openingCameraRevealMode = null;
+      current.openingCameraRevealDuration = OPENING_CAMERA_REVEAL_DURATION;
+    }
     current.bossIntroTimer = Math.max(0, current.bossIntroTimer - dt);
     if (current.bossIntroTimer <= 0) {
       if (current.bossIntro) current.bossIntro = null;
@@ -2138,11 +2146,11 @@ export function useJourneySimulation({
       const playerBody = getPlayerBodyHitbox(player);
       if (!current.scribeChamberTabletInspected && rectsOverlap(playerBody, SCRIBE_CHAMBER_TABLET_REGION)) {
         current.scribeChamberTabletInspected = true;
-        current.notice = 'A translation tablet. Some symbols are damaged, but enough remains to help me.';
+        current.notice = 'A translation tablet. Name, witness, and record signs repeat around the scratched wall.';
         current.cinematicEvent = {
           id: 'scribe-chamber-tablet',
           name: 'Translation Tablet',
-          message: 'Sun = light, Water = river, Ankh = life, Door = passage.',
+          message: 'Name = identity. Witness = record. Queen = protector. Door = passage.',
           temporary: true,
         };
         current.cinematicTimer = 3;
@@ -2157,12 +2165,12 @@ export function useJourneySimulation({
       if (rectsOverlap(playerBody, SCRIBE_CHAMBER_WALL_REGION) && !current.scribeChamberPuzzleSolved && !current.activeGuardianChallenge) {
         if (!current.scribeChamberTabletInspected) {
           if ((current.itemPurposeNoticeTimer || 0) <= 0) {
-            current.notice = 'These are not random pictures. They are writing. I need a translation clue first.';
+            current.notice = 'The wall is not decoration. A name has been scratched away, but I need the translation tablet first.';
             current.itemPurposeNoticeTimer = 1.6;
           }
         } else {
           current.scribeChamberWallInspected = true;
-          current.notice = 'These are not random pictures. They are writing. If I can read the pattern, I can open the door.';
+          current.notice = 'This record keeps disagreeing with the warning. If I read the name-line correctly, the door may answer.';
           current.activeGuardianChallenge = {
             ...SCRIBE_CHAMBER_PUZZLE,
             questions: SCRIBE_CHAMBER_PUZZLE.questions.map(question => ({ ...question })),
@@ -4268,7 +4276,7 @@ export function useJourneySimulation({
     current.cameraMode = camera.mode;
     current.cameraFocusTarget = camera.focusTarget;
     if (!Number.isFinite(current.cameraX)) current.cameraX = camera.targetCameraX;
-    const smoothing = camera.mode === 'opening-reveal' || camera.mode === 'opening-threshold'
+    const smoothing = camera.mode === 'opening-reveal' || camera.mode === 'opening-entrance-stage' || camera.mode === 'opening-threshold'
       ? 0.18
       : camera.mode === 'boss-intro'
         ? JOURNEY_CAMERA.bossIntroSmoothing
@@ -4277,8 +4285,8 @@ export function useJourneySimulation({
         : JOURNEY_CAMERA.followSmoothing;
     const cameraStep = clamp(
       (current.targetCameraX - current.cameraX) * smoothing,
-      camera.mode === 'opening-reveal' || camera.mode === 'opening-threshold' || camera.mode === 'stage-entrance' ? -42 : -JOURNEY_CAMERA.maxStep,
-      camera.mode === 'opening-reveal' || camera.mode === 'opening-threshold' || camera.mode === 'stage-entrance' ? 42 : JOURNEY_CAMERA.maxStep,
+      camera.mode === 'opening-reveal' || camera.mode === 'opening-entrance-stage' || camera.mode === 'opening-threshold' || camera.mode === 'stage-entrance' ? -42 : -JOURNEY_CAMERA.maxStep,
+      camera.mode === 'opening-reveal' || camera.mode === 'opening-entrance-stage' || camera.mode === 'opening-threshold' || camera.mode === 'stage-entrance' ? 42 : JOURNEY_CAMERA.maxStep,
     );
     current.cameraX = clampCameraX(current.cameraX + cameraStep);
 
@@ -4290,7 +4298,7 @@ export function useJourneySimulation({
       if (current.resources.time <= 0) triggerJourneyRescue('Time expired. Field team rescued.');
     }
 
-  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isEgyptJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startOpeningCinematic, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, resolveChamberEntryTrigger, resolveChamberReturnPoint, syncHud, updateArrivalThresholdTrial]);
+  }, [briefingOpen, audioControls, onComplete, triggerJourneyRescue, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isEgyptJourney, scopedJourneyAssetPacks.isRomeJourney, targetCivilisation, buildBossRewardMoment, completeOpeningThresholdScene, enterLevelFromThreshold, startOpeningCinematic, startLevelThresholdEncounter, startTempleThresholdTransition, getActiveHiddenRoutes, getActiveSecretCollectibles, getActiveShardGateProgress, getAttackBox, getAttackHurtbox, getPlayerAttackNearMissTarget, getBossPhaseConfig, getBossVulnerabilityState, getDoorwayGateStatus, getEnemyPatternConfig, getObjectiveProgress, getGateGuidance, getRenderableCheckpoints, getRenderableHazards, getRenderablePlatforms, getRenderableTrapPlatforms, getLiveScorpionNestBlockers, getRouteAccessState, getRouteGateDoorwayEntries, isRouteRewardAccessible, isLowStamina, addCombatEffect, applyCombatHitImpact, applyOpeningEntranceStage, recordEnvironmentInteraction, getPlayerAttackState, getSectionDisplayName, getSectionDisplayTitle, resolveChamberEntryTrigger, resolveChamberReturnPoint, syncHud, updateArrivalThresholdTrial]);
 
   return { update };
 }

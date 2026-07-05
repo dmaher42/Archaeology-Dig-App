@@ -1910,6 +1910,8 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
           || event.detail?.target === 'journey-desert-map-seal-ready'
           || event.detail?.target === 'journey-route-gate'
           || event.detail?.target === 'journey-forgotten-mural-puzzle'
+          || event.detail?.target === 'journey-scribe-exterior'
+          || event.detail?.target === 'journey-scribe-chamber'
         )
         && (expeditionStage !== 'journey' || baseCampOpen)
       ) {
@@ -1948,7 +1950,7 @@ export function ExpeditionMode({ onBackToMenu, audioControls = {}, onSendToLab }
     const timer = window.setTimeout(() => {
       const playTarget = new URLSearchParams(window.location.search).get('play');
       setPrologueCinematicStep(null);
-      setJourneyOpeningMode(playTarget === 'exterior' ? 'standard' : 'arrival-threshold');
+      setJourneyOpeningMode(playTarget === 'threshold' ? 'arrival-threshold' : 'standard');
       setExpeditionStage('journey');
       setBriefingOpen(false);
     }, 0);

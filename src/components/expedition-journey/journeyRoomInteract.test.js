@@ -135,16 +135,48 @@ test('chamber entry trigger resolves to the physical doorway platform within its
       entryPlatformId: 'scribe-chamber-doorway-threshold',
       trigger: { minX: 100, maxX: 180, maxY: 600, footY: 520, footTolerance: 8 },
     },
-    route: { id: 'scribe-locked-chamber-route', x: 10650, y: 297, width: 540, height: 104 },
-    platform: { id: 'scribe-chamber-doorway-threshold', x: 10871, y: 297, width: 180, height: 18 },
+    route: { id: 'scribe-locked-chamber-route', x: 13434, y: 505, width: 230, height: 112 },
+    platform: { id: 'scribe-chamber-doorway-threshold', x: 13444, y: 595, width: 170, height: 18 },
   });
 
-  assert.equal(trigger.minX, 10847);
-  assert.equal(trigger.maxX, 11075);
-  assert.equal(trigger.footY, 297);
+  assert.equal(trigger.minX, 13434);
+  assert.equal(trigger.maxX, 13638);
+  assert.equal(trigger.footY, 595);
   assert.equal(trigger.footTolerance, 24);
   assert.equal(trigger.routeId, 'scribe-locked-chamber-route');
   assert.equal(trigger.entryPlatformId, 'scribe-chamber-doorway-threshold');
+});
+
+test('chamber entry trigger can preserve an authored tight doorway apron', () => {
+  const door = {
+    routeId: 'scribe-locked-chamber-route',
+    entryPlatformId: 'scribe-chamber-doorway-threshold',
+    preserveTriggerBounds: true,
+    useReturnFallbackPosition: true,
+    trigger: { minX: 13482, maxX: 13578, maxY: 605, footY: 595, footTolerance: 34 },
+    returnFallback: { x: 13466, y: 595, direction: 1, cameraAnchorRatio: 0.42 },
+  };
+  const route = { id: 'scribe-locked-chamber-route', x: 13434, y: 505, width: 230, height: 112 };
+  const platform = { id: 'scribe-chamber-doorway-threshold', x: 13444, y: 595, width: 170, height: 18 };
+
+  const trigger = resolveJourneyChamberEntryTrigger({ door, route, platform });
+  assert.equal(trigger.minX, 13482);
+  assert.equal(trigger.maxX, 13578);
+  assert.equal(trigger.footY, 595);
+  assert.equal(trigger.footTolerance, 34);
+
+  const returnPoint = resolveJourneyChamberReturnPoint({
+    door,
+    route,
+    platform,
+    exteriorSceneId: JOURNEY_EXTERIOR_SCENE_ID,
+    direction: 1,
+    canvasWidth: 1120,
+    worldWidth: 66591,
+  });
+  assert.equal(returnPoint.x, 13466);
+  assert.equal(returnPoint.y, 595);
+  assert.equal(returnPoint.cameraX, 12995.6);
 });
 
 test('chamber return point centers Asha on the resolved exterior doorway', () => {

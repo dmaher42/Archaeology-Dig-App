@@ -155,6 +155,18 @@ export function DevTools({
       >
         Mural Slide Puzzle
       </button>
+      <button
+        className="dev-tools-subbutton"
+        onClick={() => jumpToExpeditionStage('journey-scribe-exterior')}
+      >
+        Scribe Exterior
+      </button>
+      <button
+        className="dev-tools-subbutton"
+        onClick={() => jumpToExpeditionStage('journey-scribe-chamber')}
+      >
+        Scribe Chamber
+      </button>
       <div className="dev-tools-section-label">Journey Bosses</div>
       <button
         className="dev-tools-subbutton"

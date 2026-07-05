@@ -116,6 +116,7 @@ import {
   OPENING_CINEMATIC_ENABLED,
   OPENING_CINEMATIC_SPELL_IMPACT_AT,
   OPENING_CINEMATIC_VOICE_ENABLED,
+  OPENING_ENTRANCE_STAGE,
   OPENING_SPHINX_ARRIVAL_SECONDS,
   OPENING_SPHINX_DURATION,
   OPENING_SPHINX_EXIT_SECONDS,
@@ -123,6 +124,7 @@ import {
   OPENING_THRESHOLD_FADE_SECONDS,
   OPENING_THRESHOLD_SCENE_DURATION,
   OPENING_THRESHOLD_STAIR_REVEAL_SECONDS,
+  createOpeningEntranceStageEvent,
   getOpeningCinematicLine,
   getOpeningCinematicLines,
   getOpeningThresholdDialogueLine,
@@ -4327,6 +4329,31 @@ export default function ExpeditionJourney({
     stateRef,
   });
 
+  const applyOpeningEntranceStage = useCallback((current, { playAudio = true } = {}) => {
+    if (!current || !scopedJourneyAssetPacks.isEgyptJourney) return false;
+    current.openingEntranceStageTimer = OPENING_ENTRANCE_STAGE.duration;
+    current.openingCameraRevealMode = 'entrance-stage';
+    current.openingCameraRevealDuration = OPENING_ENTRANCE_STAGE.cameraDuration;
+    current.openingCameraRevealTimer = Math.max(
+      current.openingCameraRevealTimer || 0,
+      OPENING_ENTRANCE_STAGE.cameraDuration,
+    );
+    current.cinematicEvent = createOpeningEntranceStageEvent();
+    current.cinematicTimer = OPENING_ENTRANCE_STAGE.duration;
+    current.notice = OPENING_ENTRANCE_STAGE.notice;
+    current.itemPurposeNoticeTimer = Math.max(
+      current.itemPurposeNoticeTimer || 0,
+      OPENING_ENTRANCE_STAGE.noticeDuration,
+    );
+    current.cameraShakeTimer = Math.max(current.cameraShakeTimer, 0.18);
+    current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.1);
+    if (playAudio) {
+      audioControls?.playExpeditionSfx?.('voidBassSwell', { volume: 0.44 });
+      audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.54 });
+    }
+    return true;
+  }, [audioControls, scopedJourneyAssetPacks.isEgyptJourney]);
+
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;
     const isRomeCinematic = scopedJourneyAssetPacks.isRomeJourney;
@@ -4349,21 +4376,23 @@ export default function ExpeditionJourney({
       current.sectionTransitionTimer = 0;
       current.environmentEvent = null;
       current.environmentEventTimer = 0;
-      current.cinematicEvent = {
-        id: 'opening-confrontation-replay-skipped',
-        name: 'Asha',
-        message: openingArrivalNotice,
-        temporary: true,
-      };
-      current.cinematicTimer = 3.0;
-      current.notice = openingArrivalNotice;
       current.player.x = DESERT_ENTRY_EXTERIOR_SPAWN_X;
       current.player.y = GROUND_Y - current.player.height;
       current.player.vx = 0;
       current.player.vy = 0;
       current.cameraX = 0;
       current.targetCameraX = 0;
-      current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+      if (!applyOpeningEntranceStage(current)) {
+        current.cinematicEvent = {
+          id: 'opening-confrontation-replay-skipped',
+          name: 'Asha',
+          message: openingArrivalNotice,
+          temporary: true,
+        };
+        current.cinematicTimer = 3.0;
+        current.notice = openingArrivalNotice;
+        current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+      }
       setBriefingOpen(false);
       syncHud();
       return;
@@ -4425,7 +4454,7 @@ export default function ExpeditionJourney({
     current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.18);
     setBriefingOpen(false);
     syncHud();
-  }, [audioControls, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, syncHud, targetCivilisation]);
+  }, [applyOpeningEntranceStage, audioControls, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, syncHud, targetCivilisation]);
 
   const completeOpeningThresholdScene = useCallback((current) => {
     const openingCheckpoint = getRenderableCheckpoints().find(checkpoint => checkpoint.id === 'desert-entry');
@@ -4481,7 +4510,7 @@ export default function ExpeditionJourney({
     const playTarget = typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search).get('play')
       : null;
-    const startAtArrivalThreshold = openingStartMode === 'arrival-threshold' && playTarget !== 'exterior';
+    const startAtArrivalThreshold = openingStartMode === 'arrival-threshold' && playTarget === 'threshold';
     if (startAtArrivalThreshold) {
       current.openingConfrontationSeen = false;
       completeOpeningThresholdScene(current);
@@ -4493,10 +4522,12 @@ export default function ExpeditionJourney({
     current.openingConfrontationSeen = true;
     current.player.vx = 0;
     current.player.vy = 0;
-    current.notice = SCARAB_SEAL_TRIGGER.objectiveEchoLine;
+    if (!applyOpeningEntranceStage(current, { playAudio: true })) {
+      current.notice = SCARAB_SEAL_TRIGGER.objectiveEchoLine;
+    }
     setBriefingOpen(false);
     syncHud();
-  }, [audioControls, completeOpeningThresholdScene, openingAtmosphereSfxKey, openingStartMode, syncHud]);
+  }, [applyOpeningEntranceStage, audioControls, completeOpeningThresholdScene, openingAtmosphereSfxKey, openingStartMode, syncHud]);
 
   // Dev-only quick start (paired with the `?play` flag in App.jsx / ExpeditionMode):
   // once the journey mounts, skip its briefing + opening cinematic so a cold
@@ -4506,8 +4537,9 @@ export default function ExpeditionJourney({
     if (!import.meta.env.DEV || typeof window === 'undefined') return undefined;
     if (quickStartConsumedRef.current) return undefined;
     if (!new URLSearchParams(window.location.search).has('play')) return undefined;
-    quickStartConsumedRef.current = true;
     const timer = window.setTimeout(() => {
+      if (quickStartConsumedRef.current) return;
+      quickStartConsumedRef.current = true;
       startJourneyWithoutOpeningScene();
     }, 0);
     return () => window.clearTimeout(timer);
@@ -4519,18 +4551,20 @@ export default function ExpeditionJourney({
     const openingArrivalNotice = getOpeningArrivalNoticeForCinematicId(current.openingCinematic.id);
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
     current.openingCinematic = null;
-    current.notice = openingArrivalNotice;
-    current.cinematicEvent = {
-      id: 'opening-arrival-aftershock',
-      name: 'Asha',
-      message: openingArrivalNotice,
-      temporary: true,
-    };
-    current.cinematicTimer = 3.4;
-    audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.54 });
-    current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+    if (!applyOpeningEntranceStage(current)) {
+      current.notice = openingArrivalNotice;
+      current.cinematicEvent = {
+        id: 'opening-arrival-aftershock',
+        name: 'Asha',
+        message: openingArrivalNotice,
+        temporary: true,
+      };
+      current.cinematicTimer = 3.4;
+      audioControls?.playExpeditionSfx?.('lostSiteAirShift', { volume: 0.54 });
+      current.openingCameraRevealTimer = Math.max(current.openingCameraRevealTimer, OPENING_CAMERA_REVEAL_DURATION);
+    }
     syncHud();
-  }, [audioControls, syncHud]);
+  }, [applyOpeningEntranceStage, audioControls, syncHud]);
 
   const queueAttack = useCallback((attackType = PLAYER_ATTACK_TYPES.LIGHT) => {
     const current = stateRef.current;
@@ -4792,6 +4826,7 @@ export default function ExpeditionJourney({
     TEMPLE_THRESHOLD_HALL_SEAL_TRIGGER,
     TEMPLE_THRESHOLD_SWITCH_SECONDS,
     addCombatEffect,
+    applyOpeningEntranceStage,
     applyCombatHitImpact,
     audioControls,
     briefingOpen,
@@ -5337,6 +5372,9 @@ export default function ExpeditionJourney({
           current.cinematicEvent = null;
           current.cinematicTimer = 0;
           current.activeGuardianChallenge = null;
+          current.arrivalThresholdActive = false;
+          current.arrivalThresholdExitTransition = null;
+          current.arrivalThresholdTrial = null;
           current.sceneTransition = null;
           current.forgottenMuralChamberTransition = null;
           current.currentSceneId = JOURNEY_SCENE_IDS.MUMMIFICATION_CHAMBER;
@@ -5371,6 +5409,9 @@ export default function ExpeditionJourney({
           current.cinematicEvent = null;
           current.cinematicTimer = 0;
           current.activeGuardianChallenge = null;
+          current.arrivalThresholdActive = false;
+          current.arrivalThresholdExitTransition = null;
+          current.arrivalThresholdTrial = null;
           current.sceneTransition = null;
           current.forgottenMuralChamberTransition = null;
           current.currentSceneId = JOURNEY_SCENE_IDS.TEMPLE_THRESHOLD_HALL;
@@ -5388,6 +5429,85 @@ export default function ExpeditionJourney({
           current.targetCameraX = TEMPLE_THRESHOLD_HALL_CAMERA_X;
           current.notice = 'Developer mode: Temple Threshold Hall.';
           current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+          step(0);
+          syncHud();
+          return;
+        }
+        if (target === 'journey-scribe-exterior') {
+          const current = stateRef.current;
+          current.openingThresholdScene = null;
+          current.openingSphinxEncounter = null;
+          current.openingSphinxTimer = 0;
+          current.bossIntro = null;
+          current.bossIntroTimer = 0;
+          current.bossIntroPauseTimer = 0;
+          current.bossDomain = null;
+          current.cinematicEvent = null;
+          current.cinematicTimer = 0;
+          current.activeGuardianChallenge = null;
+          current.arrivalThresholdActive = false;
+          current.arrivalThresholdExitTransition = null;
+          current.arrivalThresholdTrial = null;
+          current.sceneTransition = null;
+          current.forgottenMuralChamberTransition = null;
+          current.templeThresholdHallActive = false;
+          current.mummificationChamberActive = false;
+          current.forgottenMuralChamberActive = false;
+          current.scribeChamberActive = false;
+          current.currentSceneId = JOURNEY_SCENE_IDS.EXTERIOR;
+          current.currentSectionId = 'desert-entry';
+          current.lastSectionId = 'desert-entry';
+          current.hiddenRoomsFound?.add('scribe-locked-chamber');
+          current.discoveredHiddenRouteIds?.add('scribe-locked-chamber-route');
+          current.player.x = SCRIBE_CHAMBER_RETURN_FALLBACK.x - current.player.width / 2;
+          current.player.y = SCRIBE_CHAMBER_RETURN_FALLBACK.y - current.player.height;
+          current.player.vx = 0;
+          current.player.vy = 0;
+          current.player.onGround = true;
+          current.player.direction = SCRIBE_CHAMBER_RETURN_FALLBACK.direction;
+          current.cameraX = clampCameraX(
+            SCRIBE_CHAMBER_RETURN_FALLBACK.x - CANVAS_WIDTH * (SCRIBE_CHAMBER_RETURN_FALLBACK.cameraAnchorRatio ?? 0.42),
+          );
+          current.targetCameraX = current.cameraX;
+          current.notice = 'Developer mode: Scribe exterior.';
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+          keysRef.current = {};
+          step(0);
+          syncHud();
+          return;
+        }
+        if (target === 'journey-scribe-chamber') {
+          const current = stateRef.current;
+          current.openingThresholdScene = null;
+          current.openingSphinxEncounter = null;
+          current.openingSphinxTimer = 0;
+          current.bossIntro = null;
+          current.bossIntroTimer = 0;
+          current.bossIntroPauseTimer = 0;
+          current.bossDomain = null;
+          current.cinematicEvent = null;
+          current.cinematicTimer = 0;
+          current.activeGuardianChallenge = null;
+          current.sceneTransition = null;
+          current.forgottenMuralChamberTransition = null;
+          current.currentSceneId = JOURNEY_SCENE_IDS.SCRIBE_LOCKED_CHAMBER;
+          current.scribeChamberEntered = true;
+          current.scribeChamberActive = true;
+          current.scribeChamberDoorSealed = true;
+          current.scribeChamberExitUnlocked = Boolean(current.scribeChamberPuzzleSolved);
+          current.hiddenRoomsFound?.add('scribe-locked-chamber');
+          current.discoveredHiddenRouteIds?.add('scribe-locked-chamber-route');
+          current.player.x = SCRIBE_CHAMBER_ENTRY_SPAWN.x - current.player.width / 2;
+          current.player.y = SCRIBE_CHAMBER_ENTRY_SPAWN.y - current.player.height;
+          current.player.vx = 0;
+          current.player.vy = 0;
+          current.player.onGround = true;
+          current.player.direction = SCRIBE_CHAMBER_ENTRY_SPAWN.direction;
+          current.cameraX = SCRIBE_CHAMBER_CAMERA_X;
+          current.targetCameraX = SCRIBE_CHAMBER_CAMERA_X;
+          current.notice = 'Developer mode: Scribe Chamber.';
+          current.itemPurposeNoticeTimer = Math.max(current.itemPurposeNoticeTimer || 0, 2.0);
+          keysRef.current = {};
           step(0);
           syncHud();
           return;
@@ -5769,7 +5889,7 @@ export default function ExpeditionJourney({
                 {[
                   { id: 'mummification-chamber-exterior-structure', label: 'Mummif. (hidden)' },
                   { id: 'forgotten-mural-climb-structure', label: 'Mural' },
-                  { id: 'scribe-chamber-doorway-structure', label: 'Scribe' },
+                  { id: 'scribe-chamber-doorway-structure', label: 'Scribe Exterior' },
                 ].map(({ id, label }) => {
                   const buildingProp = STORY_PROPS.find((prop) => prop.id === id);
                   if (!buildingProp) return null;

@@ -31,10 +31,11 @@ import {
   makeEnemy,
   snapJourneyPropCoordinate,
 } from './journeyUtils.js';
-import { CHINA_ENEMIES, ENEMIES, HIDDEN_ROUTES, RELIC_SHARDS, STORY_PROPS } from './journeyLevelData.js';
+import { CHECKPOINTS, CHINA_ENEMIES, ENEMIES, HIDDEN_ROUTES, RELIC_SHARDS, STORY_PROPS } from './journeyLevelData.js';
 import { getJourneyMiniBosses } from './journeyDataRouter.js';
 import { ROME_SECTION_OBJECTIVES } from './romeJourneyData.js';
 import {
+  CANVAS_WIDTH,
   COMBAT_DAMAGE_SCALE,
   DESERT_ENTRY_EXTERIOR_SPAWN_X,
   GROUND_Y,
@@ -60,6 +61,8 @@ const journeyUtilsSource = readFileSync(new URL('./journeyUtils.js', import.meta
 const journeyConstantsSource = readFileSync(new URL('./journeyConstants.js', import.meta.url), 'utf8');
 const journeyCombatSource = readFileSync(new URL('./journeyCombat.js', import.meta.url), 'utf8');
 const journeyOpeningScenesSource = readFileSync(new URL('./journeyOpeningScenes.js', import.meta.url), 'utf8');
+const journeyChamberTriggersSource = readFileSync(new URL('./journeyChamberTriggers.js', import.meta.url), 'utf8');
+const journeySacredRoomsSource = readFileSync(new URL('./journeySacredRooms.js', import.meta.url), 'utf8');
 const journeyDataRouterSource = readFileSync(new URL('./journeyDataRouter.js', import.meta.url), 'utf8');
 const journeyEnemySpritesSource = readFileSync(new URL('./journeyEnemySprites.js', import.meta.url), 'utf8');
 const journeyBossSpritesSource = readFileSync(new URL('./journeyBossSprites.js', import.meta.url), 'utf8');
@@ -252,7 +255,7 @@ const forgottenMuralChamberPath = new URL('../../../public/assets/expedition/env
 const forgottenMuralHiddenRevealPath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-hidden-memory-reveal-2026-06-01.png', import.meta.url);
 const mummificationChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-exterior-ledged-building-2026-06-12.png', import.meta.url);
 const mummificationChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-interior-side-scroll-2026-05-31.png', import.meta.url);
-const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-exterior-climb-structure-v3.png', import.meta.url);
+const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-house-of-life-per-ankh-2026-07-05.png', import.meta.url);
 const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-interior-2026-06-01.png', import.meta.url);
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
@@ -1254,7 +1257,7 @@ test('journey editor prop palette exposes premium modular floor kit inserts', ()
 });
 
 test('desert entry ground collision uses the integrated painted route instead of a separate strip', () => {
-  assert.equal(DESERT_ENTRY_EXTERIOR_SPAWN_X, 128);
+  assert.equal(DESERT_ENTRY_EXTERIOR_SPAWN_X, SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 600);
   assert.match(journeyUtilsSource, /x:\s*DESERT_ENTRY_EXTERIOR_SPAWN_X/);
   assert.match(journeyComponentSource, /current\.player\.x = DESERT_ENTRY_EXTERIOR_SPAWN_X/);
   assert.doesNotMatch(journeyComponentSource, /current\.player\.x = 44/);
@@ -1859,31 +1862,21 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(scribeRoute, /civilisation:\s*'Ancient Egypt'/);
   assert.match(scribeRoute, /sectionId:\s*'desert-entry'/);
   assert.match(scribeRoute, /optional:\s*true/);
-  assert.match(scribeRoute, /x:\s*SACRED_SCRIBE_APPROACH_X\(1684\)/);
-  assert.match(scribeRoute, /y:\s*JY\(62\)/);
-  assert.match(scribeRoute, /rewardHint:\s*'A raised scribe doorway glows above the ruined stairs\.'/);
+  assert.match(scribeRoute, /x:\s*SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 90/);
+  assert.match(scribeRoute, /y:\s*GROUND_Y - 90/);
+  assert.match(scribeRoute, /rewardHint:\s*'A sealed scribe doorway waits inside the fallen archive\.'/);
   assert.match(scribeRoute, /gateType:\s*'sealed scribe doorway'/);
-  assert.match(scribeRoute, /rewardSummary:\s*'Hieroglyphic translation puzzle and protected knowledge clue'/);
+  assert.match(scribeRoute, /rewardSummary:\s*'Decoded name-record, Queen contradiction clue, and protected knowledge path'/);
   assert.match(chamberFloor, /sceneId:\s*'scribe-locked-chamber'/);
   assert.match(storyProps, /id:\s*'scribe-chamber-doorway-structure'[\s\S]*?type:\s*'generated-scribe-chamber-doorway'[\s\S]*?depth:\s*'route-edge'/);
   assert.match(scribeDoorway, /sectionId:\s*'desert-entry'/);
-  assert.match(scribeDoorway, /x:\s*SACRED_SCRIBE_APPROACH_X\(1685\)/);
-  assert.match(scribeDoorway, /y:\s*JY\(-259\)/);
+  assert.match(scribeDoorway, /x:\s*SCRIBE_CHAMBER_EXTERIOR_STRUCTURE_X/);
+  assert.match(scribeDoorway, /y:\s*JY\(-245\)/);
   assert.match(scribeDoorway, /width:\s*1120/);
   assert.match(scribeDoorway, /height:\s*620/);
-  [
-    ['scribe-chamber-collapsed-stair-slab', '1642', '238', '120'],
-    ['scribe-chamber-middle-rubble-landing', '1668', '198', '235'],
-    ['scribe-chamber-upper-carved-landing', '1678', '122', '210'],
-    ['scribe-chamber-doorway-threshold', '1684', '62', '180'],
-  ].forEach(([platformId, authoredX, authoredY, width]) => {
-    const platform = getDataRowById(platforms, platformId);
-    assert.match(platform, new RegExp(`x:\\s*SACRED_SCRIBE_APPROACH_X\\(${authoredX}\\)`));
-    assert.match(platform, new RegExp(`y:\\s*JY\\(${authoredY}\\)`));
-    assert.match(platform, new RegExp(`width:\\s*${width}`));
-    assert.match(platform, /invisible:\s*true/);
-  });
-  assert.match(platforms, /id:\s*'scribe-chamber-buried-lower-block'[\s\S]*?x:\s*SACRED_SCRIBE_APPROACH_X\(1597\)[\s\S]*?y:\s*JY\(284\)[\s\S]*?width:\s*95/);
+  assert.match(scribeDoorway, /assetDoorwayXRatio:\s*0\.35/);
+  assert.match(scribeDoorway, /visualGroundY:\s*GROUND_Y/);
+  assert.match(platforms, /id:\s*'scribe-chamber-doorway-threshold'[\s\S]*?x:\s*SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 80[\s\S]*?y:\s*GROUND_Y[\s\S]*?width:\s*170/);
   assert.ok(hiddenRoutes.indexOf("id: 'desert-upper-survey-route'") < hiddenRoutes.indexOf("id: 'scribe-locked-chamber-route'"));
   assert.ok(hiddenRoutes.indexOf("id: 'scribe-locked-chamber-route'") < hiddenRoutes.indexOf("id: 'temple-cracked-wall-passage'"));
   assert.match(journeyUtilsSource, /scribeChamberEntered:\s*false/);
@@ -1895,8 +1888,10 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(journeyComponentSource, /SCRIBE_LOCKED_CHAMBER:\s*'scribe-locked-chamber'/);
   assert.ok(existsSync(scribeChamberExteriorPath), 'Scribe Chamber exterior production PNG should exist');
   assert.ok(existsSync(scribeChamberInteriorPath), 'Scribe Chamber interior replacement PNG should exist');
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/scribe-locked-chamber-exterior-climb-structure-v3\.png'/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-exterior-v3-2026-06-05'/);
+  assert.match(journeyConstantsSource, /export const SCRIBE_CHAMBER_EXTERIOR_DOORWAY_BASE_X = 1600/);
+  assert.match(journeyConstantsSource, /export const SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X = sacredScribeExteriorX\(SCRIBE_CHAMBER_EXTERIOR_DOORWAY_BASE_X\)/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/scribe-locked-chamber-house-of-life-per-ankh-2026-07-05\.png'/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-house-of-life-per-ankh-2026-07-05'/);
   assert.match(journeyComponentSource, /SCRIBE_CHAMBER_INTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/scribe-locked-chamber-interior-2026-06-01\.png'/);
   assert.match(journeyComponentSource, /SCRIBE_CHAMBER_INTERIOR_VERSION = 'imagegen-scribe-locked-chamber-interior-2026-06-01'/);
   assert.match(journeyComponentSource, /scribeChamberExteriorRef/);
@@ -1907,20 +1902,37 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(journeyComponentSource, /drawScribeChamberDoorwayStructure/);
   assert.match(journeyComponentSource, /scribeChamberExteriorLoaded:\s*scribeChamberExteriorRef\.current\.loaded/);
   assert.match(journeyComponentSource, /scribeChamberGroundBlendAssetKeys/);
+  assert.match(journeyConstantsSource, /export const SCRIBE_CHAMBER_EXTERIOR_APPROACH_X = SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 58/);
   assert.match(journeyComponentSource, /'edgePebbleScatter'/);
   assert.match(journeyComponentSource, /'rubbleClusterSmall'/);
   assert.match(journeyComponentSource, /'rubbleClusterLarge'/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-scribe-chamber-doorway'/);
   assert.match(journeyComponentSource, /drawScribeLockedChamberInterior/);
   assert.match(journeyComponentSource, /Scribe Chamber Decoding/);
-  assert.match(journeyComponentSource, /Sun \+ Water \+ Ankh \+ Door/);
-  assert.match(journeyComponentSource, /Follow the light, cross the river, protect life, and the door will open\./);
-  assert.match(journeyComponentSource, /That does not match the message\. I need to look again\./);
-  assert.match(journeyComponentSource, /Knowledge was the key\./);
+  assert.match(journeyComponentSource, /Use the translation tablet to read the scratched name-line, then choose what the record proves\./);
+  assert.match(journeyComponentSource, /Scratched Name \+ Witness Line \+ Queen Record/);
+  assert.match(journeyComponentSource, /The Queen protected memory anchors so names would not be lost\./);
+  assert.match(journeyComponentSource, /The Queen hid treasure and ordered the scribes to lie\./);
+  assert.match(journeyComponentSource, /The decoded record names a protector, not a thief\./);
+  assert.match(journeyComponentSource, /That repeats the false story\. The scratched name-line says more\./);
+  assert.match(journeyComponentSource, /The name is remembered\. The door opens\./);
+  assert.doesNotMatch(journeyComponentSource, /Take the treasure before the river rises\./);
   assert.match(journeyComponentSource, /scribeChamberExitUnlocked/);
   assert.match(journeyComponentSource, /activeGuardianChallenge\.type === 'scribe-chamber-puzzle'/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*SACRED_SCRIBE_APPROACH_X\(1684\)[\s\S]*?y:\s*openingJourneyY\(122\)/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*SACRED_SCRIBE_APPROACH_X\(1684\)[\s\S]*?maxX:\s*SACRED_SCRIBE_APPROACH_X\(1714\)[\s\S]*?footY:\s*openingJourneyY\(62\)/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*SCRIBE_CHAMBER_EXTERIOR_APPROACH_X[\s\S]*?y:\s*GROUND_Y/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_ENTRY_TRIGGER = \{[\s\S]*?minX:\s*SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 42[\s\S]*?maxX:\s*SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X \+ 54[\s\S]*?footY:\s*GROUND_Y/);
+  assert.match(journeySacredRoomsSource, /id:\s*'scribe-chamber-entry-door'[\s\S]*?preserveTriggerBounds:\s*true[\s\S]*?useReturnFallbackPosition:\s*true/);
+  assert.match(journeyUtilsSource, /door\?\.preserveTriggerBounds/);
+  assert.match(journeyUtilsSource, /door\?\.useReturnFallbackPosition/);
+  assert.match(devToolsSource, /jumpToExpeditionStage\('journey-scribe-chamber'\)/);
+  assert.match(devToolsSource, /jumpToExpeditionStage\('journey-scribe-exterior'\)/);
+  assert.match(expeditionModeSource, /event\.detail\?\.target === 'journey-scribe-chamber'/);
+  assert.match(expeditionModeSource, /event\.detail\?\.target === 'journey-scribe-exterior'/);
+  assert.match(journeyComponentSource, /target === 'journey-scribe-chamber'/);
+  assert.match(journeyComponentSource, /target === 'journey-scribe-exterior'/);
+  assert.match(journeyComponentSource, /current\.currentSceneId = JOURNEY_SCENE_IDS\.EXTERIOR/);
+  assert.match(journeyComponentSource, /current\.notice = 'Developer mode: Scribe exterior\.'/);
+  assert.match(journeyComponentSource, /current\.currentSceneId = JOURNEY_SCENE_IDS\.SCRIBE_LOCKED_CHAMBER/);
   assert.match(journeyComponentSource, /scarabQueenRequiresScribe/);
   assert.match(journeyComponentSource, /!current\.scribeChamberPuzzleSolved/);
   assert.doesNotMatch(journeyComponentSource, /createScribeEscapeRoomMode|ScribeEscapeRoom\.jsx/);
@@ -1955,7 +1967,7 @@ test('Egypt chamber exteriors have a ten-second walking rhythm before the Queen'
   assert.match(sections, /id:\s*'ruined-temple'[\s\S]*?start:\s*X\(2360\)/);
   assert.match(hiddenRoutes, /id:\s*'mummification-chamber-route'[\s\S]*?x:\s*X\(520\)/);
   assert.match(hiddenRoutes, /id:\s*'desert-upper-survey-route'[\s\S]*?x:\s*SACRED_MURAL_APPROACH_X\(1125\)/);
-  assert.match(hiddenRoutes, /id:\s*'scribe-locked-chamber-route'[\s\S]*?x:\s*SACRED_SCRIBE_APPROACH_X\(1684\)/);
+  assert.match(hiddenRoutes, /id:\s*'scribe-locked-chamber-route'[\s\S]*?x:\s*SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 90/);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?x:\s*X\(2150\)[\s\S]*?arenaStart:\s*X\(2020\)[\s\S]*?arenaEnd:\s*X\(2235\)/);
   assert.match(routeGates, /id:\s*'desert-seal'[\s\S]*?x:\s*X\(2285\)/);
 });
@@ -1971,7 +1983,7 @@ test('Egypt chamber interiors stay separate and exit back to their exterior artw
   );
   assert.match(
     journeyComponentSource,
-    /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*SACRED_SCRIBE_APPROACH_X\(1684\)[\s\S]*?y:\s*openingJourneyY\(122\)[\s\S]*?direction:\s*1/,
+    /SCRIBE_CHAMBER_RETURN_FALLBACK = \{[\s\S]*?x:\s*SCRIBE_CHAMBER_EXTERIOR_APPROACH_X[\s\S]*?y:\s*GROUND_Y[\s\S]*?direction:\s*1/,
   );
 });
 
@@ -2663,6 +2675,38 @@ test('Bes uses a dedicated guardian sprite pack through the existing mini-boss s
   });
 });
 
+test('Egypt Journey opening stages a dramatic entrance before the first checkpoint', () => {
+  const openingCheckpoint = CHECKPOINTS.find(checkpoint => checkpoint.id === 'desert-entry');
+  assert.ok(openingCheckpoint, 'Desert Entry should keep a first checkpoint for retry safety');
+  assert.ok(
+    openingCheckpoint.markerX > CANVAS_WIDTH,
+    'the first checkpoint marker should sit just beyond the initial camera frame, not dominate the opening shot',
+  );
+  assert.ok(
+    DESERT_ENTRY_EXTERIOR_SPAWN_X < openingCheckpoint.x,
+    'Asha should still begin before the first checkpoint trigger area',
+  );
+  assert.match(journeyOpeningScenesSource, /export const OPENING_ENTRANCE_STAGE = Object\.freeze\(\{/);
+  assert.match(journeyOpeningScenesSource, /The lost site lies ahead/);
+  assert.match(journeyOpeningScenesSource, /field tools/);
+  assert.match(journeyOpeningScenesSource, /relic fragments/);
+  assert.match(journeyOpeningScenesSource, /guardians/);
+  assert.match(journeyOpeningScenesSource, /excavation site/);
+  assert.match(journeyUtilsSource, /openingEntranceStageTimer:\s*0/);
+  assert.match(journeyUtilsSource, /openingCameraRevealMode:\s*null/);
+  assert.match(journeyComponentSource, /applyOpeningEntranceStage\(current/);
+  assert.match(journeyComponentSource, /current\.openingCameraRevealMode = 'entrance-stage'/);
+  assert.match(journeyComponentSource, /current\.openingEntranceStageTimer = OPENING_ENTRANCE_STAGE\.duration/);
+  assert.match(journeyComponentSource, /current\.cinematicEvent = createOpeningEntranceStageEvent\(\)/);
+  assert.match(journeyComponentSource, /current\.notice = OPENING_ENTRANCE_STAGE\.notice/);
+  assert.match(journeyComponentSource, /current\.openingCameraRevealTimer = Math\.max\([\s\S]*?OPENING_ENTRANCE_STAGE\.cameraDuration/);
+  assert.match(journeyComponentSource, /current\.openingEntranceStageTimer = Math\.max\(0, \(current\.openingEntranceStageTimer \|\| 0\) - dt\)/);
+  assert.match(journeyComponentSource, /current\.openingCameraRevealMode = null/);
+  assert.match(journeyComponentSource, /current\.openingCameraRevealDuration = OPENING_CAMERA_REVEAL_DURATION/);
+  assert.match(journeyComponentSource, /if \(openingCheckpointMarker && \(current\.openingEntranceStageTimer \|\| 0\) > 0\) \{/);
+  assert.match(journeyComponentSource, /current\.openingCameraRevealMode === 'entrance-stage'/);
+});
+
 test('opening Scarab Seal becomes a restrained false-discovery threshold scene', () => {
   const storyProps = extractExportedArray('STORY_PROPS');
   const platforms = extractExportedArray('PLATFORMS');
@@ -2726,7 +2770,7 @@ test('opening Scarab Seal becomes a restrained false-discovery threshold scene',
   assert.match(journeyComponentSource, /completeOpeningThresholdScene\(current\)/);
   assert.match(journeyComponentSource, /window\.__setExpeditionOpeningThresholdTimer/);
   assert.match(journeyComponentSource, /const playTarget = typeof window !== 'undefined'[\s\S]*?get\('play'\)/);
-  assert.match(journeyComponentSource, /const startAtArrivalThreshold = openingStartMode === 'arrival-threshold' && playTarget !== 'exterior'/);
+  assert.match(journeyComponentSource, /const startAtArrivalThreshold = openingStartMode === 'arrival-threshold' && playTarget === 'threshold'/);
   assert.match(journeyComponentSource, /openingCheckpoint.*getRenderableCheckpoints\(\)\.find\(checkpoint => checkpoint\.id === 'desert-entry'\)/);
   assert.match(journeyComponentSource, /current\.activeCheckpoint = openingCheckpoint/);
   assert.match(journeyComponentSource, /current\.sectionTransition = null/);
@@ -3618,7 +3662,9 @@ test('Egypt opening archive prologue grounds Asha before the Lost Site transport
   assert.match(expeditionModeSource, /A memory returns/);
   assert.match(expeditionModeSource, /const \[journeyOpeningMode, setJourneyOpeningMode\] = useState\('standard'\)/);
   assert.match(expeditionModeSource, /setJourneyOpeningMode\('arrival-threshold'\)/);
-  assert.match(expeditionModeSource, /URLSearchParams\(window\.location\.search\)\.has\('play'\)[\s\S]*?setJourneyOpeningMode\('arrival-threshold'\)/);
+  assert.match(expeditionModeSource, /const playTarget = new URLSearchParams\(window\.location\.search\)\.get\('play'\)/);
+  assert.match(expeditionModeSource, /setJourneyOpeningMode\(playTarget === 'threshold' \? 'arrival-threshold' : 'standard'\)/);
+  assert.doesNotMatch(expeditionModeSource, /setJourneyOpeningMode\(playTarget === 'exterior' \? 'standard' : 'arrival-threshold'\)/);
   assert.match(expeditionModeSource, /openingStartMode=\{journeyOpeningMode\}/);
   assert.match(expeditionModeSource, /key=\{`\$\{selectedStageId\}-\$\{journeyRunId\}-\$\{journeyOpeningMode\}`\}/);
   assert.match(expeditionModeSource, /setExpeditionStage\('journey'\)/);
@@ -3628,6 +3674,8 @@ test('Egypt opening archive prologue grounds Asha before the Lost Site transport
   assert.match(journeyComponentSource, /if \(openingStartMode === 'arrival-threshold'\) \{[\s\S]*?completeOpeningThresholdScene\(current\);[\s\S]*?openingStartModeConsumedRef\.current = true;[\s\S]*?return;/);
   assert.match(journeyComponentSource, /completeOpeningThresholdScene\(current\)/);
   assert.match(journeyComponentSource, /setBriefingOpen\(false\)/);
+  assert.match(journeyComponentSource, /const timer = window\.setTimeout\(\(\) => \{[\s\S]*?if \(quickStartConsumedRef\.current\) return;[\s\S]*?quickStartConsumedRef\.current = true;[\s\S]*?startJourneyWithoutOpeningScene\(\);[\s\S]*?\}, 0\)/);
+  assert.doesNotMatch(journeyComponentSource, /if \(quickStartConsumedRef\.current\) return undefined;[\s\S]*?quickStartConsumedRef\.current = true;[\s\S]*?const timer = window\.setTimeout/);
   assert.match(journeyComponentSource, /The Gate Refuses/);
   assert.match(journeyComponentSource, /A mortal stands beyond my seal\./);
   assert.match(journeyComponentSource, /Forward is judgement\./);
@@ -4553,6 +4601,15 @@ test('Desert Journey panel background avoids procedural ruins behind the retired
   assert.match(journeyComponentSource, /DESERT_ENTRY_RETIRED_BACKGROUND_PROP_IDS = new Set/);
   assert.match(journeyComponentSource, /isRetiredDesertEntryBackgroundProp\(prop\)[\s\S]*return null/);
   assert.match(journeyComponentSource, /pruneRetiredDesertEntryBackgroundEditorProps\(propPlacementEditorRef\.current\)/);
+  const retiredBackgroundSetSource = journeyChamberTriggersSource.slice(
+    journeyChamberTriggersSource.indexOf('export const DESERT_ENTRY_RETIRED_BACKGROUND_PROP_IDS = new Set(['),
+    journeyChamberTriggersSource.indexOf(']);', journeyChamberTriggersSource.indexOf('export const DESERT_ENTRY_RETIRED_BACKGROUND_PROP_IDS = new Set([')) + 3,
+  );
+  assert.doesNotMatch(
+    retiredBackgroundSetSource,
+    /'scribe-chamber-doorway-structure'/,
+    'Scribe exterior structure should not be hidden by the retired Desert Entry background prop filter',
+  );
   assert.match(
     journeyComponentSource,
     /const desertJourneyScenePanelsDrawn = canDrawCleanDesertEntryBackground[\s\S]*drawDesertJourneyScenePanels/,
@@ -5580,12 +5637,10 @@ test('generated overrides preserve polished structure contact layers when re-exp
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-ravine-mummification-doorway-transition-1'));
   assert.equal(forgottenMuralClimbStructure, undefined, 'Forgotten Mural climb structure should stay deleted so the Temple Approach view does not show a close ruin row');
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('forgotten-mural-climb-structure'));
-  assert.equal(
-    journeyPlacementOverrides.props.find((prop) => prop.id === 'scribe-chamber-doorway-structure'),
-    undefined,
-    'Scribe exterior structure should stay deleted so it does not draw as a close ruin row over the clean panorama',
+  assert.ok(
+    !journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'),
+    'Scribe exterior structure should remain available so the Keeper of Names Archive draws on the route',
   );
-  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'));
 });
 
 test('generated Egypt structure renderers avoid broad procedural base haze', () => {
@@ -5601,6 +5656,23 @@ test('generated Egypt structure renderers avoid broad procedural base haze', () 
     assert.doesNotMatch(functionSource, /drawDecorativeBaseBlend/, `${functionName} should not paint a broad decorative base blend`);
     assert.doesNotMatch(functionSource, /drawGroundDustLip/, `${functionName} should not paint broad dust lips`);
   });
+});
+
+test('Scribe exterior grounds the real doorway instead of the structure centre', () => {
+  const storyProps = extractExportedArray('STORY_PROPS');
+  const scribeDoorway = getDataRowById(storyProps, 'scribe-chamber-doorway-structure');
+  const scribeRendererSource = getComponentFunctionSource('drawScribeChamberDoorwayStructure');
+
+  assert.match(scribeDoorway, /x:\s*SCRIBE_CHAMBER_EXTERIOR_STRUCTURE_X/);
+  assert.match(scribeDoorway, /y:\s*JY\(-245\)/);
+  assert.match(scribeDoorway, /assetDoorwayXRatio:\s*0\.35/);
+  assert.match(scribeDoorway, /visualGroundY:\s*GROUND_Y/);
+  assert.match(scribeDoorway, /assetKey:\s*'premiumHalfBuriedStairSupport'/);
+  assert.match(scribeDoorway, /assetKey:\s*'premiumDoorThresholdBuildup'/);
+  assert.match(scribeRendererSource, /const doorwayCenterX = left \+ width \* doorwayXRatio/);
+  assert.match(scribeRendererSource, /drawScribeDoorwayGroundPocket/);
+  assert.match(scribeRendererSource, /drawScribeDoorwayForegroundOcclusion/);
+  assert.match(scribeRendererSource, /scribeChamberDoorwayGroundPocket/);
 });
 
 test('Desert Entry foreground depth layer avoids broad artificial sand veils', () => {

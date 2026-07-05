@@ -1008,7 +1008,8 @@ export function drawScribeLockedChamberInteriorFrame(ctx, current, now, deps) {
     ctx.shadowBlur = 0;
     ctx.font = '10px Cinzel, serif';
     ctx.fillStyle = '#3b2614';
-    ctx.fillText('SUN WATER ANKH DOOR', pedestalX, pedestalY - 27);
+    ctx.fillText('NAME WITNESS', pedestalX, pedestalY - 31);
+    ctx.fillText('QUEEN DOOR', pedestalX, pedestalY - 21);
 
     const exitX = worldToScreenX(SCRIBE_CHAMBER_EXIT_TRIGGER.minX + 24, current.cameraX);
     ctx.fillStyle = unlocked ? 'rgba(13, 49, 38, 0.84)' : 'rgba(28, 18, 13, 0.94)';

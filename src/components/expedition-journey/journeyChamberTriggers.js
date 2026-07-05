@@ -1,4 +1,14 @@
-import { CANVAS_WIDTH, GROUND_Y, JOURNEY_VERTICAL_OFFSET, KNOWLEDGE_CHALLENGE_SIZE, sacredMuralExteriorX, sacredScribeExteriorX, scaleJourneyX } from './journeyConstants';
+import {
+  CANVAS_WIDTH,
+  GROUND_Y,
+  JOURNEY_VERTICAL_OFFSET,
+  KNOWLEDGE_CHALLENGE_SIZE,
+  SCRIBE_CHAMBER_EXTERIOR_APPROACH_X,
+  SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X,
+  sacredMuralExteriorX,
+  sacredScribeExteriorX,
+  scaleJourneyX,
+} from './journeyConstants';
 import { GUARDIAN_KNOWLEDGE_CHALLENGES, GUARDIAN_KNOWLEDGE_QUESTIONS, ROUTE_GATES, STAGE_ENTRANCE_FEATURES } from './journeyDataRouter';
 import { createChamberDoorVisuals, createChamberDoorVisualsById } from './journeySacredRooms';
 import { clamp, getSectionForX } from './journeyUtils';
@@ -26,7 +36,6 @@ export const DESERT_ENTRY_RETIRED_BACKGROUND_PROP_IDS = new Set([
   'desert-entry-scribe-to-queen-background-1',
   'desert-entry-queen-arena-dust-veil-1',
   'desert-entry-queen-to-ruined-gateway-background-1',
-  'scribe-chamber-doorway-structure',
   'desert-entry-generated-mummification-chamber-entrance-1',
   'desert-entry-ravine-mummification-doorway-transition-1',
   'desert-entry-lost-bridge-mummification-transition-apron-1',
@@ -462,17 +471,17 @@ export const SCRIBE_CHAMBER_ENTRY_SPAWN = {
   direction: 1,
 };
 export const SCRIBE_CHAMBER_RETURN_FALLBACK = {
-  x: SACRED_SCRIBE_APPROACH_X(1684),
-  y: openingJourneyY(122),
+  x: SCRIBE_CHAMBER_EXTERIOR_APPROACH_X,
+  y: GROUND_Y,
   cameraAnchorRatio: 0.42,
   direction: 1,
 };
 export const SCRIBE_CHAMBER_ENTRY_TRIGGER = {
-  minX: SACRED_SCRIBE_APPROACH_X(1684),
-  maxX: SACRED_SCRIBE_APPROACH_X(1714),
-  maxY: GROUND_Y - 250,
-  footY: openingJourneyY(62),
-  footTolerance: 24,
+  minX: SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 42,
+  maxX: SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X + 54,
+  maxY: GROUND_Y + 10,
+  footY: GROUND_Y,
+  footTolerance: 34,
 };
 export const SCRIBE_CHAMBER_CAMERA_X = scaleJourneyX(1180);
 export const SCRIBE_CHAMBER_BOUNDS = {

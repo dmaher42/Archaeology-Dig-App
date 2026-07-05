@@ -4,10 +4,54 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-05 Scribe exterior grounding and doorway-apron start:
+- Re-anchored the Scribe exterior visible building, hidden route, doorway threshold, and developer exterior start around the same real doorway instead of the old detached route/building centre.
+- Added a realistic localized ground pocket, rubble contact, sediment apron, and foreground occlusion around the Scribe doorway/base; avoided a broad haze/quick-fix dust veil.
+- Set the Scribe exterior start/return point on the doorway apron so Asha appears directly in front of the lower doorway without immediately auto-entering the chamber; the Scribe doorway keeps a tighter explicit trigger while other chamber doors keep the shared resolved-platform behavior.
+- Verified focused Journey placement/source/room-interaction tests, targeted lint, production build, and enemy-off browser capture at `output/playwright/scribe-exterior-grounding/scribe-exterior-apron-clean-verified.png`.
+
 2026-07-05 Desert Entry ground-tile seam breakup finish:
 - Finished the active renderer pass in `rendererBackgrounds.js` by overlapping the tiled Desert Entry ground layers and adding irregular dust/crack strokes at tile joins, so the opening route floor should read less like repeated pasted panels.
 - Kept the work inside the existing layered Desert Entry background path; no collision, route data, player movement, enemies, or asset manifests were changed.
 - Verified focused Journey source/placement tests, direct lint on the touched renderer/test files, `git diff --check`, production build, and live quick-play canvas captures at `output/playwright/desert-entry-seam-breakup/after-x1179-camera744.png` and `after-x1289-camera853.png`.
+
+2026-07-05 Journey opening dramatic entrance pass:
+- Staged the Egypt quick-play/opening handoff with the existing Journey opening camera, notice/event card, and ambience hooks so the first playable seconds pan across the route before settling back on Asha.
+- Moved only the first checkpoint marker out of the initial camera frame while keeping the actual retry checkpoint early, so the opening shot is less checkpoint-dominated without making failure recovery longer.
+- Verified the new focused Journey guard, full `journeySecrets.test.js`, touched-file lint, production build, and a live quick-play browser capture at `output/playwright/journey-opening-entrance-active-final-2026-07-05.png`.
+
+2026-07-05 Scribe exterior visibility fix:
+- Fixed the Scribe Chamber exterior not appearing by keeping `scribe-chamber-doorway-structure` out of both the generated placement deletion list and the retired Desert Entry background prop filter.
+- Added direct Scribe exterior/chamber dev jumps and renamed the top Journey building shortcut to "Scribe Exterior" so playtesting lands at the outside building instead of inside the room.
+- Verified routed scene data, focused Journey placement/source tests, lint, production build, live serving of the PNG, and a Chrome screenshot at `output/web-game/scribe-exterior-visibility/scribe-exterior-after-dom-click-canvas.png` showing Asha at x=14149 beside the visible glowing Scribe exterior.
+
+2026-07-05 Scribe exterior smoother asset:
+- Replaced the noisy/high-texture Scribe exterior runtime PNG with a smoother generated cutout at `public/assets/expedition/environment/desert-temple/scribe-locked-chamber-keeper-names-archive-smoother-2026-07-05.png`; kept the chroma source beside it.
+- Rejected earlier smoother candidates that formed too much of a normal stair path, then used the cleaner ledge-based version that keeps the raised glowing door and calmer block shapes.
+- Verified PNG dimensions/alpha/green cleanup, focused Journey source and placement tests, lint, production build, local asset serving, and a Chrome canvas grab at `output/web-game/scribe-exterior-smoother/scribe-exterior-smoother-canvas.png`.
+
+2026-07-05 Scribe exterior monumental asset:
+- Replaced the smoother-only Scribe exterior runtime PNG with a grander "fallen civic centre" version at `public/assets/expedition/environment/desert-temple/scribe-locked-chamber-keeper-names-archive-monumental-2026-07-05.png`; kept the chroma source beside it.
+- Art direction: taller side towers, broader sandstone/mudbrick civic massing, stronger blue/gold ceremonial doorway, visible side returns, and broken ledges so it reads as an important archive that was once central to society.
+- Verified PNG dimensions/alpha/green cleanup, focused Journey source and placement tests, lint, production build, local asset serving, and a Chrome canvas grab at `output/web-game/scribe-exterior-monumental/scribe-exterior-monumental-canvas.png`.
+
+2026-07-05 Scorpion venom animation readability fix:
+- Split the scorpion venom-spit read from the physical sting read: venom now keeps the raised/aimed tail pose during release instead of falling into the generic tail-whip attack pose, while close sting/anti-air still keep the forward tail strike.
+- Moved the venom-spit visual effect to the attack release moment instead of spawning it at windup start, so the sequence should read as wind up -> spit -> recover rather than spit -> tail whip.
+- Kept the fallback canvas scorpion renderer aligned with the same rule in case the painted scorpion atlas is unavailable.
+- Verified focused combat/sprite tests, lint, production build, and a dev Journey canvas load/control smoke check. Browser policy blocked a direct debug-position jump to the scorpion; the exact venom-vs-sting behavior is covered by the new automated guard.
+
+2026-07-05 Scribe Chamber story-room pass:
+- Retuned the existing Scribe Locked Chamber puzzle around the scratched name-line, witness record, and Queen contradiction instead of the older generic Sun/Water/Ankh/Door symbol riddle.
+- Updated the tablet/wall notices and in-room tablet label so the room reads as name / identity / record / protector evidence.
+- Added a dev-only Scribe Chamber jump for focused QA through the existing Journey developer tools; no new room system, movement system, or art pipeline was added.
+- Kept "decoded" separate from the sacred-fragment "restored" state: solving the chamber puzzle unlocks the door, while the three name fragments still own the full record-restoration evidence flag.
+- Verified focused Scribe/Journey tests, room-interaction tests, placement override tests, lint, production build, and a browser check at `http://127.0.0.1:5174/Archaeology-Dig-App/?play=1` with screenshot output at `output/playwright/scribe-chamber-pass.png`.
+
+2026-07-05 Quick-play URL start fix:
+- Fixed `?play=1` so local quick-play starts directly in Journey at Desert Entry, with no Arrival Threshold room, no opening cinematic, and no Journey briefing overlay.
+- Kept Arrival Threshold available for explicit `?play=threshold` checks.
+- Verified the focused Journey guard, browser state at `http://127.0.0.1:5173/Archaeology-Dig-App/?play=1`, lint, and production build.
 
 2026-07-04 Stuck-chase watchdog:
 - Playtest feedback: enemies froze mid-chase. Cause: pursuit is leashed to patrolMin/Max plus ENEMY_AGGRO_PATROL_PADDING, and many opening-route enemies have very narrow patrol zones, so a chasing enemy pinned at the leash clamp stood facing Asha at an invisible wall indefinitely.
@@ -367,6 +411,11 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Extended the existing jump-vault answer with a longer skid/punish window and added a perfect-dodge scarab-charge skid that uses impact, sand-skid, and counter-window effects instead of explicit tutorial text.
 - Removed the scarab-specific instructional notices for frontal shell hits and venom-boosted charges so players learn from deflect/skid visuals rather than a realism-breaking message.
 - Verified focused combat rules, Journey source guards, enemy sprite/combat guards, lint, production build, and a headless Chrome smoke load into the Journey canvas.
+
+2026-07-05 Scribe exterior House of Life asset:
+- Replaced the active Scribe exterior cutout with a cleaner Per-Ankh / House of Life archive facade.
+- The new art keeps the three-level archive tower, shaded loggias, hypostyle lower hall, thick side returns, and faint glowing sealed door while avoiding a clean staircase/ramp path.
+- Runtime asset: `public/assets/expedition/environment/desert-temple/scribe-locked-chamber-house-of-life-per-ankh-2026-07-05.png`.
 
 2026-05-25 update:
 - Completed the UI makeover for the "Archeologist Training" screen (Training Phase).

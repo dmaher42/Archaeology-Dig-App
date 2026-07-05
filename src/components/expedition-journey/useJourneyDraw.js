@@ -699,6 +699,10 @@ export function useJourneyDraw({
       const active = current.activeCheckpoint.id === checkpoint.id;
       const openingCheckpointMarker = checkpoint.id === 'desert-entry';
       ctx.save();
+      if (openingCheckpointMarker && (current.openingEntranceStageTimer || 0) > 0) {
+        ctx.restore();
+        return;
+      }
       const checkpointSection = getSectionForX(markerX);
       const checkpointHeight = openingCheckpointMarker ? 154 : active ? 160 : 148;
       const checkpointWidth = checkpointHeight * (openingCheckpointMarker ? 1.36 : 1.48);

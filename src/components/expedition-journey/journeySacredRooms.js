@@ -8,24 +8,24 @@ export const SCRIBE_CHAMBER_PUZZLE = {
   bossId: 'scribe-locked-chamber',
   bossName: 'The Scribe\'s Locked Chamber',
   title: 'Scribe Chamber Decoding',
-  intro: 'Use the translation tablet, then choose what the glowing inscription means.',
+  intro: 'Use the translation tablet to read the scratched name-line, then choose what the record proves.',
   questions: [{
-    id: 'scribe-chamber-sun-water-ankh-door',
-    question: 'Sun + Water + Ankh + Door',
+    id: 'scribe-chamber-name-record-queen-truth',
+    question: 'Scratched Name + Witness Line + Queen Record',
     options: [
-      'Follow the light, cross the river, protect life, and the door will open.',
-      'Protect the truth of the past.',
-      'Take the treasure before the river rises.',
-      'The sun closes every passage at night.',
+      'The Queen protected memory anchors so names would not be lost.',
+      'The Queen hid treasure and ordered the scribes to lie.',
+      'The scribes erased every witness so the door could sleep.',
+      'The record says the river opens only at sunrise.',
     ],
     correctIndex: 0,
   }],
 };
 export const SCRIBE_CHAMBER_FEEDBACK = {
-  correct: 'The message is clear. The scribes were not hiding treasure - they were protecting knowledge.',
-  incorrect: 'That does not match the message. I need to look again.',
+  correct: 'The decoded record names a protector, not a thief.',
+  incorrect: 'That repeats the false story. The scratched name-line says more.',
 };
-export const SCRIBE_CHAMBER_DOOR_OPEN_LINE = 'Knowledge was the key.';
+export const SCRIBE_CHAMBER_DOOR_OPEN_LINE = 'The name is remembered. The door opens.';
 export const MUMMIFICATION_CHAMBER_RITUAL_ORDER = [
   'Cleanse the body',
   'Remove organs and dry the body',
@@ -554,6 +554,8 @@ export const createChamberDoorVisuals = ({
     entryPlatformId: 'scribe-chamber-doorway-threshold',
     trigger: SCRIBE_CHAMBER_ENTRY_TRIGGER,
     returnFallback: SCRIBE_CHAMBER_RETURN_FALLBACK,
+    preserveTriggerBounds: true,
+    useReturnFallbackPosition: true,
     title: 'Scribe Door',
     prompt: 'E Enter',
     seal: 'ankh',

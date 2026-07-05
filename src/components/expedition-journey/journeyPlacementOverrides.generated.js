@@ -872,7 +872,6 @@ const journeyPlacementOverrides = {
     "opening-pyramid-facade-structure",
     "opening-rubble-left",
     "opening-supply-jars-left",
-    "scribe-chamber-doorway-structure",
     "desert-entry-opening-scarab-threshold-physical-1",
     "opening-archaeologist-field-kit",
     "forgotten-mural-climb-structure",
@@ -1069,7 +1068,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "scribe-chamber-buried-lower-block",
-      "x": 10379,
+      "x": 13502,
       "y": 519,
       "width": 95,
       "height": 18,
@@ -1079,7 +1078,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "scribe-chamber-collapsed-stair-slab",
-      "x": 10633,
+      "x": 13833,
       "y": 473,
       "width": 120,
       "height": 18,
@@ -1089,7 +1088,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "scribe-chamber-middle-rubble-landing",
-      "x": 10780,
+      "x": 14024,
       "y": 433,
       "width": 235,
       "height": 18,
@@ -1099,7 +1098,7 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "scribe-chamber-upper-carved-landing",
-      "x": 10837,
+      "x": 14098,
       "y": 357,
       "width": 210,
       "height": 18,
@@ -1109,11 +1108,11 @@ const journeyPlacementOverrides = {
     },
     {
       "id": "scribe-chamber-doorway-threshold",
-      "x": 10871,
-      "y": 297,
-      "width": 180,
+      "x": 13444,
+      "y": 595,
+      "width": 170,
       "height": 18,
-      "label": "invisible raised doorway threshold at the Scribe Chamber entrance",
+      "label": "invisible ground threshold in front of the Scribe Chamber doorway",
       "secret": true,
       "invisible": true
     },
@@ -1724,10 +1723,10 @@ const journeyPlacementOverrides = {
     {
       "id": "scribe-locked-chamber-route",
       "sectionId": "desert-entry",
-      "x": 10650,
-      "y": 297,
-      "width": 540,
-      "height": 104
+      "x": 13434,
+      "y": 505,
+      "width": 230,
+      "height": 112
     }
   ],
   "checkpoints": [

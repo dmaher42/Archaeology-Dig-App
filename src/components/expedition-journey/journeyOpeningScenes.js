@@ -122,6 +122,24 @@ export const OPENING_CINEMATIC_DURATION = 54;
 export const OPENING_CINEMATIC_SPELL_IMPACT_AT = 49.4;
 export const OPENING_ASHA_CUTSCENE_SRC = 'assets/expedition/player/asha-opening-reference-cutscene.png';
 export const OPENING_ARRIVAL_AFTERSHOCK_NOTICE = 'The way back is gone. Anubis is still watching. The only path is forward, into judgement.';
+export const OPENING_ENTRANCE_STAGE = Object.freeze({
+  id: 'desert-entry-guardian-challenge',
+  name: 'Anubis',
+  duration: 4.2,
+  cameraDuration: 3.15,
+  noticeDuration: 4.2,
+  cameraFocusX: 1320,
+  cameraAnchorRatio: 0.58,
+  maxForwardPanRatio: 0.26,
+  notice: 'The lost site lies ahead. Gather field tools and relic fragments. Survive the guardians to open the excavation site.',
+  message: 'Tools and fragments open the site. Guardians decide if Asha reaches it.',
+});
+export const createOpeningEntranceStageEvent = () => ({
+  id: OPENING_ENTRANCE_STAGE.id,
+  name: OPENING_ENTRANCE_STAGE.name,
+  message: OPENING_ENTRANCE_STAGE.message,
+  temporary: true,
+});
 export const CHINA_OPENING_ARRIVAL_NOTICE = 'The river gate shut behind me. The watchtower has noticed. The only path is through the valley.';
 export const OPENING_CINEMATIC_LINES = [
   {

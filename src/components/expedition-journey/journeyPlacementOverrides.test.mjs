@@ -26,6 +26,10 @@ import {
   DESERT_JOURNEY_SCENE_PANELS,
   DESERT_JOURNEY_TRANSITION_MASKS,
 } from './journeyDesertBackgroundPanels.js';
+import {
+  SCRIBE_CHAMBER_EXTERIOR_APPROACH_X,
+  SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X,
+} from './journeyConstants.js';
 import { SCARAB_QUEEN_DRAW_OFFSET_X } from './journeyBossSprites.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
 import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
@@ -413,10 +417,10 @@ test('journeyDataRouter lays the ritual climb ledges from the building while jou
   assert.equal(basePlatform.width, 311);
   // Routed coords are computed as a fraction of the Ritual Chamber building, so a
   // building resize (desertLayerTuning.ritualPyramid) moves the whole climb with it
-  // (ritualBuildingClimb.js). These values follow the default 760-tall / 1.16-wide building.
-  assert.equal(routedPlatform.width, 204);
-  assert.equal(routedPlatform.x, 4986);
-  assert.equal(routedPlatform.y, 462);
+  // (ritualBuildingClimb.js). These values follow the current 764-tall / 1.1-wide building.
+  assert.equal(routedPlatform.width, 195);
+  assert.equal(routedPlatform.x, 5004);
+  assert.equal(routedPlatform.y, 452);
 });
 
 test('sacred exterior editor overrides stay aligned after horizontal scale changes', () => {
@@ -433,10 +437,10 @@ test('sacred exterior editor overrides stay aligned after horizontal scale chang
   assert.equal(hazardById('desert-soft-ridge')?.x, 7034);
   assert.equal(hazardById('broken-ruins-loose-stones')?.x, 7797);
 
-  assert.equal(propById('scribe-chamber-doorway-structure'), undefined);
-  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'));
-  assert.equal(platformById('scribe-chamber-doorway-threshold')?.x, 10871);
-  assert.equal(platformById('scribe-chamber-doorway-threshold')?.y, 297);
+  assert.ok(propById('scribe-chamber-doorway-structure'), 'Scribe exterior structure should remain visible in routed data');
+  assert.ok(!journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'));
+  assert.equal(platformById('scribe-chamber-doorway-threshold')?.x, 13444);
+  assert.equal(platformById('scribe-chamber-doorway-threshold')?.y, 595);
 });
 
 test('sacred room entry triggers align with their retained route anchors', () => {
@@ -467,8 +471,8 @@ test('sacred room entry triggers align with their retained route anchors', () =>
     scribeRoute.x < scribePlatform.x + scribePlatform.width && scribeRoute.x + scribeRoute.width > scribePlatform.x,
     'scribe route trigger should still overlap the retained physical doorway platform',
   );
-  assert.equal(propById('scribe-chamber-doorway-structure'), undefined);
-  assert.ok(journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'));
+  assert.ok(propById('scribe-chamber-doorway-structure'), 'Scribe exterior structure should remain visible beside its physical route anchor');
+  assert.ok(!journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'));
 });
 
 test('sacred room entry routes contain their physical doorway platforms', () => {
@@ -491,6 +495,41 @@ test('sacred room entry routes contain their physical doorway platforms', () => 
       `${platformId} should sit inside ${routeId}`,
     );
   });
+});
+
+test('Scribe exterior doorway start, trigger, and visible structure share one ground anchor', () => {
+  setExpeditionJourneyCiv('Ancient Egypt');
+
+  const prop = ROUTED_STORY_PROPS.find(item => item.id === 'scribe-chamber-doorway-structure');
+  const route = ROUTED_HIDDEN_ROUTES.find(item => item.id === 'scribe-locked-chamber-route');
+  const threshold = ROUTED_PLATFORMS.find(item => item.id === 'scribe-chamber-doorway-threshold');
+
+  assert.ok(prop, 'Scribe exterior structure should stay visible');
+  assert.ok(route, 'Scribe exterior entry route should exist');
+  assert.ok(threshold, 'Scribe exterior doorway threshold should exist');
+  assert.equal(prop.visualGroundY, 595);
+  assert.equal(prop.assetDoorwayXRatio, 0.35);
+
+  const doorwayCenterX = Math.round(prop.x - prop.width / 2 + prop.width * prop.assetDoorwayXRatio);
+  assert.ok(
+    threshold.x <= doorwayCenterX && threshold.x + threshold.width >= doorwayCenterX,
+    'doorway threshold should sit under the visible doorway, not the old off-screen route anchor',
+  );
+  assert.equal(threshold.y, 595);
+  assert.ok(
+    route.x <= threshold.x && route.x + route.width >= threshold.x + threshold.width,
+    'entry trigger should contain the physical threshold in front of the visible doorway',
+  );
+  assert.equal(route.y, 505);
+  const triggerMinX = SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 42;
+  assert.ok(
+    SCRIBE_CHAMBER_EXTERIOR_APPROACH_X < triggerMinX,
+    'Asha should start on the doorway apron, not already inside the auto-entry trigger',
+  );
+  assert.ok(
+    triggerMinX - SCRIBE_CHAMBER_EXTERIOR_APPROACH_X <= 24,
+    'Asha should still start close enough to read as standing directly in front of the doorway',
+  );
 });
 
 test('ravine crossing keeps the Mummification doorway data while retiring its close ruin art', () => {
@@ -618,9 +657,10 @@ test('Desert Entry rebuild keeps walkable ground continuous while old scenery ov
     journeyPlacementOverrides.deletedPropIds.includes('desert-entry-queen-arena-dust-veil-1'),
     'old Queen arena dust veil should stay deleted so the panorama remains coherent',
   );
+  assert.ok(propById('scribe-chamber-doorway-structure'), 'Scribe exterior structure should render as the visible Keeper of Names Archive');
   assert.ok(
-    journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'),
-    'old scribe exterior structure should stay deleted so the panorama remains coherent',
+    !journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'),
+    'Scribe exterior structure should not be deleted by the panorama cleanup overrides',
   );
   [
     'desert-entry-desert-seal-jackal-left-1',
