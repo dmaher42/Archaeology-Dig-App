@@ -259,7 +259,7 @@ const forgottenMuralChamberPath = new URL('../../../public/assets/expedition/env
 const forgottenMuralHiddenRevealPath = new URL('../../../public/assets/expedition/environment/desert-temple/forgotten-mural-hidden-memory-reveal-2026-06-01.png', import.meta.url);
 const mummificationChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-exterior-ledged-building-2026-06-12.png', import.meta.url);
 const mummificationChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber-interior-side-scroll-2026-05-31.png', import.meta.url);
-const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-house-of-life-per-ankh-2026-07-05.png', import.meta.url);
+const scribeChamberExteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-keeper-names-archive-monumental-2026-07-05.png', import.meta.url);
 const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/environment/desert-temple/scribe-locked-chamber-interior-2026-06-01.png', import.meta.url);
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
@@ -1878,7 +1878,7 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.match(scribeDoorway, /y:\s*JY\(-245\)/);
   assert.match(scribeDoorway, /width:\s*1120/);
   assert.match(scribeDoorway, /height:\s*620/);
-  assert.match(scribeDoorway, /assetDoorwayXRatio:\s*0\.35/);
+  assert.match(scribeDoorway, /assetDoorwayXRatio:\s*0\.52/);
   assert.match(scribeDoorway, /visualGroundY:\s*GROUND_Y/);
   assert.match(platforms, /id:\s*'scribe-chamber-doorway-threshold'[\s\S]*?x:\s*SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 80[\s\S]*?y:\s*GROUND_Y[\s\S]*?width:\s*170/);
   assert.ok(hiddenRoutes.indexOf("id: 'desert-upper-survey-route'") < hiddenRoutes.indexOf("id: 'scribe-locked-chamber-route'"));
@@ -1894,8 +1894,8 @@ test('scribe locked chamber reuses the Journey scene and challenge systems for o
   assert.ok(existsSync(scribeChamberInteriorPath), 'Scribe Chamber interior replacement PNG should exist');
   assert.match(journeyConstantsSource, /export const SCRIBE_CHAMBER_EXTERIOR_DOORWAY_BASE_X = 1600/);
   assert.match(journeyConstantsSource, /export const SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X = sacredScribeExteriorX\(SCRIBE_CHAMBER_EXTERIOR_DOORWAY_BASE_X\)/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/scribe-locked-chamber-house-of-life-per-ankh-2026-07-05\.png'/);
-  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-house-of-life-per-ankh-2026-07-05'/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/scribe-locked-chamber-keeper-names-archive-monumental-2026-07-05\.png'/);
+  assert.match(journeyComponentSource, /SCRIBE_CHAMBER_EXTERIOR_VERSION = 'imagegen-scribe-locked-chamber-keeper-names-archive-monumental-2026-07-05'/);
   assert.match(journeyComponentSource, /SCRIBE_CHAMBER_INTERIOR_SRC = 'assets\/expedition\/environment\/desert-temple\/scribe-locked-chamber-interior-2026-06-01\.png'/);
   assert.match(journeyComponentSource, /SCRIBE_CHAMBER_INTERIOR_VERSION = 'imagegen-scribe-locked-chamber-interior-2026-06-01'/);
   assert.match(journeyComponentSource, /scribeChamberExteriorRef/);
@@ -5680,7 +5680,7 @@ test('Scribe exterior grounds the real doorway instead of the structure centre',
 
   assert.match(scribeDoorway, /x:\s*SCRIBE_CHAMBER_EXTERIOR_STRUCTURE_X/);
   assert.match(scribeDoorway, /y:\s*JY\(-245\)/);
-  assert.match(scribeDoorway, /assetDoorwayXRatio:\s*0\.35/);
+  assert.match(scribeDoorway, /assetDoorwayXRatio:\s*0\.52/);
   assert.match(scribeDoorway, /visualGroundY:\s*GROUND_Y/);
   assert.match(scribeDoorway, /assetKey:\s*'premiumHalfBuriedStairSupport'/);
   assert.match(scribeDoorway, /assetKey:\s*'premiumDoorThresholdBuildup'/);

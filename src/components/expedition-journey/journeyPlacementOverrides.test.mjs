@@ -508,7 +508,7 @@ test('Scribe exterior doorway start, trigger, and visible structure share one gr
   assert.ok(route, 'Scribe exterior entry route should exist');
   assert.ok(threshold, 'Scribe exterior doorway threshold should exist');
   assert.equal(prop.visualGroundY, 595);
-  assert.equal(prop.assetDoorwayXRatio, 0.35);
+  assert.equal(prop.assetDoorwayXRatio, 0.52);
 
   const doorwayCenterX = Math.round(prop.x - prop.width / 2 + prop.width * prop.assetDoorwayXRatio);
   assert.ok(

@@ -1334,7 +1334,7 @@ export const STORY_PROPS = [
     height: 620,
     depth: 'route-edge',
     alpha: 1,
-    assetDoorwayXRatio: 0.35,
+    assetDoorwayXRatio: 0.52,
     visualGroundY: GROUND_Y,
     groundContactLayer: [
       { layer: 'underlay', assetKey: 'premiumRubbleContactShadow', xRatio: 0.36, widthRatio: 0.58, height: 82, yOffset: -64, alpha: 0.56, filter: 'sepia(18%) saturate(86%) brightness(60%) contrast(114%)' },
@@ -1348,7 +1348,7 @@ export const STORY_PROPS = [
       { layer: 'overlay', assetKey: 'premiumSmallStoneScatter', xRatio: 0.76, widthRatio: 0.22, height: 38, yOffset: -55, alpha: 0.54, rotation: -5, mirrorX: true, filter: 'sepia(10%) saturate(84%) brightness(89%) contrast(100%)' },
       { layer: 'overlay', assetKey: 'premiumLongSandLip', xRatio: 0.38, widthRatio: 0.32, height: 46, yOffset: -47, alpha: 0.46, rotation: 1, filter: 'sepia(12%) saturate(86%) brightness(92%) contrast(98%)' },
     ],
-    label: 'production House of Life Per-Ankh exterior with raised archive door, broken portico ledges, shaded loggias, and sealed doorway',
+    label: 'monumental Keeper of Names Archive exterior with central glowing record door, broad civic towers, broken portico ledges, and grounded rubble apron',
   },
   {
     id: 'scribe-chamber-foreground-column',

@@ -4,6 +4,12 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-06 Scribe exterior asset pointer correction:
+- Confirmed the game was still wired to the older `house-of-life-per-ankh` / `final-nostairs` Scribe exterior file, even though the later progress note identified the monumental Keeper of Names Archive as the intended replacement.
+- Repointed the canonical Scribe exterior runtime asset to `public/assets/expedition/environment/desert-temple/scribe-locked-chamber-keeper-names-archive-monumental-2026-07-05.png`.
+- Shifted the Scribe structure center and doorway ratio together so the central glowing archive door still lines up with the real entry trigger and Asha's doorway-apron start.
+- Verified the live local opening route requests the monumental asset and captured it at `output/playwright/scribe-asset-check/live-opening-scribe-monumental-check.png`, then ran focused Journey tests, touched-file lint, and production build.
+
 2026-07-05 Scribe exterior true opening visibility fix:
 - Fixed the real `?play=1` game start path so it starts on the Scribe doorway apron, not hundreds of pixels left of the building.
 - Updated the opening camera focus and startup camera snap to frame the Scribe exterior immediately; the previous route start could place Asha near Scribe while the camera still looked at the old Desert Entry focus.

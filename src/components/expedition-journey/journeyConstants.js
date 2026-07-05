@@ -11,7 +11,7 @@ export const SACRED_EXTERIOR_SPACING_BASE_UNITS = Object.freeze({
 });
 export const sacredMuralExteriorX = (x) => scaleJourneyX(x + SACRED_EXTERIOR_SPACING_BASE_UNITS.muralApproach);
 export const sacredScribeExteriorX = (x) => scaleJourneyX(x + SACRED_EXTERIOR_SPACING_BASE_UNITS.scribeApproach);
-export const SCRIBE_CHAMBER_EXTERIOR_STRUCTURE_BASE_X = 1623;
+export const SCRIBE_CHAMBER_EXTERIOR_STRUCTURE_BASE_X = 1597;
 export const SCRIBE_CHAMBER_EXTERIOR_DOORWAY_BASE_X = 1600;
 export const SCRIBE_CHAMBER_EXTERIOR_STRUCTURE_X = sacredScribeExteriorX(SCRIBE_CHAMBER_EXTERIOR_STRUCTURE_BASE_X);
 export const SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X = sacredScribeExteriorX(SCRIBE_CHAMBER_EXTERIOR_DOORWAY_BASE_X);
