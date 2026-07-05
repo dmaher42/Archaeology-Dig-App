@@ -2,6 +2,7 @@ import { GROUND_Y, JOURNEY_VERTICAL_OFFSET, WORLD_WIDTH, scaleJourneyX } from '.
 
 import { sacredMuralExteriorX, sacredScribeExteriorX } from './journeyConstants.js';
 import {
+  SCRIBE_CHAMBER_EXTERIOR_APPROACH_X,
   SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X,
   SCRIBE_CHAMBER_EXTERIOR_STRUCTURE_X,
 } from './journeyConstants.js';
@@ -423,7 +424,7 @@ export const UPGRADES = [
 ];
 
 export const CHECKPOINTS = [
-  { id: 'desert-entry', name: 'Desert Entry', x: SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 600, markerX: SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 520, y: JY(282) },
+  { id: 'desert-entry', name: 'Desert Entry', x: SCRIBE_CHAMBER_EXTERIOR_APPROACH_X + 24, markerX: SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X + 72, y: JY(282) },
   { id: 'mummification-bridge', name: 'Ravine Bridge', x: X(410), y: JY(282) },
   { id: 'desert-survey-marker', name: 'Desert Survey Checkpoint', x: X(930), y: JY(282) },
   { id: 'ruined-temple', name: 'Ruined Temple', x: X(2420), y: JY(282) },

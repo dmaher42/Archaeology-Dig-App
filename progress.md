@@ -4,6 +4,12 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-05 Scribe exterior true opening visibility fix:
+- Fixed the real `?play=1` game start path so it starts on the Scribe doorway apron, not hundreds of pixels left of the building.
+- Updated the opening camera focus and startup camera snap to frame the Scribe exterior immediately; the previous route start could place Asha near Scribe while the camera still looked at the old Desert Entry focus.
+- Marked the Scribe route as already known only for this intentional start so the first screen does not get covered by a "Secret Route Discovered" banner.
+- Verified focused Journey tests, targeted lint, production build, and live local `5174` opening capture at `output/playwright/scribe-visibility-debug/port5174-opening-start-scribe-doorway-final.png`.
+
 2026-07-05 Scribe exterior grounding and doorway-apron start:
 - Re-anchored the Scribe exterior visible building, hidden route, doorway threshold, and developer exterior start around the same real doorway instead of the old detached route/building centre.
 - Added a realistic localized ground pocket, rubble contact, sediment apron, and foreground occlusion around the Scribe doorway/base; avoided a broad haze/quick-fix dust veil.

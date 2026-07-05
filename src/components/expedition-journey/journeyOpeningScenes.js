@@ -1,4 +1,5 @@
 import { clamp } from './journeyUtils.js';
+import { SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X } from './journeyConstants.js';
 
 export const OPENING_THRESHOLD_SCENE_DURATION = 14;
 export const OPENING_THRESHOLD_FADE_SECONDS = 1.2;
@@ -128,7 +129,7 @@ export const OPENING_ENTRANCE_STAGE = Object.freeze({
   duration: 4.2,
   cameraDuration: 3.15,
   noticeDuration: 4.2,
-  cameraFocusX: 1320,
+  cameraFocusX: SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X,
   cameraAnchorRatio: 0.58,
   maxForwardPanRatio: 0.26,
   notice: 'The lost site lies ahead. Gather field tools and relic fragments. Survive the guardians to open the excavation site.',

@@ -38,6 +38,9 @@ import {
   CANVAS_WIDTH,
   COMBAT_DAMAGE_SCALE,
   DESERT_ENTRY_EXTERIOR_SPAWN_X,
+  PLAYER_WIDTH,
+  SCRIBE_CHAMBER_EXTERIOR_APPROACH_X,
+  SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X,
   GROUND_Y,
   JOURNEY_HORIZONTAL_SCALE,
   WORLD_WIDTH,
@@ -51,6 +54,7 @@ import {
   ARRIVAL_THRESHOLD_RAMP_RISE,
   ARRIVAL_THRESHOLD_SEAL_VEIL_SRC,
   ARRIVAL_THRESHOLD_SPAWN_X,
+  OPENING_ENTRANCE_STAGE,
 } from './journeyOpeningScenes.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
 import { journeyComponentSource, journeyRendererSource } from './journeySourceText.test-utils.mjs';
@@ -1257,7 +1261,7 @@ test('journey editor prop palette exposes premium modular floor kit inserts', ()
 });
 
 test('desert entry ground collision uses the integrated painted route instead of a separate strip', () => {
-  assert.equal(DESERT_ENTRY_EXTERIOR_SPAWN_X, SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X - 600);
+  assert.equal(DESERT_ENTRY_EXTERIOR_SPAWN_X, SCRIBE_CHAMBER_EXTERIOR_APPROACH_X - PLAYER_WIDTH / 2);
   assert.match(journeyUtilsSource, /x:\s*DESERT_ENTRY_EXTERIOR_SPAWN_X/);
   assert.match(journeyComponentSource, /current\.player\.x = DESERT_ENTRY_EXTERIOR_SPAWN_X/);
   assert.doesNotMatch(journeyComponentSource, /current\.player\.x = 44/);
@@ -2678,6 +2682,8 @@ test('Bes uses a dedicated guardian sprite pack through the existing mini-boss s
 test('Egypt Journey opening stages a dramatic entrance before the first checkpoint', () => {
   const openingCheckpoint = CHECKPOINTS.find(checkpoint => checkpoint.id === 'desert-entry');
   assert.ok(openingCheckpoint, 'Desert Entry should keep a first checkpoint for retry safety');
+  assert.equal(DESERT_ENTRY_EXTERIOR_SPAWN_X, SCRIBE_CHAMBER_EXTERIOR_APPROACH_X - PLAYER_WIDTH / 2);
+  assert.equal(openingCheckpoint.x, SCRIBE_CHAMBER_EXTERIOR_APPROACH_X + 24);
   assert.ok(
     openingCheckpoint.markerX > CANVAS_WIDTH,
     'the first checkpoint marker should sit just beyond the initial camera frame, not dominate the opening shot',
@@ -2692,9 +2698,18 @@ test('Egypt Journey opening stages a dramatic entrance before the first checkpoi
   assert.match(journeyOpeningScenesSource, /relic fragments/);
   assert.match(journeyOpeningScenesSource, /guardians/);
   assert.match(journeyOpeningScenesSource, /excavation site/);
+  assert.ok(
+    Math.abs(OPENING_ENTRANCE_STAGE.cameraFocusX - SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X) <= 90,
+    'the opening camera focus should frame the Scribe building when the start spawn is at that doorway',
+  );
   assert.match(journeyUtilsSource, /openingEntranceStageTimer:\s*0/);
   assert.match(journeyUtilsSource, /openingCameraRevealMode:\s*null/);
   assert.match(journeyComponentSource, /applyOpeningEntranceStage\(current/);
+  assert.match(journeyComponentSource, /const openingStartCamera = getCameraFollowTarget\(current\)[\s\S]*?current\.cameraX = openingStartCamera\.targetCameraX/);
+  assert.match(journeyComponentSource, /const markScribeExteriorStartKnown = useCallback/);
+  assert.match(journeyComponentSource, /current\?\.hiddenRoomsFound\?\.add\('scribe-locked-chamber'\)/);
+  assert.match(journeyComponentSource, /current\?\.discoveredHiddenRouteIds\?\.add\('scribe-locked-chamber-route'\)/);
+  assert.match(journeyComponentSource, /markScribeExteriorStartKnown\(current\)[\s\S]*?frameOpeningStartCamera\(current\)/);
   assert.match(journeyComponentSource, /current\.openingCameraRevealMode = 'entrance-stage'/);
   assert.match(journeyComponentSource, /current\.openingEntranceStageTimer = OPENING_ENTRANCE_STAGE\.duration/);
   assert.match(journeyComponentSource, /current\.cinematicEvent = createOpeningEntranceStageEvent\(\)/);

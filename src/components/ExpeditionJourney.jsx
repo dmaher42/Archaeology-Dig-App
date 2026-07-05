@@ -4354,6 +4354,20 @@ export default function ExpeditionJourney({
     return true;
   }, [audioControls, scopedJourneyAssetPacks.isEgyptJourney]);
 
+  const frameOpeningStartCamera = useCallback((current) => {
+    if (!current?.player) return;
+    const openingStartCamera = getCameraFollowTarget(current);
+    current.cameraX = openingStartCamera.targetCameraX;
+    current.targetCameraX = openingStartCamera.targetCameraX;
+    current.cameraMode = openingStartCamera.mode;
+    current.cameraFocusTarget = openingStartCamera.focusTarget;
+  }, []);
+
+  const markScribeExteriorStartKnown = useCallback((current) => {
+    current?.hiddenRoomsFound?.add('scribe-locked-chamber');
+    current?.discoveredHiddenRouteIds?.add('scribe-locked-chamber-route');
+  }, []);
+
   const startOpeningCinematic = useCallback(({ speechEnabled = true, fromArrivalThreshold = false } = {}) => {
     const current = stateRef.current;
     const isRomeCinematic = scopedJourneyAssetPacks.isRomeJourney;
@@ -4380,8 +4394,8 @@ export default function ExpeditionJourney({
       current.player.y = GROUND_Y - current.player.height;
       current.player.vx = 0;
       current.player.vy = 0;
-      current.cameraX = 0;
-      current.targetCameraX = 0;
+      markScribeExteriorStartKnown(current);
+      frameOpeningStartCamera(current);
       if (!applyOpeningEntranceStage(current)) {
         current.cinematicEvent = {
           id: 'opening-confrontation-replay-skipped',
@@ -4454,7 +4468,7 @@ export default function ExpeditionJourney({
     current.cameraShakeStrength = Math.max(current.cameraShakeStrength, 0.18);
     setBriefingOpen(false);
     syncHud();
-  }, [applyOpeningEntranceStage, audioControls, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, syncHud, targetCivilisation]);
+  }, [applyOpeningEntranceStage, audioControls, frameOpeningStartCamera, markScribeExteriorStartKnown, openingAtmosphereSfxKey, scopedJourneyAssetPacks.isChinaJourney, scopedJourneyAssetPacks.isRomeJourney, syncHud, targetCivilisation]);
 
   const completeOpeningThresholdScene = useCallback((current) => {
     const openingCheckpoint = getRenderableCheckpoints().find(checkpoint => checkpoint.id === 'desert-entry');
@@ -4522,12 +4536,14 @@ export default function ExpeditionJourney({
     current.openingConfrontationSeen = true;
     current.player.vx = 0;
     current.player.vy = 0;
+    markScribeExteriorStartKnown(current);
+    frameOpeningStartCamera(current);
     if (!applyOpeningEntranceStage(current, { playAudio: true })) {
       current.notice = SCARAB_SEAL_TRIGGER.objectiveEchoLine;
     }
     setBriefingOpen(false);
     syncHud();
-  }, [applyOpeningEntranceStage, audioControls, completeOpeningThresholdScene, openingAtmosphereSfxKey, openingStartMode, syncHud]);
+  }, [applyOpeningEntranceStage, audioControls, completeOpeningThresholdScene, frameOpeningStartCamera, markScribeExteriorStartKnown, openingAtmosphereSfxKey, openingStartMode, syncHud]);
 
   // Dev-only quick start (paired with the `?play` flag in App.jsx / ExpeditionMode):
   // once the journey mounts, skip its briefing + opening cinematic so a cold
