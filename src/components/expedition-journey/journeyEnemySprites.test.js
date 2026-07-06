@@ -120,6 +120,27 @@ test('scorpion venom spit holds the tail instead of using the sting attack pose'
   assert.ok(venomPose.rotation < 0, 'venom spit should retain the raised-tail aim pose');
 });
 
+test('scorpion sting recovery keeps its visual anchor after lunging at Asha', () => {
+  const scorpion = {
+    id: 'scorpion-sting-recovery-anchor',
+    name: 'Sand Scorpion',
+    type: 'scorpion',
+    attackPattern: 'sting',
+    attackDirection: 1,
+    direction: 1,
+  };
+
+  const attackingPose = getEnemyBodyLanguagePose(scorpion, 'attacking');
+  const cooldownPose = getEnemyBodyLanguagePose(scorpion, 'cooldown');
+
+  assert.ok(attackingPose.offsetX > 0, 'sting should still visibly lunge toward Asha');
+  assert.ok(cooldownPose.offsetY > attackingPose.offsetY, 'recovery should dip down after the lunge');
+  assert.ok(
+    Math.abs(cooldownPose.offsetX - attackingPose.offsetX) <= 2,
+    `recovery should settle near the attack pose instead of snapping backward (${attackingPose.offsetX} -> ${cooldownPose.offsetX})`,
+  );
+});
+
 test('scorpion venom projectile releases at attack start instead of windup start', () => {
   assert.doesNotMatch(
     journeySimulationSource,

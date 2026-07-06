@@ -27,14 +27,20 @@ import {
   DESERT_JOURNEY_TRANSITION_MASKS,
 } from './journeyDesertBackgroundPanels.js';
 import {
+  JOURNEY_HORIZONTAL_SCALE,
   SCRIBE_CHAMBER_EXTERIOR_APPROACH_X,
   SCRIBE_CHAMBER_EXTERIOR_DOORWAY_X,
 } from './journeyConstants.js';
 import { SCARAB_QUEEN_DRAW_OFFSET_X } from './journeyBossSprites.js';
+import { computeRitualClimbLedges } from './ritualBuildingClimb.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
 import { journeyComponentSource } from './journeySourceText.test-utils.mjs';
 
 const JOURNEY_TEST_VIEWPORT_WIDTH = 1280;
+const GENERATED_PLACEMENT_OVERRIDE_TEST_SCALE = 7.35;
+const scaleGeneratedOverrideXForTest = value => Math.round(
+  value * (JOURNEY_HORIZONTAL_SCALE / GENERATED_PLACEMENT_OVERRIDE_TEST_SCALE),
+);
 const journeyBackgroundAssetsSource = readFileSync('src/components/expedition-journey/journeyBackgroundAssets.js', 'utf8');
 
 const readPngInfo = (assetPath) => {
@@ -412,15 +418,16 @@ test('journeyDataRouter lays the ritual climb ledges from the building while jou
 
   const basePlatform = BASE_PLATFORMS.find(platform => platform.id === 'mummification-chamber-left-lower-terrace');
   const routedPlatform = ROUTED_PLATFORMS.find(platform => platform.id === 'mummification-chamber-left-lower-terrace');
+  const expectedRoutedPlatform = computeRitualClimbLedges().get('mummification-chamber-left-lower-terrace');
 
   // Base keeps the authored (old-facade) coords in journeyLevelData.
   assert.equal(basePlatform.width, 311);
   // Routed coords are computed as a fraction of the Ritual Chamber building, so a
   // building resize (desertLayerTuning.ritualPyramid) moves the whole climb with it
   // (ritualBuildingClimb.js). These values follow the current 764-tall / 1.1-wide building.
-  assert.equal(routedPlatform.width, 195);
-  assert.equal(routedPlatform.x, 5004);
-  assert.equal(routedPlatform.y, 452);
+  assert.equal(routedPlatform.width, expectedRoutedPlatform.width);
+  assert.equal(routedPlatform.x, expectedRoutedPlatform.x);
+  assert.equal(routedPlatform.y, expectedRoutedPlatform.y);
 });
 
 test('sacred exterior editor overrides stay aligned after horizontal scale changes', () => {
@@ -432,14 +439,14 @@ test('sacred exterior editor overrides stay aligned after horizontal scale chang
 
   assert.equal(propById('forgotten-mural-climb-structure'), undefined);
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('forgotten-mural-climb-structure'));
-  assert.equal(platformById('forgotten-mural-upper-doorway-floor')?.x, 7528);
+  assert.equal(platformById('forgotten-mural-upper-doorway-floor')?.x, scaleGeneratedOverrideXForTest(7528));
   assert.equal(platformById('forgotten-mural-upper-doorway-floor')?.y, 193);
-  assert.equal(hazardById('desert-soft-ridge')?.x, 7034);
-  assert.equal(hazardById('broken-ruins-loose-stones')?.x, 7797);
+  assert.equal(hazardById('desert-soft-ridge')?.x, scaleGeneratedOverrideXForTest(7034));
+  assert.equal(hazardById('broken-ruins-loose-stones')?.x, scaleGeneratedOverrideXForTest(7797));
 
   assert.ok(propById('scribe-chamber-doorway-structure'), 'Scribe exterior structure should remain visible in routed data');
   assert.ok(!journeyPlacementOverrides.deletedPropIds.includes('scribe-chamber-doorway-structure'));
-  assert.equal(platformById('scribe-chamber-doorway-threshold')?.x, 13444);
+  assert.equal(platformById('scribe-chamber-doorway-threshold')?.x, scaleGeneratedOverrideXForTest(13444));
   assert.equal(platformById('scribe-chamber-doorway-threshold')?.y, 595);
 });
 

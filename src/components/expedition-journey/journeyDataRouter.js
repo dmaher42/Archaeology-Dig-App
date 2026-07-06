@@ -3,10 +3,50 @@ import * as ChinaData from './chinaJourneyData.js';
 import * as RomeData from './romeJourneyData.js';
 import journeyPlacementOverrides from './journeyPlacementOverrides.generated.js';
 import journeyPropBlendOverrides from './journeyPropBlendOverrides.js';
+import { JOURNEY_HORIZONTAL_SCALE } from './journeyConstants.js';
 import { applyJourneyPlacementOverrides } from './journeyPlacementOverrides.js';
 import { applyRitualClimbLayout, applyRitualClimbRouteBounds } from './ritualBuildingClimb.js';
 
 let currentCiv = 'Ancient Egypt';
+
+const GENERATED_PLACEMENT_OVERRIDE_HORIZONTAL_SCALE = 7.35;
+
+const scalePlacementOverrideFields = (item, fields = [], ratio = 1) => {
+  if (!item || typeof item !== 'object') return item;
+  const next = { ...item };
+  fields.forEach((field) => {
+    if (Number.isFinite(next[field])) next[field] = Math.round(next[field] * ratio);
+  });
+  return next;
+};
+
+const scalePlacementOverrideItems = (items, fields, ratio) => (
+  Array.isArray(items)
+    ? items.map(item => scalePlacementOverrideFields(item, fields, ratio))
+    : items
+);
+
+const scaleGeneratedPlacementOverridesForRoute = (overrides = {}) => {
+  const ratio = JOURNEY_HORIZONTAL_SCALE / GENERATED_PLACEMENT_OVERRIDE_HORIZONTAL_SCALE;
+  if (!Number.isFinite(ratio) || Math.abs(ratio - 1) < 0.001) return overrides;
+
+  return {
+    ...overrides,
+    props: scalePlacementOverrideItems(overrides.props, ['x'], ratio),
+    platforms: scalePlacementOverrideItems(overrides.platforms, ['x', 'width'], ratio),
+    hazards: scalePlacementOverrideItems(overrides.hazards, ['x', 'launcherX'], ratio),
+    routeGates: scalePlacementOverrideItems(overrides.routeGates, ['x'], ratio),
+    routeGateDoorways: scalePlacementOverrideItems(overrides.routeGateDoorways, ['anchorX', 'blockX'], ratio),
+    hiddenRoutes: scalePlacementOverrideItems(overrides.hiddenRoutes, ['x', 'width'], ratio),
+    checkpoints: scalePlacementOverrideItems(overrides.checkpoints, ['x', 'markerX'], ratio),
+    enemies: scalePlacementOverrideItems(overrides.enemies, ['x'], ratio),
+    miniBosses: scalePlacementOverrideItems(
+      overrides.miniBosses,
+      ['x', 'patrolMin', 'patrolMax', 'arenaStart', 'arenaEnd', 'lairX', 'lairWidth'],
+      ratio,
+    ),
+  };
+};
 
 const EgyptEditorPlacementData = applyJourneyPlacementOverrides({
   enemies: EgyptData.ENEMIES,
@@ -18,7 +58,7 @@ const EgyptEditorPlacementData = applyJourneyPlacementOverrides({
   hiddenRoutes: EgyptData.HIDDEN_ROUTES,
   checkpoints: EgyptData.CHECKPOINTS,
   miniBosses: EgyptData.MINI_BOSSES,
-}, journeyPlacementOverrides);
+}, scaleGeneratedPlacementOverridesForRoute(journeyPlacementOverrides));
 
 // Small, hand-authored polish layer for scene-blending fixes that should survive
 // future editor exports. Use this for deliberate fake-bury/contact-strip passes,

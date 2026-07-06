@@ -73,6 +73,13 @@ const journeyBackgroundAssetsSource = readFileSync(new URL('./journeyBackgroundA
 const journeyCollectibleSpritesSource = readFileSync(new URL('./journeyCollectibleSprites.js', import.meta.url), 'utf8');
 const journeyRenderAssetsSource = readFileSync(new URL('./journeyRenderAssets.js', import.meta.url), 'utf8');
 const useJourneyRendererSource = journeyRendererSource;
+const getOpeningStartCameraXForTest = () => Math.max(
+  0,
+  Math.min(
+    DESERT_ENTRY_EXTERIOR_SPAWN_X + PLAYER_WIDTH / 2 - CANVAS_WIDTH * 0.38,
+    WORLD_WIDTH - CANVAS_WIDTH,
+  ),
+);
 const journeyEditorShortcutsPath = new URL('./useJourneyPlacementEditorShortcuts.js', import.meta.url);
 const journeyEditorShortcutsSource = existsSync(journeyEditorShortcutsPath)
   ? readFileSync(journeyEditorShortcutsPath, 'utf8')
@@ -155,8 +162,12 @@ const ashaV6HiresPlayerAtlas = JSON.parse(
 );
 
 test('Journey world stretch uses the widened horizontal route scale', () => {
-  assert.ok(JOURNEY_HORIZONTAL_SCALE >= 7.3);
+  const previousRouteScale = 7.35;
+  const routeWidthIncreasePercent = ((JOURNEY_HORIZONTAL_SCALE / previousRouteScale) - 1) * 100;
+  assert.equal(JOURNEY_HORIZONTAL_SCALE, 8.82);
+  assert.equal(Math.round(routeWidthIncreasePercent * 10) / 10, 20);
   assert.equal(WORLD_WIDTH, scaleJourneyX(9060));
+  assert.equal(WORLD_WIDTH, 79909);
 });
 
 test('Arrival Threshold spawn floor matches the raised chamber artwork', () => {
@@ -1259,7 +1270,13 @@ test('journey editor prop palette exposes premium modular floor kit inserts', ()
 });
 
 test('desert entry ground collision uses the integrated painted route instead of a separate strip', () => {
-  assert.equal(DESERT_ENTRY_EXTERIOR_SPAWN_X, SCARAB_SEAL_TRIGGER.x - PLAYER_WIDTH / 2);
+  const openingStartCameraX = getOpeningStartCameraXForTest();
+  assert.equal(Math.round(openingStartCameraX), 74);
+  assert.equal(Math.round(DESERT_ENTRY_EXTERIOR_SPAWN_X - openingStartCameraX), 412);
+  assert.ok(
+    DESERT_ENTRY_EXTERIOR_SPAWN_X < SCARAB_SEAL_TRIGGER.x - PLAYER_WIDTH / 2,
+    'Asha should start at the breach doorway tableau before the scarab seal objective',
+  );
   assert.match(journeyUtilsSource, /x:\s*DESERT_ENTRY_EXTERIOR_SPAWN_X/);
   assert.match(journeyComponentSource, /current\.player\.x = DESERT_ENTRY_EXTERIOR_SPAWN_X/);
   assert.doesNotMatch(journeyComponentSource, /current\.player\.x = 44/);
@@ -1713,7 +1730,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.doesNotMatch(storyProps, /id:\s*'forgotten-mural-alcove-panel'/);
   assert.match(journeyComponentSource, /prop\.type === 'generated-climb-structure'/);
   assert.match(journeyComponentSource, /drawForgottenMuralGeneratedAsset/);
-  assert.match(journeyComponentSource, /const visibilityWidth = Math\.max\(440, Number\(prop\.width\) \|\| 0\);/);
+  assert.match(journeyComponentSource, /const visibilityWidth = getStoryPropVisibilityWidth\(prop, getStoryPropEditorSize\);/);
   assert.match(journeyComponentSource, /ctx\.drawImage\(structureAsset\.image/);
   assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStructure/);
   assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStair/);

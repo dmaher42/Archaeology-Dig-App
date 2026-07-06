@@ -4,24 +4,23 @@ export const PROP_EDITOR_ROTATE_OFFSET = 26; // px above the box for the rotate 
 
 export const drawContactShadow = (ctx, x, y, width, intensity = 0.28, blur = 0, options = {}) => {
   const shadowHeight = options.height ?? Math.max(4, width / 16);
+  const coreX = x + (options.coreOffsetX || 0);
+  const coreY = y + (options.coreOffsetY || 0);
+  const radius = Math.max(18, width / 2);
+  const shadowGradient = ctx.createRadialGradient(coreX, coreY, 0, x, y, radius);
+  const coreColor = options.coreColor || options.color || 'rgba(44, 24, 10, 0.78)';
+  const midColor = options.color || 'rgba(67, 39, 18, 0.48)';
+  const edgeColor = options.edgeColor || 'rgba(98, 60, 25, 0)';
+  shadowGradient.addColorStop(0, coreColor);
+  shadowGradient.addColorStop(0.48, midColor);
+  shadowGradient.addColorStop(1, edgeColor);
+
   ctx.save();
   ctx.globalAlpha = intensity;
   if (blur > 0) ctx.filter = `blur(${blur}px)`;
-  ctx.fillStyle = options.color || '#1f1308';
+  ctx.fillStyle = shadowGradient;
   ctx.beginPath();
-  ctx.ellipse(x, y, Math.max(16, width / 2), shadowHeight, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = intensity * 0.42;
-  ctx.beginPath();
-  ctx.ellipse(
-    x + (options.coreOffsetX || 0),
-    y + (options.coreOffsetY || 0),
-    Math.max(10, width / 3.4),
-    Math.max(2.5, shadowHeight * 0.52),
-    0,
-    0,
-    Math.PI * 2,
-  );
+  ctx.ellipse(x, y, radius, shadowHeight, options.rotation ?? -0.035, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 };

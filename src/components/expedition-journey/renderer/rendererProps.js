@@ -75,6 +75,19 @@ export function drawPropSandOcclusionFrame(ctx, x, anchorY, propSize, sectionId,
   ctx.restore();
 }
 
+export const getStoryPropVisibilityWidth = (prop = {}, getStoryPropEditorSize) => {
+  const propSize = typeof getStoryPropEditorSize === 'function'
+    ? getStoryPropEditorSize(prop)
+    : null;
+  const baseWidth = Number.isFinite(propSize?.width)
+    ? propSize.width
+    : Number(prop.width) || 0;
+  const widthScale = Number.isFinite(prop.widthScale)
+    ? Math.max(0.2, Math.min(3, prop.widthScale))
+    : 1;
+  return Math.max(440, baseWidth * widthScale);
+};
+
 export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = null, deps) {
   const {
     DRAW_JOURNEY_FLAG_MARKERS,
@@ -133,7 +146,7 @@ export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = nul
     if (outlinerEditor?.enabled && outlinerEditor.hiddenIds?.has(prop.id)) return;
   }
   const x = worldToScreenX(prop.x, cameraX);
-  const visibilityWidth = Math.max(440, Number(prop.width) || 0);
+  const visibilityWidth = getStoryPropVisibilityWidth(prop, getStoryPropEditorSize);
   if (!isHorizontallyVisible(prop.x - visibilityWidth / 2, visibilityWidth, cameraX)) return;
 
   ctx.save();

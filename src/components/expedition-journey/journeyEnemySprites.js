@@ -696,7 +696,8 @@ export const getEnemyBodyLanguagePose = (enemy, combatMode) => {
       return { offsetX: direction * 5, offsetY: -1, scaleX: 1.05, scaleY: 0.98, rotation: direction * 0.025 };
     }
     if (combatMode === 'cooldown') {
-      return { offsetX: -direction * 2, offsetY: 4, scaleX: 0.98, scaleY: 0.93, rotation: direction * 0.065 };
+      const offsetX = isVenomSpit ? -direction * 1 : direction * 3;
+      return { offsetX, offsetY: 4, scaleX: 0.98, scaleY: 0.93, rotation: direction * 0.065 };
     }
     if (combatMode === 'stunned') {
       return { offsetX: -direction * 3, offsetY: 2, scaleX: 0.98, scaleY: 0.94, rotation: direction * 0.085 };
