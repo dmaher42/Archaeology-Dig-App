@@ -2995,7 +2995,7 @@ export default function ExpeditionJourney({
     gridSize: DEFAULT_JOURNEY_PROP_EDITOR_GRID_SIZE,
     paletteOpen: false,
     selectedPaletteKey: null,
-    selectedPaletteCategory: 'prop',
+    selectedPaletteCategory: 'arch-prop',
     recentPaletteKeys: [],
     stampMode: false,
     showTrapTriggers: true,

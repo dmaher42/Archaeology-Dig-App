@@ -313,3 +313,67 @@ test('journey prop palette drawer override stays isolated and imported after the
   assert.match(drawerCss, /\.journey-prop-palette-copy span\s*\{[^}]*display:\s*none;/);
   assert.match(drawerCss, /\.journey-prop-palette-list \.journey-prop-palette-group-toggle\s*\{[^}]*display:\s*none;/);
 });
+
+test('journey prop palette can use the readable sidebar browser layout', () => {
+  const drawerCss = readFileSync(journeyPropPaletteDrawerCssUrl, 'utf8');
+  const panelSource = readFileSync(
+    new URL('../components/expedition-journey/JourneyPlacementEditorPanel.jsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(
+    panelSource,
+    /className=\{`journey-prop-palette-panel \$\{propEditorUi\.paletteDockLayout === 'sidebar' \? 'is-sidebar-layout' : ''\}`\}/,
+    'the rendered palette should activate the sidebar CSS when the editor state asks for it',
+  );
+  assert.match(
+    panelSource,
+    /journey-prop-palette-layout-toggle/,
+    'the palette should expose a clear toggle between sidebar browser and compact tray layouts',
+  );
+  assert.match(
+    panelSource,
+    /journey-prop-palette-details-box/,
+    'the sidebar palette should show selected-item details and placement guidance',
+  );
+  assert.match(
+    drawerCss,
+    /\.journey-prop-palette-panel\.is-sidebar-layout\s*\{[^}]*width:\s*clamp\(20rem, 28vw, 25rem\);/,
+    'the sidebar should be wide enough to read labels without becoming a full-screen overlay',
+  );
+  assert.match(
+    drawerCss,
+    /@media \(max-width:\s*760px\)[\s\S]*?\.journey-prop-palette-panel\.is-sidebar-layout\s*\{[^}]*top:\s*auto;/,
+    'the readable sidebar should collapse back into a bottom sheet on narrow screens',
+  );
+});
+
+test('journey prop palette titles name the broad browsing categories', () => {
+  const panelSource = readFileSync(
+    new URL('../components/expedition-journey/JourneyPlacementEditorPanel.jsx', import.meta.url),
+    'utf8',
+  );
+  const journeySource = readFileSync(
+    new URL('../components/ExpeditionJourney.jsx', import.meta.url),
+    'utf8',
+  );
+
+  [
+    ['arch-prop', 'Architecture palette'],
+    ['env-prop', 'Atmosphere palette'],
+    ['bridge-floor-prop', 'Bridges & Floors palette'],
+    ['sacred-prop', 'Camp & Sacred palette'],
+  ].forEach(([category, title]) => {
+    assert.equal(
+      panelSource.includes(`'${category}': '${title}'`),
+      true,
+      `${category} should have a specific palette title`,
+    );
+  });
+
+  assert.match(
+    journeySource,
+    /selectedPaletteCategory:\s*'arch-prop'/,
+    'the editor should open on a concrete category instead of the unfiltered all-props bucket',
+  );
+});
