@@ -1,4 +1,10 @@
+import { JOURNEY_PROP_PALETTE_DOCK_KEY } from './journeyConstants.js';
+
 const PROP_EDITOR_PALETTE_TITLES = {
+  'arch-prop': 'Architecture palette',
+  'env-prop': 'Atmosphere palette',
+  'bridge-floor-prop': 'Bridges & Floors palette',
+  'sacred-prop': 'Camp & Sacred palette',
   trap: 'Trap palette',
   platform: 'Platform palette',
   'ground-detail': 'Ground Details palette',
@@ -2082,8 +2088,11 @@ export function JourneyPlacementEditorPanel({
               const armedPaletteItem = propEditorUi.selectedPaletteKey
                 ? propEditorUi.palette.find(item => item.key === propEditorUi.selectedPaletteKey)
                 : null;
+              const armedPaletteAssetKey = armedPaletteItem
+                ? armedPaletteItem.preview?.assetKey || armedPaletteItem.atmosphereAssetKey || armedPaletteItem.imageAssetKey || armedPaletteItem.type
+                : null;
               return (
-              <div className="journey-prop-palette-panel" aria-label="Prop palette">
+              <div className={`journey-prop-palette-panel ${propEditorUi.paletteDockLayout === 'sidebar' ? 'is-sidebar-layout' : ''}`} aria-label="Prop palette">
                 <div className="journey-prop-editor-export-header">
                   <strong>{paletteTitles[propEditorUi.selectedPaletteCategory] || 'Prop palette'}</strong>
                   <input
@@ -2097,6 +2106,25 @@ export function JourneyPlacementEditorPanel({
                     onKeyDown={handlePaletteSearchKeyDown}
                   />
                   <span>{paletteSearching ? `${filteredPalette.length} of ${propEditorUi.palette.length}` : `${propEditorUi.palette.length} items`}</span>
+                  <button
+                    type="button"
+                    className="journey-prop-palette-layout-toggle"
+                    title={propEditorUi.paletteDockLayout === 'sidebar'
+                      ? 'Switch to compact bottom tray'
+                      : 'Switch to readable side browser'}
+                    onClick={() => {
+                      const ed = propPlacementEditorRef.current;
+                      ed.paletteDockLayout = propEditorUi.paletteDockLayout === 'sidebar' ? 'tray' : 'sidebar';
+                      try {
+                        window.localStorage.setItem(JOURNEY_PROP_PALETTE_DOCK_KEY, ed.paletteDockLayout);
+                      } catch {
+                        /* ignore palette layout persistence errors */
+                      }
+                      refreshPropEditorUi();
+                    }}
+                  >
+                    {propEditorUi.paletteDockLayout === 'sidebar' ? 'Sidebar' : 'Tray'}
+                  </button>
                   <button
                     type="button"
                     className={`journey-prop-palette-stamp${propEditorUi.stampMode ? ' is-selected' : ''}`}
@@ -2257,11 +2285,21 @@ export function JourneyPlacementEditorPanel({
                   </div>
                 </div>
                 {armedPaletteItem && (
-                  <div className="journey-prop-palette-armed-hint journey-prop-palette-selection-tray">
-                    <strong>{armedPaletteItem.label}</strong>
-                    {propEditorUi.stampMode
-                      ? ' armed — click in the world to place. Stamp mode keeps it armed. Esc cancels.'
-                      : ' armed — click in the world to place. Esc cancels.'}
+                  <div className="journey-prop-palette-details-box journey-prop-palette-selection-tray">
+                    <div className="journey-prop-palette-details-row">
+                      <span className="journey-prop-palette-details-title">
+                        <strong>{armedPaletteItem.label}</strong>
+                        <em className="journey-prop-palette-details-category">{armedPaletteItem.category || 'General'}</em>
+                      </span>
+                      <span>{propEditorUi.stampMode ? 'Stamp mode' : 'Single place'}</span>
+                    </div>
+                    <div className="journey-prop-palette-details-meta">
+                      <span>Type <code>{armedPaletteItem.type}</code></span>
+                      {armedPaletteAssetKey && <span>Asset <code>{armedPaletteAssetKey}</code></span>}
+                    </div>
+                    <div className="journey-prop-palette-details-hint">
+                      Click in the world to place. Esc cancels{propEditorUi.stampMode ? '; stamp mode keeps this prop armed.' : '.'}
+                    </div>
                   </div>
                 )}
               </div>
