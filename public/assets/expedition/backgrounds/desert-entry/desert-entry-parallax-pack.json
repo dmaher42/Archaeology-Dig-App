@@ -3,7 +3,7 @@
   "imageWidth": 2172,
   "imageHeight": 724,
   "visualPass": "sky-only-cracked-gold-refresh-2026-07-04",
-  "notes": "Layered necropolis rebuild, sky-only cracked-gold sunset refresh, processional-road gameplay lane refresh, and warm detailed ground-backing refresh for the opening Egypt Journey scene. The active art direction is warm semi-realistic Valley of the Kings cliffs crossed with Memphite Necropolis ruins, with only subtle corruption marks. The background is split into full-width scene strips for sky/light, far pyramids, distant cliffs, mid necropolis ruins, a low dust-haze band, and a dedicated world-locked processional road. The skyLight layer must remain an opaque sky-only strip with no terrain, ruins, pyramids, cliffs, or visible sun disc baked into it. These active scene layers must not be replaced by single-object cutout plates. The processional road is visual only; the clean flat platform data remains the gameplay source for collision, enemies, shards, checkpoints, and gates. The ground backing layer is non-colliding visual support so the walkable floor reads as continuous land instead of a floating ledge.",
+  "notes": "Layered necropolis rebuild, sky-only cracked-gold sunset refresh, processional-road gameplay lane refresh, clean warm-sand necropolis footing-apron ground-backing refresh, and opaque painted ground-transition apron for the opening Egypt Journey scene. The active art direction is warm semi-realistic Valley of the Kings cliffs crossed with Memphite Necropolis ruins, with only subtle corruption marks. The background is split into full-width scene strips for sky/light, far pyramids, distant cliffs, mid necropolis ruins, a low dust-haze band, and a dedicated world-locked processional road. The skyLight layer must remain an opaque sky-only strip with no terrain, ruins, pyramids, cliffs, or visible sun disc baked into it. These active scene layers must not be replaced by single-object cutout plates. The processional road is visual only; the clean flat platform data remains the gameplay source for collision, enemies, shards, checkpoints, and gates. The ground backing layer is non-colliding visual support with a mostly opaque ruin-footing apron, warm sand drifts, cracked dirt, scattered stones, broken brick, muted pottery fragments, and darker dirt pockets so the necropolis base reads as finished land without becoming the playable path. The ground transition apron is an opaque painted band of compacted sand, cracked earth, sandstone chips, broken brick dust, and low rubble drawn behind the rough road so the scene reads as solid ground instead of a ghosted transparent overlay.",
   "regions": {
     "skyLight": {
       "image": "desert-entry-sky-only-cracked-gold-2026-07-04.png",
@@ -41,25 +41,32 @@
       "h": 512
     },
     "groundBacking": {
-      "image": "desert-entry-warm-detailed-ground-backing-2026-07-04.png",
+      "image": "desert-entry-clean-warm-sand-ground-backing-2026-07-07.png",
       "x": 0,
       "y": 0,
-      "w": 1817,
-      "h": 563
+      "w": 4096,
+      "h": 512
+    },
+    "groundTransition": {
+      "image": "desert-entry-solid-ground-transition-rubble-apron-2026-07-07.png",
+      "x": 0,
+      "y": 0,
+      "w": 4096,
+      "h": 256
     },
     "groundLane": {
-      "image": "desert-entry-processional-road-groundlane-2026-07-03.png",
+      "image": "desert-entry-rough-processional-road-groundlane-2026-07-06.png",
       "x": 0,
       "y": 0,
       "w": 4096,
       "h": 512
     },
     "foregroundRubble": {
-      "image": "desert-entry-dust-haze-tile-2026-07-03.png",
+      "image": "desert-entry-generated-foreground-rubble-solid-2026-07-02.png",
       "x": 0,
       "y": 0,
-      "w": 4096,
-      "h": 512
+      "w": 2172,
+      "h": 220
     },
     "foregroundDepth": {
       "image": "desert-entry-egypt-true-foreground-depth-2026-06-27.png",
@@ -83,7 +90,7 @@
       "h": 865
     }
   },
-  "groundLaneNote": "Dedicated processional-road stone path layer. Drawn at parallax 1.0 (locked to the world / collision floor) so Asha runs on the same visible route that collision, enemies, shards, checkpoints, and gates use. The painted curb and chipped underside are visual only; collision remains a clean flat invisible gameplay lane.",
+  "groundLaneNote": "Dedicated rough processional-road path layer. Drawn at parallax 1.0 (locked to the world / collision floor) so Asha runs on the same visible route that collision, enemies, shards, checkpoints, and gates use. The broken paving, sand, and low rubble are visual only; collision remains a clean flat invisible gameplay lane.",
   "runtimeMode": "layered-necropolis-playable-route",
-  "coordinateNote": "The active runtime uses layered PNGs. skyLight carries the warm sunset and base haze; farPyramids, distantCliffs, and midNecropolisRuins each draw at a different camera speed so the Egypt background has real depth instead of a single flat plate. dustHaze sits between the necropolis and playable road; groundBacking sits directly behind and under the gameplay floor as a visual-only sand body; groundLane scrolls at gameplay speed and remains the visible source of truth for the walkable floor. Future rebuilds should preserve this full-width parallax structure with a high quality Valley of the Kings plus Memphite Necropolis set that preserves the ravine bridge and pyramid climb route."
+  "coordinateNote": "The active runtime uses layered PNGs. skyLight carries the warm sunset and base haze; farPyramids, distantCliffs, and midNecropolisRuins each draw at a different camera speed so the Egypt background has real depth instead of a single flat plate. dustHaze sits between the necropolis and playable road; groundBacking sits directly behind and under the gameplay floor as a visual-only sand body; groundTransition draws as an opaque world-locked ground apron behind the road; groundLane scrolls at gameplay speed and remains the visible source of truth for the walkable floor. Future rebuilds should preserve this full-width parallax structure with a high quality Valley of the Kings plus Memphite Necropolis set that preserves the ravine bridge and pyramid climb route."
 }

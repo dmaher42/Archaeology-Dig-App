@@ -294,6 +294,13 @@ const getBackgroundRegionImage = (assets, key) => {
   return { region, image };
 };
 
+const getDesertGroundLayerFilter = (config = {}) => {
+  const brightness = config.brightness ?? 1;
+  const saturate = config.saturate ?? 1;
+  const contrast = config.contrast ?? 1;
+  return `sepia(4%) brightness(${brightness}) saturate(${saturate}) contrast(${contrast})`;
+};
+
 function drawSinglePanoramaLayer(ctx, assets, key, dest, options = {}) {
   const layer = getBackgroundRegionImage(assets, key);
   if (!layer) return false;
@@ -335,6 +342,7 @@ function drawSingleGroundLayer(ctx, assets, key, dest, options = {}) {
     cameraX = 0,
     parallax = 1,
     alpha = 1,
+    filter = null,
   } = options;
   const { region, image } = layer;
   if (!canvasWidth) return false;
@@ -347,6 +355,7 @@ function drawSingleGroundLayer(ctx, assets, key, dest, options = {}) {
 
   ctx.save();
   ctx.globalAlpha = alpha;
+  if (filter) ctx.filter = filter;
   for (let x = firstX; x < canvasWidth; x += drawWidth) {
     ctx.drawImage(
       image,
@@ -367,13 +376,15 @@ function drawDesertEntryGroundLayer(ctx, assets, key, dest, options = {}) {
     cameraX = 0,
     parallax = 1,
     alpha = 1,
+    filter = null,
+    minTileWidth = 0,
   } = options;
   const { region, image } = layer;
   const { y, height } = dest;
   if (!canvasWidth || height <= 0) return false;
 
   const sourceRatio = region.w / region.h;
-  const layerTileWidth = Math.max(canvasWidth + 2, height * sourceRatio);
+  const layerTileWidth = Math.max(canvasWidth + 2, height * sourceRatio, minTileWidth);
   const tileOverlap = Math.max(14, Math.round(layerTileWidth * 0.018));
   const tileStep = Math.max(1, layerTileWidth - tileOverlap);
   const scroll = ((cameraX * parallax) % tileStep + tileStep) % tileStep;
@@ -382,6 +393,7 @@ function drawDesertEntryGroundLayer(ctx, assets, key, dest, options = {}) {
 
   ctx.save();
   ctx.globalAlpha = alpha;
+  if (filter) ctx.filter = filter;
   while (x > 0) {
     x -= tileStep;
     tileIndex -= 1;
@@ -572,6 +584,62 @@ function drawDesertEntryLayerCohesionGrade(ctx, canvasWidth, canvasHeight, optio
   depthVignette.addColorStop(1, `rgba(51, 23, 9, ${0.15 * intensity})`);
   ctx.fillStyle = depthVignette;
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+  ctx.restore();
+}
+
+function drawDesertEntryTempleBaseIntegrationGrade(ctx, canvasWidth, options = {}) {
+  const {
+    groundY = 558,
+    intensity = 1,
+  } = options;
+  if (intensity <= 0) return;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  const baseDust = ctx.createLinearGradient(0, groundY - 172, 0, groundY + 36);
+  baseDust.addColorStop(0, 'rgba(230, 178, 112, 0)');
+  baseDust.addColorStop(0.24, `rgba(230, 178, 112, ${0.04 * intensity})`);
+  baseDust.addColorStop(0.48, `rgba(185, 113, 49, ${0.06 * intensity})`);
+  baseDust.addColorStop(0.72, `rgba(105, 64, 31, ${0.038 * intensity})`);
+  baseDust.addColorStop(1, 'rgba(105, 64, 31, 0)');
+  ctx.fillStyle = baseDust;
+  ctx.fillRect(0, groundY - 172, canvasWidth, 208);
+
+  const floorLift = ctx.createLinearGradient(0, groundY - 118, 0, groundY - 12);
+  floorLift.addColorStop(0, 'rgba(255, 215, 139, 0)');
+  floorLift.addColorStop(0.52, `rgba(255, 210, 132, ${0.035 * intensity})`);
+  floorLift.addColorStop(1, 'rgba(255, 210, 132, 0)');
+  ctx.fillStyle = floorLift;
+  ctx.fillRect(0, groundY - 118, canvasWidth, 106);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  const ruinFootOcclusion = ctx.createLinearGradient(0, groundY - 132, 0, groundY - 26);
+  ruinFootOcclusion.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  ruinFootOcclusion.addColorStop(0.58, `rgba(103, 59, 28, ${0.05 * intensity})`);
+  ruinFootOcclusion.addColorStop(1, 'rgba(255, 255, 255, 1)');
+  ctx.fillStyle = ruinFootOcclusion;
+  ctx.fillRect(0, groundY - 132, canvasWidth, 106);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 18; i += 1) {
+    const y = groundY - 124 + (i % 9) * 11 + Math.sin(i * 1.9) * 5;
+    const x = ((Math.sin(i * 14.37) + 1) * 0.5) * canvasWidth;
+    const w = 160 + ((i * 47) % 260);
+    const alpha = (i % 2 === 0 ? 0.022 : 0.016) * intensity;
+    ctx.strokeStyle = i % 3 === 0
+      ? `rgba(83, 52, 27, ${alpha})`
+      : `rgba(236, 184, 108, ${alpha})`;
+    ctx.lineWidth = 3 + (i % 4);
+    ctx.beginPath();
+    ctx.moveTo(x - w * 0.5, y);
+    ctx.quadraticCurveTo(x, y + Math.sin(i * 0.73) * 10, x + w * 0.5, y + Math.cos(i) * 4);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -824,6 +892,10 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
       groundY: T.groundLane.y,
       intensity: 0.68,
     });
+    drawDesertEntryTempleBaseIntegrationGrade(ctx, CANVAS_WIDTH, {
+      groundY: T.groundLane.y,
+      intensity: 0.5,
+    });
   }
   if (assets.atlas?.devCandidateLabel) {
     ctx.save();
@@ -873,7 +945,13 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
       assets,
       'groundBacking',
       { y: assets.atlas?.candidateGroundBackingDrawY ?? 560 },
-      { canvasWidth: CANVAS_WIDTH, cameraX, parallax: T.groundBacking.parallax, alpha: T.groundBacking.alpha },
+      {
+        canvasWidth: CANVAS_WIDTH,
+        cameraX,
+        parallax: T.groundBacking.parallax,
+        alpha: T.groundBacking.alpha,
+        filter: getDesertGroundLayerFilter(T.groundBacking),
+      },
     )
     : drawDesertEntryGroundLayer(
       ctx,
@@ -885,6 +963,8 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         cameraX,
         parallax: T.groundBacking.parallax,
         alpha: T.groundBacking.alpha,
+        filter: getDesertGroundLayerFilter(T.groundBacking),
+        minTileWidth: CANVAS_WIDTH * 2.8,
       },
     );
   if (backingDrawn && !isV3ProductionCandidate) {
@@ -898,8 +978,8 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         cameraX,
         parallax: T.groundBacking.parallax,
         alpha: T.groundBacking.alpha,
-        opacity: 0.12,
-        seamWidth: 86,
+        opacity: 0,
+        seamWidth: 42,
       },
     );
   }
@@ -912,20 +992,48 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
     CANVAS_WIDTH,
   );
 
+  if (!isV3ProductionCandidate) {
+    drawDesertEntryGroundLayer(
+      ctx,
+      assets,
+      'groundTransition',
+      { y: T.groundTransition.y, height: T.groundTransition.height },
+      {
+        canvasWidth: CANVAS_WIDTH,
+        cameraX,
+        parallax: T.groundTransition.parallax,
+        alpha: T.groundTransition.alpha,
+        filter: getDesertGroundLayerFilter(T.groundTransition),
+      },
+    );
+  }
+
   const drawn = isV3ProductionCandidate
     ? drawSingleGroundLayer(
       ctx,
       assets,
       'groundLane',
       { y: assets.atlas?.candidateGroundLaneDrawY ?? 148 },
-      { canvasWidth: CANVAS_WIDTH, cameraX, parallax: T.groundLane.parallax, alpha: T.groundLane.alpha },
+      {
+        canvasWidth: CANVAS_WIDTH,
+        cameraX,
+        parallax: T.groundLane.parallax,
+        alpha: T.groundLane.alpha,
+        filter: getDesertGroundLayerFilter(T.groundLane),
+      },
     )
     : drawDesertEntryGroundLayer(
       ctx,
       assets,
       'groundLane',
       { y: T.groundLane.y, height: T.groundLane.height },
-      { canvasWidth: CANVAS_WIDTH, cameraX, parallax: T.groundLane.parallax, alpha: T.groundLane.alpha },
+      {
+        canvasWidth: CANVAS_WIDTH,
+        cameraX,
+        parallax: T.groundLane.parallax,
+        alpha: T.groundLane.alpha,
+        filter: getDesertGroundLayerFilter(T.groundLane),
+      },
     );
   if (drawn && !isV3ProductionCandidate) {
     drawDesertEntryGroundLayerTileSeamBreakup(
