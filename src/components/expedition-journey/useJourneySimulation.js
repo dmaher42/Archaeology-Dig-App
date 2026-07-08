@@ -55,6 +55,7 @@ import {
   shouldUseScorpionVenomSpit,
   shouldUseSnakeAmbushLunge,
   shouldUseWispDiveHarass,
+  shouldAllowEnemyAttackMovement,
   suppressEnemyForBossFocus,
   updateEnemyCombatTimers,
   updateEnemyDefeatedVisibility,
@@ -3281,6 +3282,16 @@ export function useJourneySimulation({
             maxTimer: 0.42,
           });
         }
+        if (shouldUseVenomSpit) {
+          addCombatEffect(current, {
+            type: 'enemy-pressure',
+            x: e.x + e.width / 2,
+            y: e.y + e.height * 0.28,
+            color: 'rgba(132, 204, 22, 0.5)',
+            timer: 0.46,
+            maxTimer: 0.46,
+          });
+        }
         if (pattern.id === WISP_DIVE_ATTACK_PATTERN.id) {
           addCombatEffect(current, {
             type: 'enemy-pressure',
@@ -3307,7 +3318,10 @@ export function useJourneySimulation({
         }
         const scarabPoisonedChargeNotice = e.type === 'scarab' && playerIsVenomSlowed;
         const isUnblockableAttack = isHeavyAttack && pattern.protectedDuringWindup;
-        if (shouldUseScorpionAntiAir) {
+        if (shouldUseVenomSpit) {
+          current.notice = `${e.name} aims venom. Keep moving or dodge before it spits.`;
+          current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.55);
+        } else if (shouldUseScorpionAntiAir) {
           current.notice = `${e.name} raises its tail. Jump is unsafe - land away or counter after the sting.`;
           current.damageNoticeTimer = Math.max(current.damageNoticeTimer || 0, 1.6);
         } else if (shouldUseWispDive) {
@@ -3502,7 +3516,15 @@ export function useJourneySimulation({
         e.x += e.knockbackDirection * 95 * dt;
       }
 
-      if (e.stunTimer <= 0 && e.attackWindup <= 0 && e.attackTimer <= 0 && e.attackRecovery <= 0) {
+      const attackMovementAllowed = shouldAllowEnemyAttackMovement({ enemy: e });
+      if (
+        e.stunTimer <= 0
+        && e.attackRecovery <= 0
+        && (
+          attackMovementAllowed
+          || (e.attackWindup <= 0 && e.attackTimer <= 0)
+        )
+      ) {
         // While this timer runs the enemy has given up an unwinnable chase and
         // walks back to its patrol ground instead of freezing at its leash end.
         e.patrolReturnTimer = Math.max(0, (e.patrolReturnTimer || 0) - dt);

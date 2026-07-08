@@ -131,11 +131,11 @@ export const SCORPION_VENOM_SLOW_MULTIPLIER = 0.48;
 export const SCORPION_VENOM_REFRESH_WINDOW = 0.9;
 export const SCORPION_VENOM_STAMINA_DAMAGE = 3;
 export const SCORPION_VENOM_ATTACK_PATTERN_TUNING = Object.freeze({
-  windup: 0.32,
+  windup: 0.44,
   duration: 0.42,
-  cooldown: 1.1,
-  recovery: 0.42,
-  vulnerableAfter: 0.54,
+  cooldown: 1.2,
+  recovery: 0.54,
+  vulnerableAfter: 0.7,
   damageScale: 0.55,
   staminaDamage: SCORPION_VENOM_STAMINA_DAMAGE,
 });
@@ -171,12 +171,12 @@ export const WISP_DIVE_HARASS_RANGE = CANVAS_WIDTH * 0.42;
 export const WISP_DIVE_ATTACK_PATTERN = {
   id: 'aerial-dive',
   label: 'Aerial Dive',
-  windup: 0.34,
-  duration: 0.32,
-  cooldown: 1.32,
-  recovery: 0.58,
-  vulnerableAfter: 0.72,
-  speed: 226,
+  windup: 0.46,
+  duration: 0.34,
+  cooldown: 1.42,
+  recovery: 0.68,
+  vulnerableAfter: 0.86,
+  speed: 206,
   range: 54,
   height: 82,
   yOffset: 24,
@@ -192,12 +192,12 @@ export const SNAKE_AMBUSH_LUNGE_START_RANGE = CANVAS_WIDTH * 0.32;
 export const SNAKE_AMBUSH_LUNGE_PATTERN = {
   id: 'ambush-lunge',
   label: 'Ambush Lunge',
-  windup: 0.58,
-  duration: 0.3,
-  cooldown: 1.62,
-  recovery: 0.94,
-  vulnerableAfter: 1.12,
-  speed: 214,
+  windup: 0.68,
+  duration: 0.34,
+  cooldown: 1.72,
+  recovery: 1.08,
+  vulnerableAfter: 1.24,
+  speed: 188,
   range: 82,
   height: 32,
   yOffset: 4,
@@ -488,6 +488,16 @@ export const shouldUseScorpionVenomSpit = ({
   && !meleeReachesPlayer
   && scorpionVenomCanReach
   && (venomSlowTimer || 0) <= SCORPION_VENOM_REFRESH_WINDOW
+);
+
+export const shouldAllowEnemyAttackMovement = ({ enemy } = {}) => (
+  enemy?.type === 'scorpion'
+  && enemy.attackPattern === 'venom-spit'
+  && (
+    (enemy.attackWindup || 0) > 0
+    || (enemy.attackTimer || 0) > 0
+  )
+  && (enemy.attackRecovery || 0) <= 0
 );
 
 export const shouldUseWispDiveHarass = ({

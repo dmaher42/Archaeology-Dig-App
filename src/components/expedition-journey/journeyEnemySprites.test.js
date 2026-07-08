@@ -166,9 +166,12 @@ test('scorpion sting is a high anti-jump attack that hits harder through existin
   assert.match(journeyComponentSource, /const meleeReachesPlayer = rectsOverlap\(/);
   assert.match(journeyGameplayContractSource, /const SCORPION_ANTI_AIR_ATTACK_PATTERN = \{[\s\S]*?id:\s*'anti-air-sting'[\s\S]*?height:\s*104[\s\S]*?airbornePunish:\s*true/);
   assert.match(journeyComponentSource, /const shouldUseScorpionAntiAir = shouldUseScorpionAntiAirSting\(\{/);
-  assert.match(journeyGameplayContractSource, /const SCORPION_VENOM_ATTACK_PATTERN_TUNING = Object\.freeze\(\{[\s\S]*?windup:\s*0\.32[\s\S]*?cooldown:\s*1\.1[\s\S]*?staminaDamage:\s*SCORPION_VENOM_STAMINA_DAMAGE/);
+  assert.match(journeyGameplayContractSource, /const SCORPION_VENOM_ATTACK_PATTERN_TUNING = Object\.freeze\(\{[\s\S]*?windup:\s*0\.44[\s\S]*?cooldown:\s*1\.2[\s\S]*?vulnerableAfter:\s*0\.7[\s\S]*?staminaDamage:\s*SCORPION_VENOM_STAMINA_DAMAGE/);
   assert.match(journeyGameplayContractSource, /const shouldUseScorpionVenomSpit = \(\{[\s\S]*?venomSlowTimer[\s\S]*?SCORPION_VENOM_REFRESH_WINDOW/);
+  assert.match(journeyCombatContractSource, /const shouldAllowEnemyAttackMovement = \(\{ enemy \} = \{\}\) => \([\s\S]*?attackPattern === 'venom-spit'[\s\S]*?attackWindup[\s\S]*?attackTimer[\s\S]*?attackRecovery/);
   assert.match(journeyComponentSource, /const shouldUseVenomSpit = shouldUseScorpionVenomSpit\(\{[\s\S]*?venomSlowTimer:\s*player\.venomSlowTimer \|\| 0/);
+  assert.match(journeySimulationSource, /if \(shouldUseVenomSpit\) \{[\s\S]*?venom[\s\S]*?dodge/i);
+  assert.match(journeySimulationSource, /const attackMovementAllowed = shouldAllowEnemyAttackMovement\(\{ enemy: e \}\);[\s\S]*?attackMovementAllowed[\s\S]*?e\.attackWindup <= 0 && e\.attackTimer <= 0/);
   assert.match(journeyComponentSource, /const enemyCanStartAttack = \(nearPlayer && meleeReachesPlayer\) \|\| shouldUseScorpionAntiAir \|\| shouldUseVenomSpit \|\| shouldUseWispDive \|\| shouldUseSnakeAmbush \|\| scarabPoisonChargeCanReach;/);
   assert.match(journeyComponentSource, /enemyCanStartAttack && e\.attackCooldown <= 0/);
   assert.match(journeyComponentSource, /const getAttackBox = useCallback\(\(attacker, range = 42, height = 28, direction = attacker\.direction \|\| 1, yOffset = 0, backReach = 0\) =>/);

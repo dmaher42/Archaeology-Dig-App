@@ -49,6 +49,7 @@ import {
   shouldUseScorpionVenomSpit,
   shouldUseSnakeAmbushLunge,
   shouldUseWispDiveHarass,
+  shouldAllowEnemyAttackMovement,
   beginEnemyAttackWindup,
   beginEnemyAttackSwing,
   openEnemyCounterWindow,
@@ -437,10 +438,12 @@ test('scorpion anti-air sting punishes careless jumps with a readable counter wi
   }), false);
 });
 
-test('scorpion venom pressure is quick enough to matter without overriding melee or anti-air', () => {
-  assert.equal(SCORPION_VENOM_ATTACK_PATTERN_TUNING.windup, 0.32);
-  assert.ok(SCORPION_VENOM_ATTACK_PATTERN_TUNING.cooldown <= 1.15);
-  assert.ok(SCORPION_VENOM_ATTACK_PATTERN_TUNING.recovery <= 0.46);
+test('scorpion venom pressure is readable while still mattering at range', () => {
+  assert.ok(SCORPION_VENOM_ATTACK_PATTERN_TUNING.windup >= 0.42);
+  assert.ok(SCORPION_VENOM_ATTACK_PATTERN_TUNING.windup <= 0.48);
+  assert.ok(SCORPION_VENOM_ATTACK_PATTERN_TUNING.cooldown <= 1.28);
+  assert.ok(SCORPION_VENOM_ATTACK_PATTERN_TUNING.recovery >= 0.52);
+  assert.ok(SCORPION_VENOM_ATTACK_PATTERN_TUNING.vulnerableAfter >= 0.68);
   assert.equal(SCORPION_VENOM_STAMINA_DAMAGE, 3);
   assert.equal(SCORPION_VENOM_REFRESH_WINDOW, 0.9);
 
@@ -488,16 +491,58 @@ test('scorpion venom pressure is quick enough to matter without overriding melee
   }), false);
 });
 
+test('scorpion venom spit can move while classic attack commitments stay planted', () => {
+  assert.equal(shouldAllowEnemyAttackMovement({
+    enemy: {
+      type: 'scorpion',
+      attackPattern: 'venom-spit',
+      attackWindup: 0.18,
+      attackTimer: 0,
+      attackRecovery: 0,
+    },
+  }), true);
+  assert.equal(shouldAllowEnemyAttackMovement({
+    enemy: {
+      type: 'scorpion',
+      attackPattern: 'venom-spit',
+      attackWindup: 0,
+      attackTimer: 0.24,
+      attackRecovery: 0,
+    },
+  }), true);
+  assert.equal(shouldAllowEnemyAttackMovement({
+    enemy: {
+      type: 'scorpion',
+      attackPattern: SCORPION_ANTI_AIR_ATTACK_PATTERN.id,
+      attackWindup: 0,
+      attackTimer: 0.22,
+      attackRecovery: 0,
+    },
+  }), false);
+  assert.equal(shouldAllowEnemyAttackMovement({
+    enemy: {
+      type: 'scorpion',
+      attackPattern: 'venom-spit',
+      attackWindup: 0,
+      attackTimer: 0,
+      attackRecovery: 0.18,
+    },
+  }), false);
+});
+
 test('sand wisps and bats dive harass Asha from above with a clean counter window', () => {
   assert.equal(WISP_DIVE_ATTACK_PATTERN.id, 'aerial-dive');
   assert.equal(WISP_DIVE_ATTACK_PATTERN.label, 'Aerial Dive');
   assert.equal(WISP_DIVE_ATTACK_PATTERN.airborneHarass, true);
   assert.equal(WISP_DIVE_ATTACK_PATTERN.protectedDuringWindup, false);
   assert.equal(WISP_DIVE_ATTACK_PATTERN.protectedDuringAttack, false);
-  assert.ok(WISP_DIVE_ATTACK_PATTERN.windup <= 0.38);
+  assert.ok(WISP_DIVE_ATTACK_PATTERN.windup >= 0.44);
+  assert.ok(WISP_DIVE_ATTACK_PATTERN.windup <= 0.5);
+  assert.ok(WISP_DIVE_ATTACK_PATTERN.speed <= 210);
   assert.ok(WISP_DIVE_ATTACK_PATTERN.height >= PLAYER_AIR_ATTACK_HEIGHT);
   assert.ok(WISP_DIVE_ATTACK_PATTERN.yOffset > 0);
-  assert.ok(WISP_DIVE_ATTACK_PATTERN.vulnerableAfter >= 0.68);
+  assert.ok(WISP_DIVE_ATTACK_PATTERN.recovery >= 0.66);
+  assert.ok(WISP_DIVE_ATTACK_PATTERN.vulnerableAfter >= 0.84);
 
   const playerBelow = {
     onGround: true,
@@ -567,15 +612,15 @@ test('snake ambush lunge starts from mid-range and overshoots into a punish wind
   assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.lowLineThreat, true);
   assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.protectedDuringWindup, false);
   assert.equal(SNAKE_AMBUSH_LUNGE_PATTERN.protectedDuringAttack, false);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.windup >= 0.56);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.windup <= 0.62);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.duration <= 0.32);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.speed >= 205);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.speed <= 224);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.windup >= 0.66);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.windup <= 0.72);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.duration <= 0.36);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.speed >= 180);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.speed <= 195);
   assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.range >= 80);
   assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.height <= PLAYER_AIR_ATTACK_HEIGHT);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.recovery >= 0.88);
-  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.vulnerableAfter >= 1.08);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.recovery >= 1.04);
+  assert.ok(SNAKE_AMBUSH_LUNGE_PATTERN.vulnerableAfter >= 1.2);
 
   const snake = {
     type: 'snake',
