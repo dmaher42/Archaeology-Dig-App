@@ -1,3 +1,5 @@
+import { applyLayerToneGrade, createLayerGradeCanvas, hasLayerToneGrade } from './journeyBackgroundAssets.js';
+
 export function drawOpeningPyramidFacadeFrame(ctx, cameraX, _now = 0, prop = null, deps) {
   void _now;
   const {
@@ -710,6 +712,25 @@ function drawScribeDoorwayForegroundOcclusion(ctx, left, width, doorwayCenterX, 
   ctx.restore();
 }
 
+const getRelativeScribeDoorwayFilter = (grade = {}, defaults = {}) => {
+  const safeGrade = grade || {};
+  const safeDefaults = defaults || {};
+  const brightness = (safeGrade.brightness ?? safeDefaults.brightness ?? 1) / (safeDefaults.brightness ?? 1);
+  const saturate = (safeGrade.saturate ?? safeDefaults.saturate ?? 1) / (safeDefaults.saturate ?? 1);
+  const contrast = (safeGrade.contrast ?? safeDefaults.contrast ?? 1) / (safeDefaults.contrast ?? 1);
+  const sepia = safeGrade.sepia ?? safeDefaults.sepia ?? 0;
+  const defaultSepia = safeDefaults.sepia ?? 0;
+  const hue = (safeGrade.hue ?? safeDefaults.hue ?? 0) - (safeDefaults.hue ?? 0);
+  const highlightClamp = safeGrade.highlightClamp ?? 1;
+  return [
+    `sepia(${Math.max(0, 5 + sepia - defaultSepia)}%)`,
+    `hue-rotate(${hue}deg)`,
+    `brightness(${0.96 * brightness * highlightClamp})`,
+    `saturate(${1.04 * saturate})`,
+    `contrast(${1.02 * contrast})`,
+  ].join(' ');
+};
+
 export function drawScribeChamberDoorwayStructureFrame(ctx, prop, x, section, now, deps) {
   const {
     GROUND_Y,
@@ -726,7 +747,7 @@ export function drawScribeChamberDoorwayStructureFrame(ctx, prop, x, section, no
     const top = prop.y;
     const baseY = top + height;
     const centerX = x;
-    const visualAlpha = prop.alpha ?? 1;
+    const visualAlpha = (prop.alpha ?? 1) * (prop.layerGrade?.alpha ?? 1);
     const doorwayXRatio = Number.isFinite(prop.assetDoorwayXRatio) ? prop.assetDoorwayXRatio : 0.35;
     const doorwayCenterX = left + width * doorwayXRatio;
     const pulse = 0.76 + Math.sin(now / 310) * 0.16;
@@ -761,9 +782,25 @@ export function drawScribeChamberDoorwayStructureFrame(ctx, prop, x, section, no
 
       drawScribeDoorwayGroundPocket(ctx, doorwayCenterX, groundY, width, visualAlpha, now);
 
-      ctx.globalAlpha = visualAlpha;
-      ctx.filter = 'sepia(5%) saturate(104%) brightness(96%) contrast(102%)';
-      ctx.drawImage(structureAsset.image, left, top, width, height);
+      const gradeCanvas = hasLayerToneGrade(prop.layerGrade) ? createLayerGradeCanvas(Math.ceil(width), Math.ceil(height)) : null;
+      const gradeCtx = gradeCanvas?.getContext?.('2d');
+      const imageFilter = getRelativeScribeDoorwayFilter(prop.layerGrade, prop.layerGradeDefaults);
+      if (gradeCtx) {
+        gradeCtx.setTransform(1, 0, 0, 1, 0, 0);
+        gradeCtx.clearRect(0, 0, gradeCanvas.width, gradeCanvas.height);
+        gradeCtx.globalAlpha = 1;
+        gradeCtx.globalCompositeOperation = 'source-over';
+        gradeCtx.filter = imageFilter;
+        gradeCtx.drawImage(structureAsset.image, 0, 0, gradeCanvas.width, gradeCanvas.height);
+        gradeCtx.filter = 'none';
+        applyLayerToneGrade(gradeCtx, gradeCanvas.width, gradeCanvas.height, prop.layerGrade);
+        ctx.globalAlpha = visualAlpha;
+        ctx.drawImage(gradeCanvas, left, top, width, height);
+      } else {
+        ctx.globalAlpha = visualAlpha;
+        ctx.filter = imageFilter;
+        ctx.drawImage(structureAsset.image, left, top, width, height);
+      }
       ctx.filter = 'none';
 
       drawEgyptStructureWeatheringOverlay(ctx, left, width, groundY, { alpha: 0.92 });

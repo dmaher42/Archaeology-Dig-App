@@ -17,6 +17,7 @@ export const DESERT_LAYER_TUNING_DEFAULTS = {
   dustHaze: { y: 398, height: 126, parallax: 0.48, alpha: 0.1 },
   desertSphinx: { sectionFraction: 0.56, parallax: 0.48, height: 292, baseY: 590, brightness: 1.01, saturate: 1.12, alpha: 0.94, contrast: 1.18, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
   ritualPyramid: { sectionFraction: 0.31, parallax: 1, height: 764, widthScale: 1.1, baseY: 605, alpha: 0.99, brightness: 1.04, saturate: 0.88, contrast: 1.04, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
+  thresholdBuildingGrade: { brightness: 1.04, saturate: 0.88, contrast: 1.04, sepia: 0, hue: 0, alpha: 1, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
   groundBacking: { y: 468, height: 280, parallax: 0.72, alpha: 1, brightness: 0.94, saturate: 0.92, contrast: 0.9, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
   templeFoundationTransition: { y: 438, height: 154, parallax: 0.72, alpha: 0.82, brightness: 0.9, saturate: 0.86, contrast: 0.9, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
   groundTransition: { y: 523, height: 129, parallax: 1, alpha: 1, brightness: 0.96, saturate: 0.9, contrast: 0.96, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
@@ -103,17 +104,22 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     ...advancedGradeFields,
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
-  { key: 'ritualPyramid', label: 'Threshold Building', fields: [
+  { key: 'ritualPyramid', label: 'Background Temple Placement', fields: [
     { k: 'sectionFraction', label: 'Position', min: 0, max: 1, step: 0.005 },
     { k: 'parallax', min: 0.5, max: 1.2, step: 0.01 },
     { k: 'height', min: 200, max: 1000, step: 4 },
     { k: 'widthScale', label: 'Width', min: 0.5, max: 2.5, step: 0.02 },
     { k: 'baseY', label: 'Base Y', min: 400, max: 700, step: 1 },
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
+  ] },
+  { key: 'thresholdBuildingGrade', label: 'Threshold Building', fields: [
     { k: 'brightness', label: 'Brightness', min: 0.4, max: 1.2, step: 0.02 },
     { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.3, step: 0.02 },
     { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.3, step: 0.02 },
+    { k: 'sepia', label: 'Warmth', min: 0, max: 60, step: 1 },
+    { k: 'hue', label: 'Hue', min: -45, max: 45, step: 1 },
     ...advancedGradeFields,
+    { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'groundBacking', label: 'Ground Backing', fields: [
     { k: 'y', label: 'Top Y', min: 440, max: 680, step: 1 },

@@ -1,12 +1,12 @@
 {
   "image": "egypt-ground-contact-premium-kit-2026-06-02.png",
-  "source": "Generated premium Lost Site Expedition Egypt ground-contact kit, 2026-06-02. Chroma-key source was converted to alpha for runtime use.",
+  "source": "Generated premium Lost Site Expedition Egypt ground-contact kit, 2026-06-02. Chroma-key source was converted to alpha for runtime use. Extended 2026-07-08 with four transparent premium sand-buildup overlays for prop burial.",
   "size": {
-    "w": 1774,
-    "h": 887
+    "w": 2180,
+    "h": 1115
   },
   "runtimeMode": "premium-ground-contact-visual-only",
-  "mappingNote": "Transparent visual-only structure-grounding pieces for Egypt Journey buildings and thresholds. These regions are contact lips, rubble footings, stair-base support pieces, sediment ribbons, and pebble scatter; they do not define collision, gameplay, or atmosphere haze.",
+  "mappingNote": "Transparent visual-only structure-grounding pieces for Egypt Journey buildings and thresholds. These regions are contact lips, rubble footings, stair-base support pieces, sediment ribbons, pebble scatter, wind-banked prop skirts, and side-biased sand heaps; they do not define collision, gameplay, or atmosphere haze.",
   "regions": {
     "premiumLongSandLip": {
       "x": 26,
@@ -77,6 +77,34 @@
       "w": 925,
       "h": 125,
       "purpose": "larger rubble mound blend for heavy base grounding"
+    },
+    "premiumWindBankedPropSkirt": {
+      "x": 24,
+      "y": 926,
+      "w": 640,
+      "h": 150,
+      "purpose": "wide wind-banked sand skirt to tuck the base of props into the ground"
+    },
+    "premiumLeftBuriedSandHeap": {
+      "x": 688,
+      "y": 911,
+      "w": 430,
+      "h": 180,
+      "purpose": "left-heavy sand heap climbing over a prop base"
+    },
+    "premiumRightBuriedSandHeap": {
+      "x": 1142,
+      "y": 911,
+      "w": 430,
+      "h": 180,
+      "purpose": "right-heavy sand heap climbing over a prop base"
+    },
+    "premiumThinSandCoverRibbon": {
+      "x": 1596,
+      "y": 946,
+      "w": 560,
+      "h": 110,
+      "purpose": "thin low sand cover ribbon for small props and thresholds"
     }
   }
 }

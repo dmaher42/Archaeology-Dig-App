@@ -208,6 +208,10 @@ export const EXPECTED_EGYPT_PREMIUM_GROUND_CONTACT_ASSET_KEYS = [
   'premiumSmallStoneScatter',
   'premiumLowSedimentRibbon',
   'premiumRubbleMoundBlend',
+  'premiumWindBankedPropSkirt',
+  'premiumLeftBuriedSandHeap',
+  'premiumRightBuriedSandHeap',
+  'premiumThinSandCoverRibbon',
 ];
 
 export const ENVIRONMENT_ASSET_PACK_IDS = {

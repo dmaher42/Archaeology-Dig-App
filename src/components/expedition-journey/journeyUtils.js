@@ -414,6 +414,10 @@ const JOURNEY_GROUND_DETAIL_PALETTE_ITEMS = [
   { assetKey: 'premiumSmallStoneScatter', label: 'Small Stone Scatter', width: 132, height: 55, alpha: 0.64 },
   { assetKey: 'premiumLowSedimentRibbon', label: 'Low Sediment Ribbon', width: 214, height: 42, alpha: 0.48 },
   { assetKey: 'premiumRubbleMoundBlend', label: 'Rubble Mound Blend', width: 260, height: 70, alpha: 0.6 },
+  { assetKey: 'premiumWindBankedPropSkirt', label: 'Wind-Banked Prop Skirt', width: 260, height: 64, alpha: 0.72 },
+  { assetKey: 'premiumLeftBuriedSandHeap', label: 'Left Buried Sand Heap', width: 190, height: 90, alpha: 0.74 },
+  { assetKey: 'premiumRightBuriedSandHeap', label: 'Right Buried Sand Heap', width: 190, height: 90, alpha: 0.74 },
+  { assetKey: 'premiumThinSandCoverRibbon', label: 'Thin Sand Cover Ribbon', width: 230, height: 48, alpha: 0.68 },
 ];
 
 const JOURNEY_FOREGROUND_DETAIL_PALETTE_ITEMS = [

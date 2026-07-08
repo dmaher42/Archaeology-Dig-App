@@ -278,7 +278,7 @@ export const loadDesertBackgroundAssetPack = ({ baseUrl = '/', onUpdate, section
 
 const getRegion = (assets, key) => assets?.atlas?.regions?.[key] || null;
 
-const createLayerGradeCanvas = (width, height) => {
+export const createLayerGradeCanvas = (width, height) => {
   if (!width || !height) return null;
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas');
@@ -290,7 +290,7 @@ const createLayerGradeCanvas = (width, height) => {
   return null;
 };
 
-const hasLayerToneGrade = (grade = {}) => {
+export const hasLayerToneGrade = (grade = {}) => {
   const safeGrade = grade || {};
   return (
     (safeGrade.shadowLift ?? 0) > 0.001
@@ -299,7 +299,7 @@ const hasLayerToneGrade = (grade = {}) => {
   );
 };
 
-const applyLayerToneGrade = (ctx, width, height, grade = {}) => {
+export const applyLayerToneGrade = (ctx, width, height, grade = {}) => {
   const safeGrade = grade || {};
   const shadowLift = Math.max(0, Math.min(0.35, safeGrade.shadowLift ?? 0));
   const highlightClamp = Math.max(0.6, Math.min(1, safeGrade.highlightClamp ?? 1));

@@ -1,10 +1,8 @@
-import { DESERT_LAYER_TUNING } from '../desertLayerTuning.js';
+import { DESERT_LAYER_TUNING, DESERT_LAYER_TUNING_DEFAULTS } from '../desertLayerTuning.js';
 
 const ruinedTempleMaskWarnings = new Set();
 const DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS = Object.freeze({
-  groundBacking: 280,
-  templeFoundationTransition: 260,
-  groundTransition: 180,
+  // Only gameplay/detail strips use fixed draw heights; environment layers scale with tuning height.
   groundLane: 220,
   foregroundRubble: 260,
 });
@@ -304,7 +302,7 @@ export function drawForegroundDepthLayerFrame(ctx, section, cameraX, now, deps) 
   const particleCount = drawForegroundDepthParticles(ctx, now, cameraX);
   ctx.restore();
 
-  if (stateRef.current.renderStats) {
+  if (stateRef.current?.renderStats) {
     stateRef.current.renderStats.foregroundDepthLayerActive = elementCount > 0 || particleCount > 0;
     stateRef.current.renderStats.foregroundDepthLayerMode = FOREGROUND_DEPTH_LAYER_MODE;
     stateRef.current.renderStats.foregroundDepthAssetLoaded = Boolean(assets?.loaded);
@@ -322,7 +320,7 @@ export function drawDesertEntryForegroundDepthFrame(ctx, section, cameraX, now, 
   void ctx;
   void cameraX;
   void now;
-  if (stateRef.current.renderStats) {
+  if (stateRef.current?.renderStats) {
     stateRef.current.renderStats.desertEntryForegroundDepthLoaded = false;
     stateRef.current.renderStats.desertEntryForegroundDepthMode = 'retired-integrated-background-carries-front-edge';
   }
@@ -871,22 +869,15 @@ function drawDesertEntryRitualTempleNearLane(ctx, section, cameraX, assets, canv
   const ritualX = (ritualWorldX - cameraX) * cfg.parallax + canvasWidth / 2 - ritualWidth / 2;
   if (ritualX <= -ritualWidth || ritualX >= canvasWidth + ritualWidth) return false;
 
-  const layerCanvas = hasDesertLayerToneGrade(cfg) ? createDesertLayerGradeCanvas(canvasWidth, ctx.canvas?.height || 720) : null;
-  const targetCtx = layerCanvas?.getContext?.('2d') || ctx;
-
-  targetCtx.save();
-  targetCtx.globalAlpha = cfg.alpha;
-  targetCtx.filter = getDesertLayerFilter(T.ritualPyramid, { sepia: 5 });
-  targetCtx.drawImage(
+  ctx.save();
+  ctx.globalAlpha = cfg.alpha;
+  ctx.filter = getDesertLayerFilter(DESERT_LAYER_TUNING_DEFAULTS.ritualPyramid, { sepia: 5 });
+  ctx.drawImage(
     ritualImage,
     ritualRegion.x, ritualRegion.y, ritualRegion.w, ritualRegion.h,
     Math.round(ritualX), Math.round(cfg.baseY - cfg.height), Math.round(ritualWidth), cfg.height,
   );
-  targetCtx.restore();
-  if (layerCanvas) {
-    applyDesertLayerToneGrade(targetCtx, layerCanvas.width, layerCanvas.height, cfg);
-    ctx.drawImage(layerCanvas, 0, 0);
-  }
+  ctx.restore();
   return true;
 }
 
@@ -940,6 +931,56 @@ function drawDesertEntryDryPlazaSeamBreakup(ctx, canvasWidth, cameraX, options =
   ctx.fillStyle = seamShade;
   ctx.fillRect(0, seamY - 34, canvasWidth, 86);
   ctx.restore();
+}
+
+function drawDesertEntryRavineGroundHandoffBlend(ctx, cameraX, deps) {
+  const {
+    CANVAS_HEIGHT,
+    GROUND_Y,
+    scaleJourneyX,
+    stateRef,
+  } = deps;
+  if (typeof scaleJourneyX !== 'function') return false;
+
+  const left = Math.round(scaleJourneyX(535) - cameraX);
+  const width = Math.max(1, scaleJourneyX(220));
+  const right = left + width;
+  const canvasWidth = ctx.canvas?.width || 1280;
+  if (right < -80 || left > canvasWidth + 80) return false;
+
+  const top = Math.min(DESERT_LAYER_TUNING.groundTransition.y + 10, GROUND_Y - 58);
+  ctx.save();
+
+  const warmDrift = ctx.createLinearGradient(left, 0, right, 0);
+  warmDrift.addColorStop(0, 'rgba(224, 152, 70, 0)');
+  warmDrift.addColorStop(0.22, 'rgba(232, 164, 82, 0.2)');
+  warmDrift.addColorStop(0.54, 'rgba(238, 177, 94, 0.24)');
+  warmDrift.addColorStop(0.82, 'rgba(231, 157, 72, 0.14)');
+  warmDrift.addColorStop(1, 'rgba(224, 152, 70, 0)');
+  ctx.fillStyle = warmDrift;
+  ctx.fillRect(left, top, width, CANVAS_HEIGHT - top);
+
+  const dustLip = ctx.createRadialGradient(
+    left + width * 0.5,
+    GROUND_Y + 4,
+    16,
+    left + width * 0.5,
+    GROUND_Y + 8,
+    width * 0.52,
+  );
+  dustLip.addColorStop(0, 'rgba(250, 209, 132, 0.2)');
+  dustLip.addColorStop(0.46, 'rgba(164, 98, 42, 0.1)');
+  dustLip.addColorStop(1, 'rgba(164, 98, 42, 0)');
+  ctx.fillStyle = dustLip;
+  ctx.beginPath();
+  ctx.ellipse(left + width * 0.5, GROUND_Y + 8, width * 0.46, 18, -0.03, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+  if (stateRef.current?.renderStats) {
+    stateRef.current.renderStats.desertEntryRavineGroundHandoffBlend = 'warm-drift-over-floor-restart-v1';
+  }
+  return true;
 }
 
 export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
@@ -1196,8 +1237,6 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         filter: getDesertLayerFilter(T.groundBacking, { sepia: 4 }),
         grade: T.groundBacking,
         minTileWidth: CANVAS_WIDTH * 2.8,
-        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.groundBacking,
-        clipToDestHeight: true,
       },
     );
   if (backingDrawn && !isV3ProductionCandidate) {
@@ -1213,7 +1252,6 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.groundBacking.alpha,
         opacity: 0,
         seamWidth: 42,
-        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.groundBacking,
       },
     );
   }
@@ -1233,8 +1271,6 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         filter: getDesertLayerFilter(T.templeFoundationTransition, { sepia: 4 }),
         grade: T.templeFoundationTransition,
         minTileWidth: CANVAS_WIDTH * 3.2,
-        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.templeFoundationTransition,
-        clipToDestHeight: true,
       },
     );
   }
@@ -1260,8 +1296,6 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.groundTransition.alpha,
         filter: getDesertLayerFilter(T.groundTransition, { sepia: 4 }),
         grade: T.groundTransition,
-        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.groundTransition,
-        clipToDestHeight: true,
       },
     );
   }
@@ -1335,6 +1369,9 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
     seamY: isV3ProductionCandidate ? candidateGroundY + 28 : T.groundLane.y + 35,
     intensity: isV3ProductionCandidate ? 1.18 : 1.12,
   });
+  if (!isV3ProductionCandidate) {
+    drawDesertEntryRavineGroundHandoffBlend(ctx, cameraX, deps);
+  }
   const rubbleDrawn = isV3ProductionCandidate
     ? drawDesertBackgroundLayer(
       ctx,

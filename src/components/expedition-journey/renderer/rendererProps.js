@@ -1,4 +1,5 @@
 import { drawForegroundSettlingDetailsFrame } from './rendererPlatforms.js';
+import { DESERT_LAYER_TUNING, DESERT_LAYER_TUNING_DEFAULTS } from '../desertLayerTuning.js';
 
 export function drawPropGroundContactFrame(ctx, x, anchorY, propSize, sectionId, grounding, deps) {
   const { drawContactShadow } = deps;
@@ -468,7 +469,11 @@ export function drawStoryPropFrame(ctx, prop, cameraX, now, requestedDepth = nul
     return;
   }
   if (prop.type === 'generated-scribe-chamber-doorway') {
-    drawScribeChamberDoorwayStructure(ctx, getGeneratedStoryPropRenderProp(prop), x, section, now);
+    drawScribeChamberDoorwayStructure(ctx, {
+      ...getGeneratedStoryPropRenderProp(prop),
+      layerGrade: DESERT_LAYER_TUNING.thresholdBuildingGrade,
+      layerGradeDefaults: DESERT_LAYER_TUNING_DEFAULTS.thresholdBuildingGrade,
+    }, x, section, now);
     ctx.restore();
     return;
   }
