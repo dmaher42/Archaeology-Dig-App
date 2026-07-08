@@ -10,23 +10,32 @@
 // back so the values can be baked into the renderer constants.
 
 export const DESERT_LAYER_TUNING_DEFAULTS = {
-  skyLight: { parallax: 0.012, alpha: 1 },
+  skyLight: { parallax: 0.012, alpha: 1, brightness: 1.06, saturate: 1.05, contrast: 1, sepia: 0, hue: 0, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
   distantCliffs: { parallax: 0.055, alpha: 0, height: 792 },
   farPyramids: { sectionFraction: 0.5, parallax: 0.14, height: 540, baseY: 600, alpha: 0.94 },
-  midNecropolisRuins: { parallax: 0.28, alpha: 1, height: 630, baseY: 630 },
+  midNecropolisRuins: { parallax: 0.28, alpha: 1, height: 630, baseY: 630, brightness: 1.03, saturate: 1.26, contrast: 1.22, sepia: 3, hue: 0, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
   dustHaze: { y: 398, height: 126, parallax: 0.48, alpha: 0.1 },
-  desertSphinx: { sectionFraction: 0.56, parallax: 0.48, height: 292, baseY: 590, brightness: 1.01, saturate: 1.12, alpha: 0.94, contrast: 1.18 },
-  ritualPyramid: { sectionFraction: 0.31, parallax: 1, height: 764, widthScale: 1.1, baseY: 605, alpha: 0.99, brightness: 1.04, saturate: 0.88, contrast: 1.04 },
-  groundBacking: { y: 440, height: 218, parallax: 0.72, alpha: 1, brightness: 1.3, saturate: 1.4, contrast: 1.3 },
-  groundTransition: { y: 494, height: 128, parallax: 1, alpha: 1, brightness: 0.96, saturate: 0.9, contrast: 0.96 },
-  groundLane: { y: 558, height: 174, parallax: 1, alpha: 1, brightness: 1.18, saturate: 1.38, contrast: 1 },
-  foregroundRubble: { y: 538, height: 118, parallax: 1.06, alpha: 0.64 },
+  desertSphinx: { sectionFraction: 0.56, parallax: 0.48, height: 292, baseY: 590, brightness: 1.01, saturate: 1.12, alpha: 0.94, contrast: 1.18, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
+  ritualPyramid: { sectionFraction: 0.31, parallax: 1, height: 764, widthScale: 1.1, baseY: 605, alpha: 0.99, brightness: 1.04, saturate: 0.88, contrast: 1.04, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
+  groundBacking: { y: 468, height: 280, parallax: 0.72, alpha: 1, brightness: 0.94, saturate: 0.92, contrast: 0.9, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
+  templeFoundationTransition: { y: 438, height: 154, parallax: 0.72, alpha: 0.82, brightness: 0.9, saturate: 0.86, contrast: 0.9, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
+  groundTransition: { y: 523, height: 129, parallax: 1, alpha: 1, brightness: 0.96, saturate: 0.9, contrast: 0.96, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
+  groundLane: { y: 558, height: 174, parallax: 1, alpha: 1, brightness: 1.18, saturate: 1.38, contrast: 1, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
+  foregroundRubble: { y: 538, height: 118, parallax: 1.06, alpha: 0, brightness: 1, saturate: 1, contrast: 1, sepia: 4, hue: 0, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
   foregroundDepth: { y: 584, height: 46, parallax: 1.24, alpha: 0.14 },
+  ruinedTempleCliffSkyGrade: { brightness: 0.9, saturate: 0.52, contrast: 0.88, sepia: 2, hue: -12, alpha: 1, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
+  ruinedTempleTempleMaskGrade: { brightness: 1.08, saturate: 1.08, contrast: 1.04, sepia: 18, hue: 2, alpha: 1, shadowLift: 0, highlightClamp: 1, dustHaze: 0 },
 };
 
 const clone = (obj) => Object.fromEntries(
   Object.entries(obj).map(([key, fields]) => [key, { ...fields }]),
 );
+
+const advancedGradeFields = [
+  { k: 'shadowLift', label: 'Shadow Lift', min: 0, max: 0.28, step: 0.01 },
+  { k: 'highlightClamp', label: 'Highlight Clamp', min: 0.72, max: 1, step: 0.01 },
+  { k: 'dustHaze', label: 'Dust Haze', min: 0, max: 0.18, step: 0.01 },
+];
 
 // Live mutable store. Imported by both the renderer (reads) and the panel (writes).
 export const DESERT_LAYER_TUNING = clone(DESERT_LAYER_TUNING_DEFAULTS);
@@ -46,6 +55,12 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
   { key: 'skyLight', label: 'Sky', fields: [
     { k: 'parallax', min: 0, max: 0.3, step: 0.001 },
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
+    { k: 'brightness', label: 'Brightness', min: 0.5, max: 1.4, step: 0.02 },
+    { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.6, step: 0.02 },
+    { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.5, step: 0.02 },
+    { k: 'sepia', label: 'Warmth', min: 0, max: 60, step: 1 },
+    { k: 'hue', label: 'Hue', min: -45, max: 45, step: 1 },
+    ...advancedGradeFields,
   ] },
   { key: 'distantCliffs', label: 'Distant Cliffs', fields: [
     { k: 'parallax', min: 0, max: 0.4, step: 0.001 },
@@ -63,6 +78,12 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'parallax', min: 0, max: 0.6, step: 0.001 },
     { k: 'height', min: 300, max: 760, step: 2 },
     { k: 'baseY', label: 'Base Y', min: 400, max: 760, step: 1 },
+    { k: 'brightness', label: 'Brightness', min: 0.5, max: 1.4, step: 0.02 },
+    { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.6, step: 0.02 },
+    { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.5, step: 0.02 },
+    { k: 'sepia', label: 'Warmth', min: 0, max: 60, step: 1 },
+    { k: 'hue', label: 'Hue', min: -45, max: 45, step: 1 },
+    ...advancedGradeFields,
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'dustHaze', label: 'Dust Haze', fields: [
@@ -79,9 +100,10 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'brightness', label: 'Brightness', min: 0.4, max: 1.2, step: 0.02 },
     { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.3, step: 0.02 },
     { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.3, step: 0.02 },
+    ...advancedGradeFields,
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
-  { key: 'ritualPyramid', label: 'Ritual Temple (building)', fields: [
+  { key: 'ritualPyramid', label: 'Threshold Building', fields: [
     { k: 'sectionFraction', label: 'Position', min: 0, max: 1, step: 0.005 },
     { k: 'parallax', min: 0.5, max: 1.2, step: 0.01 },
     { k: 'height', min: 200, max: 1000, step: 4 },
@@ -91,6 +113,7 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'brightness', label: 'Brightness', min: 0.4, max: 1.2, step: 0.02 },
     { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.3, step: 0.02 },
     { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.3, step: 0.02 },
+    ...advancedGradeFields,
   ] },
   { key: 'groundBacking', label: 'Ground Backing', fields: [
     { k: 'y', label: 'Top Y', min: 440, max: 680, step: 1 },
@@ -99,6 +122,17 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'brightness', label: 'Brightness', min: 0.6, max: 1.3, step: 0.02 },
     { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.4, step: 0.02 },
     { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.3, step: 0.02 },
+    ...advancedGradeFields,
+    { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
+  ] },
+  { key: 'templeFoundationTransition', label: 'Temple Foundation', fields: [
+    { k: 'y', label: 'Top Y', min: 340, max: 560, step: 1 },
+    { k: 'height', min: 80, max: 260, step: 1 },
+    { k: 'parallax', min: 0.45, max: 1.05, step: 0.01 },
+    { k: 'brightness', label: 'Brightness', min: 0.5, max: 1.2, step: 0.02 },
+    { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.3, step: 0.02 },
+    { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.3, step: 0.02 },
+    ...advancedGradeFields,
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'groundTransition', label: 'Ground Transition', fields: [
@@ -108,6 +142,7 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'brightness', label: 'Brightness', min: 0.6, max: 1.3, step: 0.02 },
     { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.4, step: 0.02 },
     { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.4, step: 0.02 },
+    ...advancedGradeFields,
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'groundLane', label: 'Path / Ground Lane', fields: [
@@ -117,18 +152,43 @@ export const DESERT_LAYER_TUNING_SCHEMA = [
     { k: 'brightness', label: 'Brightness', min: 0.6, max: 1.3, step: 0.02 },
     { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.4, step: 0.02 },
     { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.3, step: 0.02 },
+    ...advancedGradeFields,
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'foregroundRubble', label: 'Foreground Rubble', fields: [
     { k: 'y', label: 'Top Y', min: 380, max: 630, step: 1 },
     { k: 'height', min: 40, max: 260, step: 1 },
     { k: 'parallax', min: 0.6, max: 1.4, step: 0.01 },
+    { k: 'brightness', label: 'Brightness', min: 0.5, max: 1.4, step: 0.02 },
+    { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.5, step: 0.02 },
+    { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.5, step: 0.02 },
+    { k: 'sepia', label: 'Warmth', min: 0, max: 50, step: 1 },
+    { k: 'hue', label: 'Hue', min: -24, max: 24, step: 1 },
+    ...advancedGradeFields,
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
   { key: 'foregroundDepth', label: 'Foreground Depth', fields: [
     { k: 'y', label: 'Top Y', min: 480, max: 630, step: 1 },
     { k: 'height', min: 20, max: 160, step: 1 },
     { k: 'parallax', min: 0.6, max: 1.4, step: 0.01 },
+    { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
+  ] },
+  { key: 'ruinedTempleCliffSkyGrade', label: 'Temple Cliff / Sky Grade', fields: [
+    { k: 'brightness', label: 'Brightness', min: 0.5, max: 1.4, step: 0.02 },
+    { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.6, step: 0.02 },
+    { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.5, step: 0.02 },
+    { k: 'sepia', label: 'Warmth', min: 0, max: 60, step: 1 },
+    { k: 'hue', label: 'Hue', min: -45, max: 45, step: 1 },
+    ...advancedGradeFields,
+    { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
+  ] },
+  { key: 'ruinedTempleTempleMaskGrade', label: 'Temple Mask Grade', fields: [
+    { k: 'brightness', label: 'Brightness', min: 0.5, max: 1.4, step: 0.02 },
+    { k: 'saturate', label: 'Saturation', min: 0.2, max: 1.6, step: 0.02 },
+    { k: 'contrast', label: 'Contrast', min: 0.5, max: 1.5, step: 0.02 },
+    { k: 'sepia', label: 'Warmth', min: 0, max: 60, step: 1 },
+    { k: 'hue', label: 'Hue', min: -45, max: 45, step: 1 },
+    ...advancedGradeFields,
     { k: 'alpha', label: 'Opacity', min: 0, max: 1, step: 0.01 },
   ] },
 ];

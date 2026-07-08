@@ -22,6 +22,7 @@ export const EXPECTED_DESERT_BACKGROUND_KEYS = [
   'distantCliffs',
   'midNecropolisRuins',
   'groundBacking',
+  'groundTransition',
   'groundLane',
   'foregroundRubble',
   'foregroundDepth',
@@ -30,6 +31,7 @@ export const EXPECTED_DESERT_BACKGROUND_KEYS = [
 export const EXPECTED_DESERT_ENTRY_REFRESH_BACKGROUND_KEYS = [
   ...EXPECTED_DESERT_BACKGROUND_KEYS,
   'dustHaze',
+  'templeFoundationTransition',
   'desertSphinx',
 ];
 
@@ -196,9 +198,13 @@ export const loadDesertBackgroundAssetPack = ({ baseUrl = '/', onUpdate, section
         return response.json();
       })
       .then((atlas) => new Promise((resolve) => {
+        const optionalMaskEntries = Object.entries(atlas?.optionalMasks || {})
+          .map(([maskKey, mask]) => [maskKey, mask?.image])
+          .filter(([, imageName]) => Boolean(imageName));
         const imageNames = Array.from(new Set([
           atlas.image,
           ...Object.values(atlas?.regions || {}).map(region => region?.image).filter(Boolean),
+          ...optionalMaskEntries.map(([, imageName]) => imageName),
         ].filter(Boolean)));
         const loadImage = (imageName) => new Promise((imageResolve) => {
           const image = new Image();
@@ -208,12 +214,23 @@ export const loadDesertBackgroundAssetPack = ({ baseUrl = '/', onUpdate, section
         });
         Promise.all(imageNames.map(loadImage)).then((imageEntries) => {
           const images = Object.fromEntries(imageEntries.map(([imageName, result]) => [imageName, result.image]));
-          const failedImages = imageEntries.filter(([, result]) => result.failed).map(([imageName]) => imageName);
+          const optionalMaskImageNames = new Set(optionalMaskEntries.map(([, imageName]) => imageName));
+          const failedImages = imageEntries
+            .filter(([imageName, result]) => result.failed && !optionalMaskImageNames.has(imageName))
+            .map(([imageName]) => imageName);
+          const failedMaskImages = imageEntries
+            .filter(([imageName, result]) => result.failed && optionalMaskImageNames.has(imageName))
+            .map(([imageName]) => imageName);
+          const maskImages = Object.fromEntries(optionalMaskEntries.map(([maskKey, imageName]) => [maskKey, images[imageName] || null]));
+          if (failedMaskImages.length > 0) {
+            console.warn(`[Journey background] Optional mask image missing for ${sectionId}: ${failedMaskImages.join(', ')}. Rendering with polygon fallback or normal scene.`);
+          }
           resolve([
             sectionId,
             {
               image: images[atlas.image] || null,
               images,
+              maskImages,
               atlas,
               loaded: failedImages.length === 0,
               ready: failedImages.length === 0 && packConfig.expectedKeys.every(key => atlas?.regions?.[key]),
@@ -261,6 +278,58 @@ export const loadDesertBackgroundAssetPack = ({ baseUrl = '/', onUpdate, section
 
 const getRegion = (assets, key) => assets?.atlas?.regions?.[key] || null;
 
+const createLayerGradeCanvas = (width, height) => {
+  if (!width || !height) return null;
+  if (typeof document !== 'undefined') {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
+  }
+  if (typeof OffscreenCanvas !== 'undefined') return new OffscreenCanvas(width, height);
+  return null;
+};
+
+const hasLayerToneGrade = (grade = {}) => {
+  const safeGrade = grade || {};
+  return (
+    (safeGrade.shadowLift ?? 0) > 0.001
+    || (safeGrade.highlightClamp ?? 1) < 0.999
+    || (safeGrade.dustHaze ?? 0) > 0.001
+  );
+};
+
+const applyLayerToneGrade = (ctx, width, height, grade = {}) => {
+  const safeGrade = grade || {};
+  const shadowLift = Math.max(0, Math.min(0.35, safeGrade.shadowLift ?? 0));
+  const highlightClamp = Math.max(0.6, Math.min(1, safeGrade.highlightClamp ?? 1));
+  const dustHaze = Math.max(0, Math.min(0.25, safeGrade.dustHaze ?? 0));
+
+  if (shadowLift > 0.001) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = `rgba(178, 150, 103, ${shadowLift})`;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+
+  if (highlightClamp < 0.999) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = `rgba(118, 92, 58, ${(1 - highlightClamp) * 0.42})`;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+
+  if (dustHaze > 0.001) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = `rgba(219, 196, 151, ${dustHaze})`;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+};
+
 export const drawDesertBackgroundLayer = (ctx, assets, key, dest, options = {}) => {
   if (!assets?.loaded) return false;
   const region = getRegion(assets, key);
@@ -275,6 +344,7 @@ export const drawDesertBackgroundLayer = (ctx, assets, key, dest, options = {}) 
     alpha = 1,
     filter = null,
     compositeOperation = null,
+    grade = null,
   } = options;
   const { y, height } = dest;
   if (!canvasWidth || height <= 0) return false;
@@ -285,14 +355,25 @@ export const drawDesertBackgroundLayer = (ctx, assets, key, dest, options = {}) 
   const scroll = ((cameraX * parallax) % drawWidth + drawWidth) % drawWidth;
   let x = -scroll;
 
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  if (filter) ctx.filter = filter;
-  if (compositeOperation) ctx.globalCompositeOperation = compositeOperation;
+  const layerCanvas = hasLayerToneGrade(grade) ? createLayerGradeCanvas(canvasWidth, ctx.canvas?.height || 720) : null;
+  const targetCtx = layerCanvas?.getContext?.('2d') || ctx;
+
+  targetCtx.save();
+  targetCtx.globalAlpha = alpha;
+  if (filter) targetCtx.filter = filter;
+  if (!layerCanvas && compositeOperation) targetCtx.globalCompositeOperation = compositeOperation;
   while (x > 0) x -= drawWidth - 1;
   for (; x < canvasWidth; x += drawWidth - 1) {
-    ctx.drawImage(image, region.x, region.y, region.w, region.h, x, y, drawWidth + 1, drawHeight);
+    targetCtx.drawImage(image, region.x, region.y, region.w, region.h, x, y, drawWidth + 1, drawHeight);
   }
-  ctx.restore();
+  targetCtx.restore();
+
+  if (layerCanvas) {
+    applyLayerToneGrade(targetCtx, layerCanvas.width, layerCanvas.height, grade);
+    ctx.save();
+    if (compositeOperation) ctx.globalCompositeOperation = compositeOperation;
+    ctx.drawImage(layerCanvas, 0, 0);
+    ctx.restore();
+  }
   return true;
 };

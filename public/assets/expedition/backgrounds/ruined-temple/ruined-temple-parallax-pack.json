@@ -3,7 +3,28 @@
   "source": "AI-generated full-scene Journey background for the Ruined Temple section.",
   "imageWidth": 1672,
   "imageHeight": 941,
-  "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe.",
+  "coordinateNote": "Runtime composited 16:9 backdrop; legacy region keys point to the full image so existing loaders stay fallback-safe. The non-destructive temple mask grade keeps this combined image as the source of truth: the renderer draws a cooler cliff/sky base grade, then redraws the same image through a polygon or optional transparent mask to keep the temple and necropolis ruins warmer.",
+  "maskMode": "non-destructive-temple-grade",
+  "optionalMasks": {
+    "templeNecropolis": {
+      "image": "ruined-temple-temple-mask.png",
+      "note": "Optional transparent PNG mask. White/opaque pixels define the temple and necropolis ruins area. If missing, the renderer falls back to polygonMasks.templeNecropolis."
+    }
+  },
+  "polygonMasks": {
+    "templeNecropolis": {
+      "coordinateSpace": "normalized-canvas",
+      "points": [
+        [0.05, 0.33],
+        [0.25, 0.19],
+        [0.52, 0.16],
+        [0.81, 0.22],
+        [0.96, 0.42],
+        [0.92, 0.86],
+        [0.1, 0.88]
+      ]
+    }
+  },
   "regions": {
     "templeSky": {
       "x": 0,

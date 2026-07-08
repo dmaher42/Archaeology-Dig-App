@@ -1,5 +1,117 @@
 import { DESERT_LAYER_TUNING } from '../desertLayerTuning.js';
 
+const ruinedTempleMaskWarnings = new Set();
+const DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS = Object.freeze({
+  groundBacking: 280,
+  templeFoundationTransition: 260,
+  groundTransition: 180,
+  groundLane: 220,
+  foregroundRubble: 260,
+});
+
+const getRuinedTempleLayerFilter = (config = {}) => {
+  const brightness = config.brightness ?? 1;
+  const saturate = config.saturate ?? 1;
+  const contrast = config.contrast ?? 1;
+  const sepia = config.sepia ?? 0;
+  const hue = config.hue ?? 0;
+  const highlightClamp = config.highlightClamp ?? 1;
+  return `sepia(${sepia}%) hue-rotate(${hue}deg) brightness(${brightness * highlightClamp}) saturate(${saturate}) contrast(${contrast})`;
+};
+
+const clipRuinedTempleMaskPath = (ctx, mask, canvasWidth, canvasHeight) => {
+  const points = Array.isArray(mask?.points) ? mask.points : [];
+  if (points.length < 3) return false;
+  ctx.beginPath();
+  points.forEach((point, index) => {
+    const x = Number(point?.[0]) * canvasWidth;
+    const y = Number(point?.[1]) * canvasHeight;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.clip();
+  return true;
+};
+
+const getRuinedTempleMaskCanvas = (assets, canvasWidth, canvasHeight) => {
+  const maskImage = assets?.maskImages?.templeNecropolis;
+  if (!maskImage || typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  const maskCtx = canvas.getContext('2d');
+  if (!maskCtx) return null;
+  maskCtx.drawImage(maskImage, 0, 0, canvasWidth, canvasHeight);
+  return canvas;
+};
+
+function drawRuinedTempleMaskedGradeFrame(ctx, section, cameraX, deps) {
+  const {
+    CANVAS_HEIGHT,
+    CANVAS_WIDTH,
+    desertBackgroundAssetsRef,
+    drawDesertBackgroundLayer,
+    getSectionBackgroundAssets,
+  } = deps;
+  if (section.id !== 'ruined-temple') return null;
+  const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, 'ruined-temple');
+  if (!assets?.ready) return null;
+  if (assets.atlas?.runtimeMode !== 'single-composited-backdrop') return null;
+
+  const T = DESERT_LAYER_TUNING;
+  const fullFrame = { y: 0, height: CANVAS_HEIGHT };
+  const layerOptions = { canvasWidth: CANVAS_WIDTH, cameraX, parallax: 0 };
+  const baseDrawn = drawDesertBackgroundLayer(ctx, assets, 'templeSky', fullFrame, {
+    ...layerOptions,
+    alpha: T.ruinedTempleCliffSkyGrade.alpha,
+    filter: getRuinedTempleLayerFilter(T.ruinedTempleCliffSkyGrade),
+    grade: T.ruinedTempleCliffSkyGrade,
+  });
+  if (!baseDrawn) return false;
+
+  const maskCanvas = getRuinedTempleMaskCanvas(assets, CANVAS_WIDTH, CANVAS_HEIGHT);
+  const polygonMask = assets.atlas?.polygonMasks?.templeNecropolis;
+  const optionalMaskName = assets.atlas?.optionalMasks?.templeNecropolis?.image;
+  if (!maskCanvas && optionalMaskName && !ruinedTempleMaskWarnings.has(optionalMaskName)) {
+    ruinedTempleMaskWarnings.add(optionalMaskName);
+    console.warn('[Journey background] Ruined Temple temple mask image missing; using polygon fallback.');
+  }
+
+  if (maskCanvas && typeof document !== 'undefined') {
+    const gradeCanvas = document.createElement('canvas');
+    gradeCanvas.width = CANVAS_WIDTH;
+    gradeCanvas.height = CANVAS_HEIGHT;
+    const gradeCtx = gradeCanvas.getContext('2d');
+    if (gradeCtx) {
+      drawDesertBackgroundLayer(gradeCtx, assets, 'templeSky', fullFrame, {
+        ...layerOptions,
+        alpha: T.ruinedTempleTempleMaskGrade.alpha,
+        filter: getRuinedTempleLayerFilter(T.ruinedTempleTempleMaskGrade),
+        grade: T.ruinedTempleTempleMaskGrade,
+      });
+      gradeCtx.globalCompositeOperation = 'destination-in';
+      gradeCtx.drawImage(maskCanvas, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      ctx.drawImage(gradeCanvas, 0, 0);
+    }
+  } else if (polygonMask) {
+    ctx.save();
+    const clipped = clipRuinedTempleMaskPath(ctx, polygonMask, CANVAS_WIDTH, CANVAS_HEIGHT);
+    if (clipped) {
+      drawDesertBackgroundLayer(ctx, assets, 'templeSky', fullFrame, {
+        ...layerOptions,
+        alpha: T.ruinedTempleTempleMaskGrade.alpha,
+        filter: getRuinedTempleLayerFilter(T.ruinedTempleTempleMaskGrade),
+        grade: T.ruinedTempleTempleMaskGrade,
+      });
+    }
+    ctx.restore();
+  }
+
+  return true;
+}
+
 export function drawSectionParallaxBackgroundFrame(ctx, section, cameraX, deps) {
   const {
     CANVAS_WIDTH,
@@ -10,6 +122,8 @@ export function drawSectionParallaxBackgroundFrame(ctx, section, cameraX, deps) 
   } = deps;
   const layers = SECTION_PARALLAX_LAYERS[section.id];
   if (!layers) return false;
+  const ruinedTempleMaskedGradeDrawn = drawRuinedTempleMaskedGradeFrame(ctx, section, cameraX, deps);
+  if (ruinedTempleMaskedGradeDrawn !== null) return ruinedTempleMaskedGradeDrawn;
   const assets = getSectionBackgroundAssets(desertBackgroundAssetsRef.current, section.id);
   if (!assets?.ready) return false;
 
@@ -294,11 +408,68 @@ const getBackgroundRegionImage = (assets, key) => {
   return { region, image };
 };
 
-const getDesertGroundLayerFilter = (config = {}) => {
-  const brightness = config.brightness ?? 1;
-  const saturate = config.saturate ?? 1;
-  const contrast = config.contrast ?? 1;
-  return `sepia(4%) brightness(${brightness}) saturate(${saturate}) contrast(${contrast})`;
+const createDesertLayerGradeCanvas = (width, height) => {
+  if (!width || !height) return null;
+  if (typeof document !== 'undefined') {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
+  }
+  if (typeof OffscreenCanvas !== 'undefined') return new OffscreenCanvas(width, height);
+  return null;
+};
+
+const hasDesertLayerToneGrade = (grade = {}) => {
+  const safeGrade = grade || {};
+  return (
+    (safeGrade.shadowLift ?? 0) > 0.001
+    || (safeGrade.highlightClamp ?? 1) < 0.999
+    || (safeGrade.dustHaze ?? 0) > 0.001
+  );
+};
+
+const getDesertLayerGradeFilter = (config = {}, defaults = {}) => {
+  const brightness = config.brightness ?? defaults.brightness ?? 1;
+  const saturate = config.saturate ?? defaults.saturate ?? 1;
+  const contrast = config.contrast ?? defaults.contrast ?? 1;
+  const sepia = config.sepia ?? defaults.sepia ?? 0;
+  const hue = config.hue ?? defaults.hue ?? 0;
+  const highlightClamp = config.highlightClamp ?? 1;
+  return `sepia(${sepia}%) hue-rotate(${hue}deg) brightness(${brightness * highlightClamp}) saturate(${saturate}) contrast(${contrast})`;
+};
+
+const getDesertLayerFilter = (config = {}, defaults = {}) => getDesertLayerGradeFilter(config, defaults);
+
+const applyDesertLayerToneGrade = (ctx, width, height, grade = {}) => {
+  const safeGrade = grade || {};
+  const shadowLift = Math.max(0, Math.min(0.35, safeGrade.shadowLift ?? 0));
+  const highlightClamp = Math.max(0.6, Math.min(1, safeGrade.highlightClamp ?? 1));
+  const dustHaze = Math.max(0, Math.min(0.25, safeGrade.dustHaze ?? 0));
+
+  if (shadowLift > 0.001) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = `rgba(178, 150, 103, ${shadowLift})`;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+
+  if (highlightClamp < 0.999) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = `rgba(118, 92, 58, ${(1 - highlightClamp) * 0.42})`;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+
+  if (dustHaze > 0.001) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = `rgba(219, 196, 151, ${dustHaze})`;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
 };
 
 function drawSinglePanoramaLayer(ctx, assets, key, dest, options = {}) {
@@ -311,6 +482,8 @@ function drawSinglePanoramaLayer(ctx, assets, key, dest, options = {}) {
     parallax = 0,
     alpha = 1,
     alignY = 0.5,
+    filter = null,
+    grade = null,
   } = options;
   const { region, image } = layer;
   if (!canvasWidth || dest.height <= 0) return false;
@@ -322,14 +495,22 @@ function drawSinglePanoramaLayer(ctx, assets, key, dest, options = {}) {
   const driftX = overflowX > 0 ? Math.max(-overflowX, Math.min(0, -cameraX * parallax)) : 0;
   const drawY = dest.y + (dest.height - drawHeight) * alignY;
 
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.drawImage(
+  const layerCanvas = hasDesertLayerToneGrade(grade) ? createDesertLayerGradeCanvas(canvasWidth, ctx.canvas?.height || 720) : null;
+  const targetCtx = layerCanvas?.getContext?.('2d') || ctx;
+
+  targetCtx.save();
+  targetCtx.globalAlpha = alpha;
+  if (filter) targetCtx.filter = filter;
+  targetCtx.drawImage(
     image,
     region.x, region.y, region.w, region.h,
     Math.round(driftX), Math.round(drawY), Math.round(drawWidth), Math.round(drawHeight),
   );
-  ctx.restore();
+  targetCtx.restore();
+  if (layerCanvas) {
+    applyDesertLayerToneGrade(targetCtx, layerCanvas.width, layerCanvas.height, grade);
+    ctx.drawImage(layerCanvas, 0, 0);
+  }
   return true;
 }
 
@@ -343,6 +524,7 @@ function drawSingleGroundLayer(ctx, assets, key, dest, options = {}) {
     parallax = 1,
     alpha = 1,
     filter = null,
+    grade = null,
   } = options;
   const { region, image } = layer;
   if (!canvasWidth) return false;
@@ -353,17 +535,24 @@ function drawSingleGroundLayer(ctx, assets, key, dest, options = {}) {
   const scrollX = -((cameraX * parallax) % drawWidth);
   const firstX = scrollX > 0 ? scrollX - drawWidth : scrollX;
 
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  if (filter) ctx.filter = filter;
+  const layerCanvas = hasDesertLayerToneGrade(grade) ? createDesertLayerGradeCanvas(canvasWidth, ctx.canvas?.height || 720) : null;
+  const targetCtx = layerCanvas?.getContext?.('2d') || ctx;
+
+  targetCtx.save();
+  targetCtx.globalAlpha = alpha;
+  if (filter) targetCtx.filter = filter;
   for (let x = firstX; x < canvasWidth; x += drawWidth) {
-    ctx.drawImage(
+    targetCtx.drawImage(
       image,
       region.x, region.y, region.w, region.h,
       Math.round(x), Math.round(dest.y), Math.round(drawWidth), Math.round(drawHeight),
     );
   }
-  ctx.restore();
+  targetCtx.restore();
+  if (layerCanvas) {
+    applyDesertLayerToneGrade(targetCtx, layerCanvas.width, layerCanvas.height, grade);
+    ctx.drawImage(layerCanvas, 0, 0);
+  }
   return true;
 }
 
@@ -378,22 +567,39 @@ function drawDesertEntryGroundLayer(ctx, assets, key, dest, options = {}) {
     alpha = 1,
     filter = null,
     minTileWidth = 0,
+    sourceDrawHeight = null,
+    clipToDestHeight = false,
+    grade = null,
   } = options;
   const { region, image } = layer;
   const { y, height } = dest;
   if (!canvasWidth || height <= 0) return false;
 
   const sourceRatio = region.w / region.h;
-  const layerTileWidth = Math.max(canvasWidth + 2, height * sourceRatio, minTileWidth);
+  const renderHeight = Math.max(
+    1,
+    Number.isFinite(sourceDrawHeight) ? Math.max(sourceDrawHeight, height) : height,
+  );
+  const layerTileWidth = Math.max(canvasWidth + 2, renderHeight * sourceRatio, minTileWidth);
   const tileOverlap = Math.max(14, Math.round(layerTileWidth * 0.018));
   const tileStep = Math.max(1, layerTileWidth - tileOverlap);
   const scroll = ((cameraX * parallax) % tileStep + tileStep) % tileStep;
   let x = -scroll;
   let tileIndex = 0;
+  const drawY = Math.round(y);
+  const drawHeight = Math.round(renderHeight);
 
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  if (filter) ctx.filter = filter;
+  const layerCanvas = hasDesertLayerToneGrade(grade) ? createDesertLayerGradeCanvas(canvasWidth, ctx.canvas?.height || 720) : null;
+  const targetCtx = layerCanvas?.getContext?.('2d') || ctx;
+
+  targetCtx.save();
+  targetCtx.globalAlpha = alpha;
+  if (filter) targetCtx.filter = filter;
+  if (clipToDestHeight) {
+    targetCtx.beginPath();
+    targetCtx.rect(0, Math.round(y), canvasWidth, Math.round(height));
+    targetCtx.clip();
+  }
   while (x > 0) {
     x -= tileStep;
     tileIndex -= 1;
@@ -402,24 +608,28 @@ function drawDesertEntryGroundLayer(ctx, assets, key, dest, options = {}) {
     const drawX = Math.round(x);
     const drawWidth = Math.round(layerTileWidth + tileOverlap);
     if (Math.abs(tileIndex) % 2 === 1) {
-      ctx.save();
-      ctx.translate(drawX + drawWidth, Math.round(y));
-      ctx.scale(-1, 1);
-      ctx.drawImage(
+      targetCtx.save();
+      targetCtx.translate(drawX + drawWidth, drawY);
+      targetCtx.scale(-1, 1);
+      targetCtx.drawImage(
         image,
         region.x, region.y, region.w, region.h,
-        0, 0, drawWidth, Math.round(height),
+        0, 0, drawWidth, drawHeight,
       );
-      ctx.restore();
+      targetCtx.restore();
     } else {
-      ctx.drawImage(
+      targetCtx.drawImage(
         image,
         region.x, region.y, region.w, region.h,
-        drawX, Math.round(y), drawWidth, Math.round(height),
+        drawX, drawY, drawWidth, drawHeight,
       );
     }
   }
-  ctx.restore();
+  targetCtx.restore();
+  if (layerCanvas) {
+    applyDesertLayerToneGrade(targetCtx, layerCanvas.width, layerCanvas.height, grade);
+    ctx.drawImage(layerCanvas, 0, 0);
+  }
   return true;
 }
 
@@ -434,13 +644,18 @@ function drawDesertEntryGroundLayerTileSeamBreakup(ctx, assets, key, dest, optio
     alpha = 1,
     opacity = 0.16,
     seamWidth = 58,
+    sourceDrawHeight = null,
   } = options;
   const { region } = layer;
   const { y, height } = dest;
   if (!canvasWidth || height <= 0 || alpha <= 0 || opacity <= 0) return false;
 
   const sourceRatio = region.w / region.h;
-  const layerTileWidth = Math.max(canvasWidth + 2, height * sourceRatio);
+  const renderHeight = Math.max(
+    1,
+    Number.isFinite(sourceDrawHeight) ? Math.max(sourceDrawHeight, height) : height,
+  );
+  const layerTileWidth = Math.max(canvasWidth + 2, renderHeight * sourceRatio);
   const tileOverlap = Math.max(14, Math.round(layerTileWidth * 0.018));
   const tileStep = Math.max(1, layerTileWidth - tileOverlap);
   const scroll = ((cameraX * parallax) % tileStep + tileStep) % tileStep;
@@ -656,15 +871,22 @@ function drawDesertEntryRitualTempleNearLane(ctx, section, cameraX, assets, canv
   const ritualX = (ritualWorldX - cameraX) * cfg.parallax + canvasWidth / 2 - ritualWidth / 2;
   if (ritualX <= -ritualWidth || ritualX >= canvasWidth + ritualWidth) return false;
 
-  ctx.save();
-  ctx.globalAlpha = cfg.alpha;
-  ctx.filter = `sepia(5%) brightness(${cfg.brightness ?? 1}) saturate(${cfg.saturate ?? 1}) contrast(${cfg.contrast ?? 1})`;
-  ctx.drawImage(
+  const layerCanvas = hasDesertLayerToneGrade(cfg) ? createDesertLayerGradeCanvas(canvasWidth, ctx.canvas?.height || 720) : null;
+  const targetCtx = layerCanvas?.getContext?.('2d') || ctx;
+
+  targetCtx.save();
+  targetCtx.globalAlpha = cfg.alpha;
+  targetCtx.filter = getDesertLayerFilter(T.ritualPyramid, { sepia: 5 });
+  targetCtx.drawImage(
     ritualImage,
     ritualRegion.x, ritualRegion.y, ritualRegion.w, ritualRegion.h,
     Math.round(ritualX), Math.round(cfg.baseY - cfg.height), Math.round(ritualWidth), cfg.height,
   );
-  ctx.restore();
+  targetCtx.restore();
+  if (layerCanvas) {
+    applyDesertLayerToneGrade(targetCtx, layerCanvas.width, layerCanvas.height, cfg);
+    ctx.drawImage(layerCanvas, 0, 0);
+  }
   return true;
 }
 
@@ -747,7 +969,7 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
       assets,
       'skyLight',
       { y: 0, height: assets.atlas?.candidateSkyLayerHeight ?? CANVAS_HEIGHT },
-      { ...layerOptions, parallax: T.skyLight.parallax, alpha: T.skyLight.alpha, alignY: 0 },
+      { ...layerOptions, parallax: T.skyLight.parallax, alpha: T.skyLight.alpha, alignY: 0, filter: getDesertLayerFilter(T.skyLight, { brightness: 1.06, saturate: 1.05, contrast: 1, sepia: 0, hue: 0 }), grade: T.skyLight },
     )
     : drawDesertBackgroundLayer(
       ctx,
@@ -759,7 +981,8 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
         parallax: T.skyLight.parallax,
         alpha: T.skyLight.alpha,
         // Lift the baked-in storm murk so the sunset reads warm instead of muddy.
-        filter: 'brightness(1.06) saturate(1.05)',
+        filter: getDesertLayerFilter(T.skyLight, { brightness: 1.06, saturate: 1.05, contrast: 1, sepia: 0, hue: 0 }),
+        grade: T.skyLight,
       },
     );
   if (!skyDrawn) return false;
@@ -783,6 +1006,8 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
       parallax: T.midNecropolisRuins.parallax,
       alpha: T.midNecropolisRuins.alpha,
       alignY: 0.5,
+      filter: getDesertLayerFilter(T.midNecropolisRuins, { brightness: 1.03, saturate: 1.26, contrast: 1.22, sepia: 3, hue: 0 }),
+      grade: T.midNecropolisRuins,
     });
   } else {
     // Cliffs drawn first as the far backdrop (slowest, tiled). Height is
@@ -826,7 +1051,8 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
       ...layerOptions,
       parallax: T.midNecropolisRuins.parallax,
       alpha: T.midNecropolisRuins.alpha,
-      filter: 'sepia(3%) saturate(126%) brightness(103%) contrast(122%)',
+      filter: getDesertLayerFilter(T.midNecropolisRuins, { brightness: 1.03, saturate: 1.26, contrast: 1.22, sepia: 3, hue: 0 }),
+      grade: T.midNecropolisRuins,
     });
   }
 
@@ -871,19 +1097,22 @@ export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
     if (sphinxX > -sphinxWidth && sphinxX < CANVAS_WIDTH + sphinxWidth) {
       // Tunable grade so the Sphinx sits in the weathered scene instead of reading as
       // bright polished gold (desertSphinx.brightness / .saturate, live in Layers panel).
-      const sphinxBrightness = T.desertSphinx.brightness ?? 1;
-      const sphinxSaturate = T.desertSphinx.saturate ?? 1;
-      const sphinxContrast = T.desertSphinx.contrast ?? 1.04;
       const sphinxAlpha = Math.max(0, Math.min(1, T.desertSphinx.alpha ?? 1));
-      ctx.save();
-      ctx.globalAlpha = sphinxAlpha;
-      ctx.filter = `sepia(5%) brightness(${sphinxBrightness}) saturate(${sphinxSaturate}) contrast(${sphinxContrast})`;
-      ctx.drawImage(
+      const layerCanvas = hasDesertLayerToneGrade(T.desertSphinx) ? createDesertLayerGradeCanvas(CANVAS_WIDTH, ctx.canvas?.height || CANVAS_HEIGHT) : null;
+      const targetCtx = layerCanvas?.getContext?.('2d') || ctx;
+      targetCtx.save();
+      targetCtx.globalAlpha = sphinxAlpha;
+      targetCtx.filter = getDesertLayerFilter(T.desertSphinx, { sepia: 5, contrast: 1.04 });
+      targetCtx.drawImage(
         sphinxImage,
         sphinxRegion.x, sphinxRegion.y, sphinxRegion.w, sphinxRegion.h,
         Math.round(sphinxX), SPHINX_BASE_Y - SPHINX_HEIGHT, Math.round(sphinxWidth), SPHINX_HEIGHT,
       );
-      ctx.restore();
+      targetCtx.restore();
+      if (layerCanvas) {
+        applyDesertLayerToneGrade(targetCtx, layerCanvas.width, layerCanvas.height, T.desertSphinx);
+        ctx.drawImage(layerCanvas, 0, 0);
+      }
     }
   }
 
@@ -950,7 +1179,8 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         cameraX,
         parallax: T.groundBacking.parallax,
         alpha: T.groundBacking.alpha,
-        filter: getDesertGroundLayerFilter(T.groundBacking),
+        filter: getDesertLayerFilter(T.groundBacking, { sepia: 4 }),
+        grade: T.groundBacking,
       },
     )
     : drawDesertEntryGroundLayer(
@@ -963,8 +1193,11 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         cameraX,
         parallax: T.groundBacking.parallax,
         alpha: T.groundBacking.alpha,
-        filter: getDesertGroundLayerFilter(T.groundBacking),
+        filter: getDesertLayerFilter(T.groundBacking, { sepia: 4 }),
+        grade: T.groundBacking,
         minTileWidth: CANVAS_WIDTH * 2.8,
+        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.groundBacking,
+        clipToDestHeight: true,
       },
     );
   if (backingDrawn && !isV3ProductionCandidate) {
@@ -980,6 +1213,28 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.groundBacking.alpha,
         opacity: 0,
         seamWidth: 42,
+        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.groundBacking,
+      },
+    );
+  }
+
+  let templeFoundationDrawn = false;
+  if (!isV3ProductionCandidate) {
+    templeFoundationDrawn = drawDesertEntryGroundLayer(
+      ctx,
+      assets,
+      'templeFoundationTransition',
+      { y: T.templeFoundationTransition.y, height: T.templeFoundationTransition.height },
+      {
+        canvasWidth: CANVAS_WIDTH,
+        cameraX,
+        parallax: T.templeFoundationTransition.parallax,
+        alpha: T.templeFoundationTransition.alpha,
+        filter: getDesertLayerFilter(T.templeFoundationTransition, { sepia: 4 }),
+        grade: T.templeFoundationTransition,
+        minTileWidth: CANVAS_WIDTH * 3.2,
+        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.templeFoundationTransition,
+        clipToDestHeight: true,
       },
     );
   }
@@ -1003,7 +1258,10 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         cameraX,
         parallax: T.groundTransition.parallax,
         alpha: T.groundTransition.alpha,
-        filter: getDesertGroundLayerFilter(T.groundTransition),
+        filter: getDesertLayerFilter(T.groundTransition, { sepia: 4 }),
+        grade: T.groundTransition,
+        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.groundTransition,
+        clipToDestHeight: true,
       },
     );
   }
@@ -1019,7 +1277,8 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         cameraX,
         parallax: T.groundLane.parallax,
         alpha: T.groundLane.alpha,
-        filter: getDesertGroundLayerFilter(T.groundLane),
+        filter: getDesertLayerFilter(T.groundLane, { sepia: 4 }),
+        grade: T.groundLane,
       },
     )
     : drawDesertEntryGroundLayer(
@@ -1032,7 +1291,10 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         cameraX,
         parallax: T.groundLane.parallax,
         alpha: T.groundLane.alpha,
-        filter: getDesertGroundLayerFilter(T.groundLane),
+        filter: getDesertLayerFilter(T.groundLane, { sepia: 4 }),
+        grade: T.groundLane,
+        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.groundLane,
+        clipToDestHeight: true,
       },
     );
   if (drawn && !isV3ProductionCandidate) {
@@ -1048,6 +1310,7 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.groundLane.alpha,
         opacity: 0.28,
         seamWidth: 104,
+        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.groundLane,
       },
     );
   }
@@ -1083,6 +1346,8 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         cameraX,
         parallax: T.foregroundRubble.parallax,
         alpha: T.foregroundRubble.alpha,
+        filter: getDesertLayerFilter(T.foregroundRubble, { sepia: 4 }),
+        grade: T.foregroundRubble,
       },
     )
     : drawDesertEntryGroundLayer(
@@ -1095,6 +1360,10 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         cameraX,
         parallax: T.foregroundRubble.parallax,
         alpha: T.foregroundRubble.alpha,
+        filter: getDesertLayerFilter(T.foregroundRubble, { sepia: 4 }),
+        grade: T.foregroundRubble,
+        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.foregroundRubble,
+        clipToDestHeight: true,
       },
     );
   if (rubbleDrawn && !isV3ProductionCandidate) {
@@ -1110,6 +1379,7 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.foregroundRubble.alpha,
         opacity: 0.18,
         seamWidth: 78,
+        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.foregroundRubble,
       },
     );
   }
@@ -1122,13 +1392,16 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
     stateRef.current.renderStats.desertEntryGroundBackingActive = true;
     stateRef.current.renderStats.desertEntryGroundBackingParallax = DESERT_LAYER_TUNING.groundBacking.parallax;
   }
+  if (templeFoundationDrawn && stateRef.current.renderStats) {
+    stateRef.current.renderStats.desertEntryTempleFoundationTransitionActive = true;
+  }
   if (rubbleDrawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.desertEntryForegroundRubbleActive = true;
   }
   if (ritualTempleDrawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.desertEntryRitualTempleDepthSlot = 'between-ground-backing-and-lane';
   }
-  return drawn || backingDrawn || ritualTempleDrawn || rubbleDrawn;
+  return drawn || backingDrawn || templeFoundationDrawn || ritualTempleDrawn || rubbleDrawn;
 }
 
 export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {
