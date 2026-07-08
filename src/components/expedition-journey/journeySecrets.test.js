@@ -1303,22 +1303,29 @@ test('desert entry ground collision uses the integrated painted route instead of
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.y, 438);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.height, 154);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.parallax, 0.72);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.alpha, 0.82);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.brightness, 0.9);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.saturate, 0.86);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.contrast, 0.9);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.alpha, 1);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.brightness, 0.96);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.saturate, 0.72);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.contrast, 1.1);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.shadowLift, 0.04);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.highlightClamp, 0.9);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.y, 523);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.height, 129);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.parallax, 1);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.alpha, 1);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.brightness, 0.96);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.saturate, 0.9);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.contrast, 0.96);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.alpha, 0.76);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.brightness, 1);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.saturate, 0.78);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.contrast, 0.92);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.shadowLift, 0.05);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.highlightClamp, 0.94);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.dustHaze, 0.01);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.y, 558);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.height, 174);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.brightness, 1.18);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.saturate, 1.38);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.contrast, 1);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.brightness, 1.06);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.saturate, 0.84);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.contrast, 1.06);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.shadowLift, 0.04);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.highlightClamp, 0.92);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundRubble.y, 538);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundRubble.height, 118);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundRubble.parallax, 1.06);
@@ -5610,6 +5617,13 @@ test('Desert Entry colour-graded layers support shadow lift, highlight clamp, an
     .filter((layer) => layer.fields.some((field) => field.k === 'brightness'))
     .map((layer) => layer.key);
 
+  const intentionallyTunedLayers = new Set([
+    'thresholdBuildingGrade',
+    'templeFoundationTransition',
+    'groundTransition',
+    'groundLane',
+  ]);
+
   [
     'skyLight',
     'midNecropolisRuins',
@@ -5625,9 +5639,11 @@ test('Desert Entry colour-graded layers support shadow lift, highlight clamp, an
   ].forEach((layerKey) => {
     assert.ok(colourGradedLayerKeys.includes(layerKey), `${layerKey} should be colour graded`);
     const layer = DESERT_LAYER_TUNING_SCHEMA.find((entry) => entry.key === layerKey);
-    assert.equal(DESERT_LAYER_TUNING_DEFAULTS[layerKey].shadowLift ?? 0, 0, `${layerKey} shadow lift default should preserve the old look`);
-    assert.equal(DESERT_LAYER_TUNING_DEFAULTS[layerKey].highlightClamp ?? 1, 1, `${layerKey} highlight clamp default should preserve the old look`);
-    assert.equal(DESERT_LAYER_TUNING_DEFAULTS[layerKey].dustHaze ?? 0, 0, `${layerKey} dust haze default should preserve the old look`);
+    if (!intentionallyTunedLayers.has(layerKey)) {
+      assert.equal(DESERT_LAYER_TUNING_DEFAULTS[layerKey].shadowLift ?? 0, 0, `${layerKey} shadow lift default should preserve the old look`);
+      assert.equal(DESERT_LAYER_TUNING_DEFAULTS[layerKey].highlightClamp ?? 1, 1, `${layerKey} highlight clamp default should preserve the old look`);
+      assert.equal(DESERT_LAYER_TUNING_DEFAULTS[layerKey].dustHaze ?? 0, 0, `${layerKey} dust haze default should preserve the old look`);
+    }
     assert.ok(layer.fields.some((field) => field.k === 'shadowLift' && field.label === 'Shadow Lift'), `${layerKey} needs a Shadow Lift slider`);
     assert.ok(layer.fields.some((field) => field.k === 'highlightClamp' && field.label === 'Highlight Clamp'), `${layerKey} needs a Highlight Clamp slider`);
     assert.ok(layer.fields.some((field) => field.k === 'dustHaze' && field.label === 'Dust Haze'), `${layerKey} needs a Dust Haze slider`);
