@@ -360,6 +360,9 @@ test('Desert Entry arrival gateway uses the keyed scarab-pylon cutout', () => {
   assert.equal(gateway.height, 138);
   assert.equal(gateway.scale, 3.3);
   assert.equal(gateway.rotation, 0);
+  assert.equal(gateway.brightness, 1);
+  assert.equal(gateway.paintColor, '#d8b98a');
+  assert.equal(gateway.paintStrength, 0.1);
   assert.ok(existsSync(`public/${gateway.assetPath}`), 'the keyed scarab-pylon PNG should exist at the runtime path');
   assert.deepEqual(readPngInfo(gateway.assetPath), { width: 1534, height: 763, colorType: 6 });
 });
