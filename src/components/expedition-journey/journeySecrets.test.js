@@ -31,7 +31,7 @@ import {
   makeEnemy,
   snapJourneyPropCoordinate,
 } from './journeyUtils.js';
-import { CHINA_ENEMIES, ENEMIES, HIDDEN_ROUTES, RELIC_SHARDS, STORY_PROPS } from './journeyLevelData.js';
+import { CHINA_ENEMIES, ENEMIES, HIDDEN_ROUTES, RELIC_SHARDS, ROUTE_GATES, STORY_PROPS } from './journeyLevelData.js';
 import { getJourneyMiniBosses } from './journeyDataRouter.js';
 import { ROME_SECTION_OBJECTIVES } from './romeJourneyData.js';
 import {
@@ -3511,7 +3511,7 @@ test('Egypt opening loop makes the first seal require enemies, shards, and the m
   assert.doesNotMatch(source, /id:\s*'warrior-mummy-dune-1'/);
   assert.doesNotMatch(source, /id:\s*'warrior-mummy-ridge-1'/);
   assert.match(source, /id:\s*'scarab-scout-1'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
-  assert.match(source, /protectsRouteId:\s*'desert-opening-shard-cache'/);
+  assert.doesNotMatch(source, /protectsRouteId:\s*'desert-opening-shard-cache'/);
   assert.match(source, /id:\s*'mummification-chamber-route'[\s\S]*?first sacred mystery/i);
   assert.match(journeyComponentSource, /getActiveShardGateProgress/);
   assert.match(journeyComponentSource, /Relic Shard/);
@@ -6009,6 +6009,36 @@ test('Desert Entry combat encounters declare a story or gameplay purpose', () =>
   });
 });
 
+test('Egypt enemy route-purpose links resolve to real authored routes', () => {
+  const authoredRouteIds = new Set([
+    ...ROUTE_GATES.map(route => route.id),
+    ...HIDDEN_ROUTES.map(route => route.id),
+  ]);
+  const unresolvedRouteLinks = ENEMIES
+    .filter(enemy => enemy.protectsRouteId && !authoredRouteIds.has(enemy.protectsRouteId))
+    .map(enemy => `${enemy.id}:${enemy.protectsRouteId}`);
+
+  assert.deepEqual(unresolvedRouteLinks, []);
+});
+
+test('Egypt opening enemy placement keeps the first combat lessons readable', () => {
+  const firstSandFloorEnemyIds = ENEMIES
+    .filter(enemy => enemy.openingRouteRamp && enemy.x <= scaleJourneyX(405))
+    .map(enemy => enemy.id);
+  const bridgeNestPocketEnemyIds = ENEMIES
+    .filter(enemy => enemy.openingRouteRamp && enemy.x >= scaleJourneyX(450) && enemy.x <= scaleJourneyX(580))
+    .map(enemy => enemy.id);
+
+  assert.deepEqual(firstSandFloorEnemyIds, [
+    'scorpion-start-1',
+    'scorpion-pottery-1',
+  ]);
+  assert.ok(
+    !bridgeNestPocketEnemyIds.includes('sand-wisp-arena-1'),
+    'The bridge/nest pocket should not stack flying harassment on top of the spawner and grounded bridge enemies',
+  );
+});
+
 test('Egypt opening combat ramps gently before the first route seal', () => {
   const egyptEnemies = extractExportedArray('ENEMIES');
   const readAuthoredX = (row) => {
@@ -6133,6 +6163,7 @@ test('scorpion venom slice removes tail-sting attacks and keeps spit pressure mo
   assert.doesNotMatch(journeyComponentSource, /id:\s*'sting'/);
   assert.doesNotMatch(journeyComponentSource, /id:\s*'power-sting'/);
   assert.doesNotMatch(journeyComponentSource, /raises its tail/);
+  assert.doesNotMatch(journeyCombatContractSource, /high sting/);
   assert.match(journeyComponentSource, /const SCORPION_VENOM_ATTACK_PATTERN = \{[\s\S]*?speed:\s*54/);
   assert.doesNotMatch(journeyCombatContractSource, /shouldUseScorpionAntiAirSting/);
   assert.match(journeyCombatContractSource, /const shouldUseScorpionVenomSpit = \(\{[\s\S]*?scorpionVenomCanReach[\s\S]*?\(venomSlowTimer \|\| 0\) <= SCORPION_VENOM_REFRESH_WINDOW/);
@@ -6264,7 +6295,6 @@ test('fixed Desert Entry opening combat enemies remain aligned to visible sand s
   const fixedEnemies = [
     { id: 'scorpion-start-1', y: 563, role: 'shard cache guard' },
     { id: 'scorpion-pottery-1', y: 563, role: 'shard cache guard' },
-    { id: 'scarab-arena-1', y: 569, role: 'nest arena pressure' },
   ];
 
   fixedEnemies.forEach(({ id, y, role }) => {
@@ -6696,7 +6726,9 @@ test('opening enemy role overrides preserve first-route fairness and readable co
   assert.doesNotMatch(journeyComponentSource, /text:\s*'RESET'/);
   assert.match(journeyComponentSource, /spikeTrap:\s*\{\s*xPad:\s*12,\s*widthPad:\s*24,\s*height:\s*44/);
   assert.match(egyptEnemies, /id:\s*'scorpion-start-1'[\s\S]*?width:\s*44[\s\S]*?height:\s*30[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?windup:\s*0\.66[\s\S]*?duration:\s*0\.34[\s\S]*?range:\s*26[\s\S]*?height:\s*62[\s\S]*?yOffset:\s*-38[\s\S]*?backReach:\s*42[\s\S]*?damageScale:\s*1\.5[\s\S]*?protectedDuringWindup:\s*true/);
-  assert.match(egyptEnemies, /id:\s*'scorpion-pottery-1'[\s\S]*?name:\s*'Pottery Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'desert-opening-shard-cache'/);
+  assert.match(egyptEnemies, /id:\s*'scorpion-pottery-1'[\s\S]*?name:\s*'Pottery Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?pressureHint:\s*'Keeps the first cache tense without adding another enemy type\.'/);
+  assert.doesNotMatch(egyptEnemies, /id:\s*'scarab-arena-1'/);
+  assert.doesNotMatch(egyptEnemies, /id:\s*'sand-wisp-arena-1'/);
   assert.match(egyptEnemies, /id:\s*'scorpion-seal-path-1'[\s\S]*?name:\s*'Seal Warden Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?protectsRouteId:\s*'temple-approach-seal'/);
   assert.match(egyptEnemies, /id:\s*'scorpion-guardian-path-1'[\s\S]*?name:\s*'Guardian Path Scorpion'[\s\S]*?type:\s*'scorpion'[\s\S]*?x:\s*X\(2130\)/);
   assert.match(egyptEnemies, /id:\s*'sand-wisp-start-1'[\s\S]*?damage:\s*4[\s\S]*?attackPatternTuning:\s*\{[\s\S]*?vulnerableAfter:\s*0\.72/);
@@ -6724,8 +6756,8 @@ test('Phase 5A desert combat gives Scarab Scout and Seal Warden readable counter
   assert.match(sealWarden, /encounterRole:\s*'route guardian enemy'/);
   assert.match(sealWarden, /combatRole:\s*'route guardian enemy'/);
   assert.match(sealWarden, /Anubis\\'s warden protects the seal/);
-  assert.match(sealWarden, /Blind strikes bounce off its guard; counter after the sting\./);
-  assert.match(sealWarden, /attackPatternTuning:\s*\{[\s\S]*?label:\s*'Guarded Sting'[\s\S]*?windup:\s*0\.82[\s\S]*?duration:\s*0\.32[\s\S]*?recovery:\s*0\.9[\s\S]*?vulnerableAfter:\s*0\.98[\s\S]*?shieldDuringWindup:\s*true[\s\S]*?protectedDuringWindup:\s*true/);
+  assert.match(sealWarden, /Do not rush the venom windup; pressure it after the spit\./);
+  assert.match(sealWarden, /attackPatternTuning:\s*\{[\s\S]*?label:\s*'Guarded Venom'[\s\S]*?windup:\s*0\.82[\s\S]*?duration:\s*0\.32[\s\S]*?recovery:\s*0\.9[\s\S]*?vulnerableAfter:\s*0\.98[\s\S]*?shieldDuringWindup:\s*true[\s\S]*?protectedDuringWindup:\s*true/);
   assert.doesNotMatch(sealWarden, /health:\s*[3-9]/);
 
   assert.match(journeyComponentSource, /protectedDuringWindup/);
@@ -6772,7 +6804,7 @@ test('Phase 5B isolates the first Scarab Scout and Seal Warden teaching pockets'
   });
 
   assert.match(scarabScout, /attackPatternTuning:\s*\{[\s\S]*?label:\s*'Scout Charge'[\s\S]*?windup:\s*0\.72[\s\S]*?duration:\s*0\.24[\s\S]*?recovery:\s*0\.82[\s\S]*?vulnerableAfter:\s*0\.9/);
-  assert.match(sealWarden, /attackPatternTuning:\s*\{[\s\S]*?label:\s*'Guarded Sting'[\s\S]*?windup:\s*0\.82[\s\S]*?duration:\s*0\.32[\s\S]*?recovery:\s*0\.9[\s\S]*?vulnerableAfter:\s*0\.98[\s\S]*?shieldDuringWindup:\s*true[\s\S]*?protectedDuringWindup:\s*true/);
+  assert.match(sealWarden, /attackPatternTuning:\s*\{[\s\S]*?label:\s*'Guarded Venom'[\s\S]*?windup:\s*0\.82[\s\S]*?duration:\s*0\.32[\s\S]*?recovery:\s*0\.9[\s\S]*?vulnerableAfter:\s*0\.98[\s\S]*?shieldDuringWindup:\s*true[\s\S]*?protectedDuringWindup:\s*true/);
 });
 
 test('endurance model slice 2: exhausted state, overwhelm rescue, trap floor, and recovery contracts', () => {

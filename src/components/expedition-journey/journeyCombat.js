@@ -248,12 +248,12 @@ export const getEnemyCombatIntent = (enemy = {}) => {
     && (
       enemy.openingRouteRamp
       || enemy.firstSealRouteRamp
-      || enemyIntentTextIncludes(enemy, ['jump', 'air', 'anti-air', 'high sting', 'vertical'])
+      || enemyIntentTextIncludes(enemy, ['jump', 'air', 'anti-air', 'venom pressure', 'vertical'])
     )
   ) {
     return {
       id: ENEMY_COMBAT_INTENTS.ANTI_AIR,
-      label: 'Anti-Air',
+      label: 'Air Pressure',
       reason: 'Pressures careless jumps and keeps Asha thinking about vertical space.',
     };
   }

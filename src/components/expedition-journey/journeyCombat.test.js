@@ -286,7 +286,7 @@ test('enemy combat intent resolver turns encounter data into battlefield jobs', 
   assert.equal(
     getEnemyCombatIntent({
       type: 'scorpion',
-      pressureHint: 'Punishes careless jumps with a high sting.',
+      pressureHint: 'Punishes careless jumps with venom pressure.',
     }).id,
     ENEMY_COMBAT_INTENTS.ANTI_AIR,
   );
@@ -327,7 +327,7 @@ test('enemy combat intent tuning gives purposeful enemies stronger pursuit shape
 
   const antiAir = getEnemyIntentTuning({
     type: 'scorpion',
-    pressureHint: 'Punishes careless jumps with a high sting.',
+    pressureHint: 'Punishes careless jumps with venom pressure.',
   });
   assert.equal(antiAir.airborneAggro, true);
   assert.equal(antiAir.verticalAwareness, 168);

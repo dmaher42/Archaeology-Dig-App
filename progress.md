@@ -4,6 +4,12 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-05 Enemy placement audit slice:
+- Kept the work in the clean live worktree on `codex/enemy-placement-desert-entry` so active Scribe Chamber WIP stays untouched.
+- Thinned the Egypt Desert Entry opening pressure: the first sand floor now stays to two scorpion cache guards, and the bridge/nest pocket no longer stacks the extra arena scarab plus aerial wisp on top of the spawner and bridge enemies.
+- Removed the stale `desert-opening-shard-cache` enemy route link and added a guard so Egypt enemy route-purpose links must resolve to real authored route gates or hidden routes.
+- Updated scorpion placement/combat wording from tail-sting language to venom-pressure language while keeping the live no-tail scorpion behavior intact.
+
 2026-07-01 Desert Entry screenshot polish pass:
 - Kept the pass on the existing Journey renderer and active layered Desert Entry image contract; no duplicate scene path and no new SVG particle layer.
 - Added canvas-based atmospheric grading over the temple/background layer so the huge backdrop sits farther back and competes less with the playable foreground.

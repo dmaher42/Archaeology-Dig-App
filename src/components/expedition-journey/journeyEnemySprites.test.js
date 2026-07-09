@@ -160,7 +160,7 @@ test('scorpion denies stomps while body contact stays deliberately harmless', ()
   // so no movement-blocker hitbox machinery should remain.
   assert.doesNotMatch(journeyUtilsSource, /getEnemyMovementBlockHitbox/);
   assert.match(journeyUtilsSource, /Body contact is deliberately harmless/);
-  // Jump-overs are punished by the raised sting attack box, not by a body blocker.
+  // Jump-overs are pressured by the venom attack profile, not by a body blocker.
   assert.match(journeyComponentSource, /scorpion:\s*\{[\s\S]*?height:\s*58,\s*yOffset:\s*-34/);
 });
 
