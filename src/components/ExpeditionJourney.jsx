@@ -1937,7 +1937,7 @@ const ENEMY_HIT_SFX_BY_TYPE = {
 const getEnemyHitSfxKey = (enemy) => ENEMY_HIT_SFX_BY_TYPE[enemy?.type] || 'enemyHit';
 
 const AMBIENT_DRAMA_SFX_BY_SECTION = {
-  'desert-entry': ['distantRockfall', 'distantMonsterCall', 'voidBassSwell'],
+  'desert-entry': ['distantRockfall', 'distantMonsterCall', 'voidBassSwell', 'underworldHeartDrone'],
   'ruined-temple': ['templeStoneGroan', 'distantRuinCollapse', 'underworldHeartDrone', 'distantMonsterCall'],
   catacombs: ['distantMonsterCall', 'underworldHeartDrone', 'voidBassSwell'],
   'escape-sequence': ['structureRipping', 'majorCaveIn', 'realityTearRumble', 'distantRuinCollapse'],

@@ -1627,6 +1627,39 @@ test('Journey HUD surfaces sacred room restoration as Anubis judgement evidence'
   assert.doesNotMatch(journeyComponentSource, /trustMeter|anubisTrust/);
 });
 
+test('Egypt sacred horror pass uses existing route, restoration, event, boss, and ambience hooks', () => {
+  const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
+  const secretCollectibles = extractExportedArray('SECRET_COLLECTIBLES');
+  const events = extractExportedArray('ENVIRONMENT_EVENTS');
+  const miniBosses = extractExportedArray('MINI_BOSSES');
+  const mummificationRoute = getDataRowById(hiddenRoutes, 'mummification-chamber-route');
+  const muralRoute = getDataRowById(hiddenRoutes, 'desert-upper-survey-route');
+  const scribeRoute = getDataRowById(hiddenRoutes, 'scribe-locked-chamber-route');
+  const mummificationFinal = getDataRowById(secretCollectibles, 'egypt-mummification-body-fragment-3');
+  const muralFinal = getDataRowById(secretCollectibles, 'egypt-scarab-fragment-3');
+  const scribeFinal = getDataRowById(secretCollectibles, 'egypt-scribe-name-fragment-3');
+  const scarabQueen = getDataRowById(miniBosses, 'scarab-queen');
+
+  assert.match(source, /sealEmphasisMessage:\s*'The scarab relic burns cold in Asha\\'s hand\. The sand stops moving\. Anubis has noticed\.'/);
+  assert.match(source, /objectiveEchoLine:\s*'The site has judged Asha before she has spoken\. Restore 4 fragments the seal still recognises, or stay buried in its memory\.'/);
+  assert.match(mummificationRoute, /rewardHint:\s*'A dead-cold wind pulls sand toward the buried doorway\. Body \/ preservation is the first sacred mystery\.'/);
+  assert.match(mummificationRoute, /discoveryMessage:\s*'The Mummification Chamber discovered\. The air goes still around a sacred preparation room\.'/);
+  assert.match(mummificationFinal, /restoreMessage:\s*'The linen, oils, and name-fragment settle into a careful rite\. The chamber exhales like it remembers the person on the table\.'/);
+  assert.match(mummificationFinal, /anubisReaction:\s*'Care is not innocence\. But the dead did not recoil from your hands\.'/);
+  assert.match(muralRoute, /rewardHint:\s*'A shadow crosses the broken wall\. A blue scarab glow vanishes into the upper doorway\.'/);
+  assert.match(muralFinal, /restoreMessage:\s*'The scarab settles into place\. Behind the wall, a sealed image wakes and watches back\.'/);
+  assert.match(muralFinal, /anubisReaction:\s*'A wall restored is not truth restored\. Something still hides behind the image\.'/);
+  assert.match(scribeRoute, /discoveryMessage:\s*'The Scribe\\'s Locked Chamber discovered\. The door seals behind Asha, and the old ink seems wet again\.'/);
+  assert.match(scribeFinal, /restoreMessage:\s*'The broken name-line reforms\. The record names a protector, not a thief, and the chamber goes colder\.'/);
+  assert.match(scribeFinal, /anubisReaction:\s*'A name remembered can still accuse\. A name changed can kill twice\.'/);
+  assert.match(events, /id:\s*'scarab-queen-lair-dread-wind'[\s\S]*?message:\s*'A low wind pulls sand toward something buried ahead\. The Queen\\'s seal answers from below\.'/);
+  assert.match(events, /id:\s*'queen-story-contradiction'[\s\S]*?message:\s*'Asha: The Queen was not only guarding treasure\. The record keeps disagreeing with the warning\.'/);
+  assert.match(source, /bossIntroLine:\s*'The buried lair splits open like a wound in the sand\. The Scarab Queen rises from a memory Anubis will not name\.'/);
+  assert.match(scarabQueen, /intro:\s*'Buried Lair: Scarab Queen\. The lair splits open like a wound in the sand\. The Scarab Queen rises from a memory Anubis will not name\.'/);
+  assert.match(scarabQueen, /dialogue:\s*'The lair splits open like a wound in the sand\. The Scarab Queen rises from a memory Anubis will not name\.'/);
+  assert.match(journeyComponentSource, /'desert-entry': \['distantRockfall', 'distantMonsterCall', 'voidBassSwell', 'underworldHeartDrone'\]/);
+});
+
 test('first Egypt secret route rewards curiosity without changing main progression', () => {
   const hiddenRoutes = extractExportedArray('HIDDEN_ROUTES');
   const secretCollectibles = extractExportedArray('SECRET_COLLECTIBLES');
@@ -1644,7 +1677,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(firstSecretRoute, /optional:\s*true/);
   assert.match(firstSecretRoute, /sectionId:\s*'desert-entry'/);
   assert.match(firstSecretRoute, /y:\s*JY\(-154\)/);
-  assert.match(firstSecretRoute, /rewardHint:\s*'A shadow moves above the ruins\. A blue scarab glow vanishes into the upper doorway\.'/);
+  assert.match(firstSecretRoute, /rewardHint:\s*'A shadow crosses the broken wall\. A blue scarab glow vanishes into the upper doorway\.'/);
   assert.match(firstSecretRoute, /discoveryMessage:\s*'Forgotten Mural Chamber discovered\. The warning mural has been damaged\.'/);
   assert.match(firstSecretRoute, /gateType:\s*'faded mural seam'/);
   assert.match(firstSecretRoute, /teaseVisible:\s*true/);
@@ -1660,7 +1693,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.match(scarabFragmentThree, /name:\s*'Broken Scarab Fragment III'/);
   assert.match(scarabFragmentThree, /restorationSetId:\s*'forgotten-mural-seal'/);
   assert.match(scarabFragmentThree, /restoresStoryFlag:\s*'forgotten-mural-restored'/);
-  assert.match(scarabFragmentThree, /restoreMessage:\s*'The scarab settles into place\. Something opens behind the wall\.'/);;
+  assert.match(scarabFragmentThree, /restoreMessage:\s*'The scarab settles into place\. Behind the wall, a sealed image wakes and watches back\.'/);;
   assert.match(scarabFragmentThree, /anubisReaction:/);
   assert.match(scarabFragmentThree, /discoveryMessage:/);
   assert.equal((secretCollectibles.match(/restorationSetId:\s*'forgotten-mural-seal'/g) || []).length, 3);
@@ -1705,7 +1738,7 @@ test('first Egypt secret route rewards curiosity without changing main progressi
   assert.doesNotMatch(journeyComponentSource, /drawForgottenMuralStair/);
   assert.match(events, /id:\s*'upper-route-choice'[\s\S]*?A faint scarab glow leaks from a cracked mural high above\./);
   assert.match(events, /id:\s*'forgotten-mural-looter-shadow'[\s\S]*?type:\s*'looter-shadow'/);
-  assert.match(events, /A shadow moves above the ruins\. A blue scarab glow vanishes into the upper doorway\./);
+  assert.match(events, /A shadow crosses the broken wall\. A blue scarab glow vanishes into the upper doorway\./);
   assert.match(journeyComponentSource, /event\.type === 'looter-shadow'/);
   assert.match(journeyComponentSource, /drawForgottenMuralChamberInterior/);
   assert.match(journeyComponentSource, /drawForgottenMuralChamberTransition/);
@@ -2485,7 +2518,7 @@ test('Ancient Egypt opening stages archaeologist arrival and warrior-guide story
   assert.match(routeGates, /The Desert Map Seal waits for the Map Tablet, the Brush Handle, the fall of the Scarab Queen, and 10 lost fragments\./);
   assert.match(routeGates, /Carry the record forward into the ruined temple\./);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?health:\s*2,\s*damage:\s*7/);
-  assert.match(miniBosses, /The buried scarab lair splits open beneath the sand\. The Scarab Queen rises as the first trial of Anubis\. The site will not yield easily\./);
+  assert.match(miniBosses, /The lair splits open like a wound in the sand\. The Scarab Queen rises from a memory Anubis will not name\./);
   assert.match(bossKeyItems, /id:\s*'brush-handle'[\s\S]*?The Scarab Queen falls\. Asha has permission, not trust\. Brush Handle recovered\. The Desert Map Seal answers\./);
   assert.match(journeyComponentSource, /const GUARDIAN_KNOWLEDGE_CHALLENGES_ENABLED = false;/);
 });
@@ -2510,7 +2543,7 @@ test('Expedition framing presents Journey, Base Camp, and excavation as in-world
   [
     'The Temple Approach Seal refuses easy entry. The lost fragments must prove Asha came to protect.',
     'Restore the fragments the seal still recognises. Pass the guardians. The site will test you.',
-    'The site has judged Asha before she has spoken. Restore 4 fragments the seal still recognises.',
+    'The site has judged Asha before she has spoken. Restore 4 fragments the seal still recognises, or stay buried in its memory.',
     'First fragment restored. Three more will answer the seal.',
     'Restore the fragments the seal still recognises. Pass the guardians. The site will test you.',
     'Seal Test',
@@ -2571,7 +2604,7 @@ test('Egypt Phase 1 boss identity changes preserve progression ids and China nam
   ].forEach((pattern) => assert.match(miniBosses, pattern));
 
   [
-    'The buried scarab lair splits open beneath the sand. The Scarab Queen rises as the first trial of Anubis. The site will not yield easily.',
+    'The lair splits open like a wound in the sand. The Scarab Queen rises from a memory Anubis will not name.',
     'Anubis stands at the temple path. Only those who move with respect may pass.',
     'The Uraeus coils around the sacred seal. The path forward is protected.',
     'Bes blocks the broken passage with a fierce grin. This place will not be rushed.',
@@ -4083,7 +4116,7 @@ test('Scarab Queen boss intro is staged as a buried-sand emergence cinematic', (
   const lairOpeningProp = new URL('../../../public/assets/expedition/bosses/scarab-queen-buried-lair-opening.png', import.meta.url);
 
   assert.ok(existsSync(lairOpeningProp), 'buried scarab lair opening should exist as a transparent PNG runtime asset');
-  assert.match(source, /bossIntroLine:\s*'The buried scarab lair splits open beneath the sand\. The Scarab Queen rises as Anubis/);
+  assert.match(source, /bossIntroLine:\s*'The buried lair splits open like a wound in the sand\. The Scarab Queen rises from a memory Anubis will not name\.'/);
   assert.match(miniBosses, /id:\s*'scarab-queen'[\s\S]*?intro:/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_INTRO_TRIGGER_DISTANCE = 220/);
   assert.match(journeyComponentSource, /const SCARAB_QUEEN_EMERGENCE_INTRO_SECONDS = 6\.8/);
@@ -4230,7 +4263,7 @@ test('Scarab Queen approach builds dread before the lair emergence', () => {
 
   assert.match(egyptEnemies, /id:\s*'scorpion-warning-1'[\s\S]*?name:\s*'Lair Warden Scorpion'[\s\S]*?encounterRole:\s*'lair approach pressure'/);
   assert.match(egyptEnemies, /id:\s*'snake-1'[\s\S]*?name:\s*'Buried Lair Snake'[\s\S]*?encounterRole:\s*'lair approach pressure'/);
-  assert.match(events, /id:\s*'scarab-queen-lair-dread-wind'[\s\S]*?message:\s*'A low wind pulls sand toward something buried ahead\.'/);
+  assert.match(events, /id:\s*'scarab-queen-lair-dread-wind'[\s\S]*?message:\s*'A low wind pulls sand toward something buried ahead\. The Queen\\'s seal answers from below\.'/);
   assert.match(appSource, /scarabQueenApproachAtmosphere:\s*\{[\s\S]*?opening-desert-wind\.ogg[\s\S]*?opening-deep-rumble\.ogg/);
   assert.match(journeyComponentSource, /ev\.id === 'scarab-queen-lair-dread-wind'[\s\S]*?playExpeditionSfx\?\.\('scarabQueenApproachAtmosphere'\)/);
 });
