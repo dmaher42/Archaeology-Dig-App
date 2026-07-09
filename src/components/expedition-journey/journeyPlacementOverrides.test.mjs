@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createCanvas, loadImage } from 'canvas';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
@@ -345,6 +346,43 @@ test('desert entry opening retires the pasted scarab threshold prop while keepin
   assert.ok(journeyPlacementOverrides.deletedPropIds.includes('desert-entry-opening-scarab-threshold-physical-1'));
   assert.equal(SCARAB_SEAL_TRIGGER.sectionId, 'desert-entry');
   assert.equal(SCARAB_SEAL_TRIGGER.id, 'scarab-seal-trigger');
+});
+
+test('Desert Entry arrival gateway uses the keyed scarab-pylon cutout', () => {
+  const gateway = journeyPlacementOverrides.props.find(prop => prop.id === 'opening-duat-breach-wall');
+
+  assert.ok(gateway, 'the opening gateway should remain in generated placement data');
+  assert.equal(
+    gateway.assetPath,
+    'assets/expedition/environment/egypt-atmosphere/props/desert-entry/duat-breach-scarab-pylon-2026-07-04.png',
+  );
+  assert.equal(gateway.width, 278);
+  assert.equal(gateway.height, 138);
+  assert.equal(gateway.scale, 3.3);
+  assert.equal(gateway.rotation, 0);
+  assert.ok(existsSync(`public/${gateway.assetPath}`), 'the keyed scarab-pylon PNG should exist at the runtime path');
+  assert.deepEqual(readPngInfo(gateway.assetPath), { width: 1534, height: 763, colorType: 6 });
+});
+
+test('active Desert Entry necropolis panorama keeps its painted body opaque', async () => {
+  const assetPath = 'assets/expedition/backgrounds/desert-entry/desert-entry-v4-hybrid-mid-necropolis-soft-depth-2026-07-02.png';
+  const info = readPngInfo(assetPath);
+  assert.deepEqual(info, { width: 8132, height: 724, colorType: 6 });
+
+  const image = await loadImage(`public/${assetPath}`);
+  const canvas = createCanvas(image.width, image.height);
+  const context = canvas.getContext('2d');
+  context.drawImage(image, 0, 0);
+  const pixels = context.getImageData(0, 0, image.width, image.height).data;
+  let opaquePixelCount = 0;
+  for (let index = 3; index < pixels.length; index += 4) {
+    if (pixels[index] === 255) opaquePixelCount += 1;
+  }
+
+  assert.ok(
+    opaquePixelCount > 3_000_000,
+    `the necropolis body should block the bright sky instead of ghosting through it; received ${opaquePixelCount} opaque pixels`,
+  );
 });
 
 test('Desert Entry keeps the archived clean physical transition metadata instead of full-screen PNG morphing', () => {
