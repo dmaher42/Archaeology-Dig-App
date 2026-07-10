@@ -9,6 +9,11 @@ Current source-of-truth note:
 - Updated the existing Asha and Bes atlas-building scripts to read from the new source location while preserving all runtime outputs, atlas filenames, dimensions, and loader paths.
 - Kept China Stage Select art and trailer-dependent Asha Option A art in `public/`; no runtime assets were compressed, resized, renamed, or removed.
 
+2026-07-11 Lossless deployed PNG optimization:
+- Recompressed the deployed PNG surface with Oxipng's moderate lossless preset and appearance-safe metadata handling, reducing PNG storage by 52.93 MB (5.86%).
+- Preserved every filename, image dimension, PNG color mode, alpha result, and decoded RGBA pixel; 696 images passed exact before/after contract verification and 648 files became smaller.
+- Did not resize sprites, change atlas coordinates, apply palette reduction, convert formats, or modify runtime loaders.
+
 2026-07-06 Scorpion venom mobility fix:
 - Let scorpions keep normal patrol/chase movement while their venom spit is winding up or firing, instead of freezing in place during the spit.
 - Kept recovery and classic committed attacks planted, so the anti-air/tail-style attack and punish windows still read clearly.
