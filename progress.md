@@ -4,6 +4,16 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-06 Scorpion venom mobility fix:
+- Let scorpions keep normal patrol/chase movement while their venom spit is winding up or firing, instead of freezing in place during the spit.
+- Kept recovery and classic committed attacks planted, so the anti-air/tail-style attack and punish windows still read clearly.
+- Added focused combat and scorpion source guards for the venom-movement rule; the broader Journey secrets guard still has an unrelated current-worktree failure around first secret route visibility.
+
+2026-07-06 Egypt combat counterplay readability tune:
+- Retuned the existing global Wisp/Bat Aerial Dive and Snake Ambush Lunge patterns in `journeyCombat.js` so the first Egypt counterplay reads more clearly: wisp dives now give a longer visible tell and recovery, while snake lunges are slower, more deliberate, and leave a wider punish opening.
+- Kept the change to combat values only; no enemy placement, health, damage, player air-J values, route data, assets, or duplicate combat systems were changed.
+- Verified focused combat tests, enemy sprite/readability tests, the broader Journey source guard, lint, production build, and a short local browser smoke at the scaled Desert Entry combat pocket.
+
 2026-07-06 Egypt Journey opening spawn reset:
 - Moved the real Desert Entry start and first retry checkpoint from the late Scribe/Scarab Queen approach back to the opening pyramid / first building doorway.
 - Reframed the quick-play opening camera around that first doorway and removed the old startup shortcut that pre-marked the Scribe route as already discovered.
@@ -448,3 +458,25 @@ Original prompt: Implement "Lost Site Expedition" as a small MVP game mode in th
 - Expanded the width of the game to full screen by removing max-width constraints on `.expedition-shell` and updating `.expedition-layout` to use `1fr`.
 - Completely rewrote `src/components/TrainingPhase.jsx` to replace the static drag-and-drop card game with a playable "Field Certification" mini-simulation, directly teaching the player the mechanics of surveying, gridding, excavating, mapping, and lab analysis.
 - Completely overhauled `src/components/DigPhase.jsx` to function as a Minesweeper-style deduction puzzle. Empty tiles reveal adjacency numbers.
+
+2026-07-08 Egypt Desert Entry sky background generation:
+- Generated a new 4096x724 wide seamless sky-only sunset background image at `public/assets/expedition/backgrounds/desert-entry/desert-entry-sky-only-sunset-4096-2026-07-08.png` using user-approved art generation criteria.
+- Updated `public/assets/expedition/backgrounds/desert-entry/desert-entry-parallax-pack.json` manifest to reference the new skyLight asset and set its width to 4096.
+- Verified workspace integrity with npm run lint and npm run build.
+
+2026-07-08 Egypt opening combat readability finish:
+- Finished the narrow combat-readability pass in the existing Journey combat path: scorpion venom now has a longer readable aim, a clearer green pressure cue, and a direct dodge/move warning while still moving during the spit.
+- Kept the already-started wisp dive and snake lunge retuning in place: wisps dive more slowly with a longer counter window, and snakes coil longer, lunge more deliberately, and stay punishable after missing.
+- Verified focused combat and enemy-sprite/source guards for the venom, wisp, and snake opening-threat contracts.
+
+2026-07-09 Desert Entry playable route replacement:
+- Replaced the active Desert Entry `groundLane` art with the approved `desert-entry-playable-route-clear-middle-D-wide-path-and-side-rubble-candidate-2026-07-09.png` layer so the walkable route has a clearer middle path with rubble pushed to the sides.
+- Follow-up correction: replaced the stretched 4096-wide conversion with `desert-entry-playable-route-clear-middle-D-native-detail-2026-07-09.png`, a native-detail tiled strip that preserves the centre path, side rubble, cracks, and stone texture in the visible gameplay band.
+- Fixed the Desert Entry ground-layer height controls so Height behaves like image scale instead of shrinking a hidden crop window and cutting off the bottom of ground art.
+- Replaced the active `groundTransition` with the approved B soft buried-slope apron candidate, so the layer supports the temple/necropolis base without reading as a second playable road.
+- Replaced the active `templeFoundationTransition` with the approved C low dusty ruin-lip candidate, so the necropolis support reads as buried/collapsed backing rather than a shelf-like platform.
+- Baked the latest live layer-panel JSON into the Desert Entry defaults, including the raised ground backing, lower/shallower temple foundation lip, lower ground transition, and fully opaque background temple.
+- Cleaned the active C temple foundation layer into a stricter no-green-edge v3 PNG after a remaining green diagonal seam was still visible in-game.
+- Replaced the active `groundTransition` with a crisper no-haze version of the approved B apron and removed the extra dust/shadow wash from that layer's default grade.
+- Replaced the attached opaque threshold-foundation rectangle with a solid cutout foundation layer: the rubble/masonry pixels are mostly opaque, but the empty space around them stays transparent so no full-width slab is glued to the scene.
+- Kept the change inside the existing layered Desert Entry parallax manifest; no collision, enemy placement, player movement, or route logic changed.

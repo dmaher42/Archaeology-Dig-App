@@ -6228,7 +6228,7 @@ test('desert entry ground uses the painted background route and never paints a s
   assert.match(drawDesertEntryGroundMotionCuesSource, /if \(!contactActive \|\| speed < 45\) return false/);
   assert.match(drawPlayerSpriteSource, /getDesertEntryVisualGroundOffsetY/);
   assert.match(drawPlayerSpriteSource, /getDesertEntryGroundContactActive/);
-  assert.match(drawPlayerSpriteSource, /desertEntryPlayerFootContact = 'warm-plaza-foot-shadow-v1'/);
+  assert.match(drawPlayerSpriteSource, /desertEntryPlayerFootContact = 'warm-plaza-foot-shadow-v2'/);
   assert.match(useJourneyRendererSource, /desertGroundStyle = 'integrated-background-painted-route'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface\(ctx, platform, x, cameraX, Date\.now\(\)\)/);
   assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-playable-route-clear-middle-D-native-detail-sharp-2026-07-09.png');

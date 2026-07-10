@@ -326,34 +326,132 @@ export function drawPlayerSpriteFrame(ctx, x, y, w, h, direction, invuln, now, d
   ctx.save();
   if (invuln > 0 && !dodging && Math.floor(now / 100) % 2 === 0) ctx.globalAlpha = 0.34;
 
-  if (desertEntryFootContactActive && typeof drawContactShadow === 'function') {
-    drawContactShadow(
-      ctx,
-      footX,
-      footY + 3,
-      w * (applyRuntimeDodgeEffects ? 1.58 : 1.42),
-      0.28 + groundContactEnergy * 0.08,
-      0.9,
-      { height: 5.5, color: 'rgba(38, 21, 8, 0.9)', coreOffsetX: direction * 2 },
+  // 1. DYNAMIC CAST SHADOW (AAA projected silhouette cast forward from the sunset)
+  if (sprite.image && sprite.loaded) {
+    ctx.save();
+
+    // Scale Y by a negative factor to flip the silhouette forward (down the screen)
+    const shadowScaleY = -0.32;
+    // Skew X toward a consistent world-space sun direction (light from screen-right / west).
+    // Using a fixed value prevents the shadow from flipping instantly when Asha reverses.
+    const shadowSkewX = -0.34;
+    const shadowOpacity = 0.30;
+    const shadowBlur = 2.8;
+
+    ctx.translate(footX, footY + 1);
+    ctx.transform(1, 0, shadowSkewX, shadowScaleY, 0, 0);
+
+    if (knowledgeScale > 1) {
+      ctx.scale(knowledgeScale, knowledgeScale);
+    }
+    ctx.scale(squashX, squashY);
+    if (direction < 0) ctx.scale(-1, 1);
+
+    // Use the offscreen offset shadow rendering technique to bypass canvas filter bounding box bugs
+    const shadowOffset = 5000;
+    ctx.shadowColor = `rgba(28, 14, 6, ${shadowOpacity})`;
+    ctx.shadowBlur = shadowBlur;
+    ctx.shadowOffsetX = shadowOffset;
+    ctx.shadowOffsetY = 0;
+
+    // Draw body silhouette offscreen (shifted left by shadowOffset)
+    ctx.drawImage(
+      sprite.image,
+      sourceX,
+      sourceY,
+      frameWidth,
+      frameHeight,
+      drawX - shadowOffset,
+      drawY,
+      drawWidth,
+      renderedHeight
     );
-    if (typeof drawGroundDustLip === 'function') {
-      drawGroundDustLip(
+
+    // Draw projected weapon shadow silhouette offscreen (shifted left by shadowOffset)
+    const suppressExternalWeapon = heroAtlas?.draw?.suppressExternalWeapon
+      || (heroAtlas?.draw?.suppressExternalWeaponDuringAttack
+        && isPlayerAttackVisualPhase(attackState));
+    if (!suppressExternalWeapon) {
+      drawPlayerKhopeshFrame(ctx, drawWidth * 0.34 - shadowOffset, -renderedHeight * 0.54, attackState, 1, 0.9, deps);
+    }
+
+    ctx.restore();
+  }
+
+  // 2. CONTACT SHADOW — runs in every section, only when Asha is grounded
+  // desertEntryFootContactActive tells us we are on warm desert sand specifically.
+  // For all other grounded surfaces we use a cooler stone/soil palette.
+  const playerIsGrounded = Boolean(current.player.onGround);
+  if (playerIsGrounded && typeof drawContactShadow === 'function') {
+    const dodgeWidthMod = applyRuntimeDodgeEffects ? 1.62 : 1.52;
+    const shadowWidth = w * dodgeWidthMod;
+    // Base intensity raised so the shadow holds against textured backgrounds.
+    // groundContactEnergy adds a subtle reactive pulse when Asha is running.
+    const shadowIntensity = 0.36 + groundContactEnergy * 0.10;
+
+    if (desertEntryFootContactActive) {
+      // Warm desert sand palette — wide flat disc, orange-brown occlusion core
+      drawContactShadow(
         ctx,
-        footX - direction * (7 + groundContactEnergy * 5),
-        footY + 5,
-        w * (1.36 + groundContactEnergy * 0.32),
-        `rgba(221, 151, 68, ${0.2 + groundContactEnergy * 0.08})`,
+        footX,
+        footY + 2,
+        shadowWidth,
+        shadowIntensity,
+        0.9,
+        {
+          height: 16,
+          color: 'rgba(32, 16, 4, 0.92)',
+          coreOffsetX: direction * 2,
+        },
+      );
+      // Desert-specific moving dust lip
+      if (typeof drawGroundDustLip === 'function') {
+        drawGroundDustLip(
+          ctx,
+          footX - direction * (7 + groundContactEnergy * 5),
+          footY + 6,
+          w * (1.44 + groundContactEnergy * 0.32),
+          `rgba(204, 136, 52, ${0.22 + groundContactEnergy * 0.10})`,
+        );
+      }
+      if (current.renderStats) {
+        current.renderStats.desertEntryPlayerFootContact = 'warm-plaza-foot-shadow-v2';
+      }
+    } else {
+      // Cool stone / soil palette — slightly narrower, darker to bite against textured floors
+      drawContactShadow(
+        ctx,
+        footX,
+        footY + 2,
+        shadowWidth,
+        shadowIntensity,
+        0.9,
+        {
+          height: 14,
+          color: 'rgba(14, 8, 4, 0.94)',
+          coreOffsetX: direction * 2,
+        },
       );
     }
-    if (current.renderStats) {
-      current.renderStats.desertEntryPlayerFootContact = 'warm-plaza-foot-shadow-v1';
-    }
+  } else if (!playerIsGrounded) {
+    // Airborne — no contact shadow drawn.
+    void 0;
   } else {
-    ctx.fillStyle = 'rgba(0,0,0,0.34)';
+    // drawContactShadow not available — plain fallback ellipse
+    ctx.save();
+    ctx.fillStyle = 'rgba(18, 10, 4, 0.50)';
     ctx.beginPath();
-    ctx.ellipse(footX, footY + 1, w * (applyRuntimeDodgeEffects ? 1.28 : 1.05), 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(footX, footY + 2, w * 1.1, 8, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
   }
+
+  // 3. SPRITE DRAWING & REAL-TIME LIGHTING INTEGRATION
+  ctx.save();
+
+  // Set soft golden ambient bloom (rim light glow) before translating context
+  ctx.shadowColor = 'rgba(253, 186, 116, 0.38)';
+  ctx.shadowBlur = 5;
 
   ctx.translate(footX + attackLean + movementLean + hurtShake + dodgeLean, footY + jumpLift + dodgeDuckSink);
   if (knowledgeScale > 1) {
@@ -363,21 +461,62 @@ export function drawPlayerSpriteFrame(ctx, x, y, w, h, direction, invuln, now, d
   }
   ctx.scale(squashX, squashY);
   if (direction < 0) ctx.scale(-1, 1);
-  ctx.imageSmoothingEnabled = true;
-  if (heroAtlas?.draw?.imageSmoothingQuality) {
-    ctx.imageSmoothingQuality = heroAtlas.draw.imageSmoothingQuality;
+
+  // Create offscreen canvas for player sprite to apply real-time warm lighting grading
+  // without blending with the main canvas's background pixels (which creates a box).
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = Math.ceil(drawWidth);
+  tempCanvas.height = Math.ceil(renderedHeight);
+  const tempCtx = tempCanvas.getContext('2d');
+
+  if (tempCtx) {
+    tempCtx.imageSmoothingEnabled = true;
+    if (heroAtlas?.draw?.imageSmoothingQuality) {
+      tempCtx.imageSmoothingQuality = heroAtlas.draw.imageSmoothingQuality;
+    }
+    tempCtx.drawImage(
+      sprite.image,
+      sourceX,
+      sourceY,
+      frameWidth,
+      frameHeight,
+      0,
+      0,
+      drawWidth,
+      renderedHeight
+    );
+
+    // Apply real-time warm lighting grading (source-atop overlay of a sunset gradient)
+    tempCtx.save();
+    tempCtx.globalCompositeOperation = 'source-atop';
+    const overlayGrad = tempCtx.createLinearGradient(0, 0, drawWidth, renderedHeight);
+    overlayGrad.addColorStop(0, 'rgba(254, 215, 170, 0.28)'); // warm golden highlights
+    overlayGrad.addColorStop(0.5, 'rgba(251, 146, 60, 0.12)'); // soft orange midtones
+    overlayGrad.addColorStop(1, 'rgba(124, 45, 18, 0.22)'); // deep earthy shadow tones
+    tempCtx.fillStyle = overlayGrad;
+    tempCtx.fillRect(0, 0, drawWidth, renderedHeight);
+    tempCtx.restore();
+
+    // Draw the graded player sprite from the temp canvas onto the main canvas
+    ctx.drawImage(tempCanvas, drawX, drawY);
+  } else {
+    ctx.imageSmoothingEnabled = true;
+    if (heroAtlas?.draw?.imageSmoothingQuality) {
+      ctx.imageSmoothingQuality = heroAtlas.draw.imageSmoothingQuality;
+    }
+    ctx.drawImage(
+      sprite.image,
+      sourceX,
+      sourceY,
+      frameWidth,
+      frameHeight,
+      drawX,
+      drawY,
+      drawWidth,
+      renderedHeight
+    );
   }
-  ctx.drawImage(
-    sprite.image,
-    sourceX,
-    sourceY,
-    frameWidth,
-    frameHeight,
-    drawX,
-    drawY,
-    drawWidth,
-    renderedHeight,
-  );
+
   if (current.renderStats && heroFrameKey) {
     current.renderStats.playerSpriteFrame = heroFrameKey;
     current.renderStats.playerSpriteVisualMode = 'hero-atlas';
@@ -394,6 +533,7 @@ export function drawPlayerSpriteFrame(ctx, x, y, w, h, direction, invuln, now, d
     current.renderStats.playerWeaponVisualMode = 'integrated-hero-atlas';
   }
 
+  ctx.restore();
   ctx.restore();
 
   if (stateRef.current.notice && stateRef.current.notice.includes('near')) {
