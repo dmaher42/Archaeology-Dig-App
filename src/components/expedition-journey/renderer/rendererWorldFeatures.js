@@ -1096,8 +1096,89 @@ export function drawRouteGateFrame(ctx, gate, screenX, current, complete, layer 
     ctx.restore();
 }
 
+export function getHazardBurialCoverFootY(logicalFootY, renderDest = null) {
+    const renderedBottom = Number.isFinite(renderDest?.y) && Number.isFinite(renderDest?.height)
+      ? renderDest.y + renderDest.height
+      : null;
+    return Number.isFinite(renderedBottom) ? renderedBottom : logicalFootY;
+}
+
+export function getHazardBurialSinkOffset(burial, sectionId, visualHazardId) {
+    if (sectionId !== 'desert-entry' || visualHazardId !== 'spike-trap') return 0;
+    return Math.round(Math.max(0, Math.min(0.85, burial)) * 14);
+}
+
+export function drawHazardPathBurialCoverFrame(ctx, centerX, footY, width, burial) {
+    if (burial <= 0) return;
+    const coverHeight = Math.max(7, width * (0.045 + burial * 0.1));
+    const coverWidth = width * (0.9 + burial * 0.24);
+
+    ctx.save();
+    ctx.globalAlpha = 0.5 + burial * 0.2;
+    const pathFill = ctx.createLinearGradient(0, footY - coverHeight * 1.1, 0, footY + coverHeight * 0.8);
+    pathFill.addColorStop(0, 'rgba(151, 103, 62, 0)');
+    pathFill.addColorStop(0.34, 'rgba(121, 83, 50, 0.56)');
+    pathFill.addColorStop(1, 'rgba(74, 52, 35, 0.5)');
+    ctx.fillStyle = pathFill;
+    ctx.beginPath();
+    ctx.moveTo(centerX - coverWidth * 0.52, footY - coverHeight * 0.28);
+    ctx.bezierCurveTo(
+      centerX - coverWidth * 0.34,
+      footY - coverHeight * 0.95,
+      centerX - coverWidth * 0.12,
+      footY - coverHeight * 0.38,
+      centerX + coverWidth * 0.08,
+      footY - coverHeight * 0.58,
+    );
+    ctx.bezierCurveTo(
+      centerX + coverWidth * 0.28,
+      footY - coverHeight * 0.78,
+      centerX + coverWidth * 0.46,
+      footY - coverHeight * 0.2,
+      centerX + coverWidth * 0.52,
+      footY + coverHeight * 0.08,
+    );
+    ctx.bezierCurveTo(
+      centerX + coverWidth * 0.3,
+      footY + coverHeight * 0.44,
+      centerX - coverWidth * 0.25,
+      footY + coverHeight * 0.46,
+      centerX - coverWidth * 0.52,
+      footY - coverHeight * 0.28,
+    );
+    ctx.fill();
+
+    ctx.globalAlpha = 0.42 + burial * 0.22;
+    ctx.strokeStyle = 'rgba(56, 40, 28, 0.48)';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(centerX - coverWidth * 0.42, footY - coverHeight * 0.4);
+    ctx.lineTo(centerX - coverWidth * 0.2, footY - coverHeight * 0.12);
+    ctx.lineTo(centerX - coverWidth * 0.05, footY - coverHeight * 0.32);
+    ctx.moveTo(centerX + coverWidth * 0.1, footY - coverHeight * 0.22);
+    ctx.lineTo(centerX + coverWidth * 0.32, footY - coverHeight * 0.44);
+    ctx.lineTo(centerX + coverWidth * 0.46, footY - coverHeight * 0.1);
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.34 + burial * 0.16;
+    ctx.fillStyle = 'rgba(71, 50, 34, 0.45)';
+    for (let i = 0; i < 5; i += 1) {
+      const t = (i - 2) / 2;
+      const chipX = centerX + t * coverWidth * 0.2 + (i % 2 ? 5 : -4);
+      const chipY = footY - coverHeight * (0.28 + (i % 3) * 0.08);
+      ctx.beginPath();
+      ctx.ellipse(chipX, chipY, 2.4 + i * 0.35, 1.2 + (i % 2) * 0.4, t * 0.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+}
+
 export function drawHazardBurialCoverFrame(ctx, centerX, footY, width, burial, sectionId) {
     if (burial <= 0) return;
+    if (sectionId === 'desert-entry') {
+      drawHazardPathBurialCoverFrame(ctx, centerX, footY, width, burial);
+      return;
+    }
     const coverHeight = Math.max(5, width * (0.04 + burial * 0.08));
     const coverWidth = width * (0.92 + burial * 0.34);
     const isCatacombs = sectionId === 'catacombs';
@@ -1214,13 +1295,19 @@ export function drawHazardFrame(ctx, hazard, cameraX, current, now, deps) {
     const decalDest = decalDescriptor
       ? getEgyptHazardDecalDest(hazard, hx, footY, decalDescriptor.regionKey)
       : hazardDest;
+    const pathEmbedTrap = section.id === 'desert-entry' && visualHazardId === 'spike-trap';
+    const burialSinkOffset = getHazardBurialSinkOffset(burial, section.id, visualHazardId);
+    if (burialSinkOffset > 0) {
+      decalDest.y += burialSinkOffset;
+      hazardDest.y += burialSinkOffset;
+    }
     if (visualHazardId === 'spike-trap' && current.lastHazardHit?.id === hazard.id && current.hazardCooldown > 0.4) {
       decalDest.y -= 18;
     }
     if (visualHazardId !== 'bat-cloud' && visualHazardId !== 'dust-wave') {
       drawContactShadow(ctx, centerX, footY + 3, hazard.width * 0.92, grounding.shadow, 0.9);
     }
-    if (dustWidth > 0) {
+    if (dustWidth > 0 && !pathEmbedTrap) {
       drawGroundDustLip(ctx, centerX, footY + 1, dustWidth, 'rgba(122, 78, 37, 0.16)');
     }
     if (decalDescriptor) {
@@ -1230,16 +1317,17 @@ export function drawHazardFrame(ctx, hazard, cameraX, current, now, deps) {
         ...(visualHazardId === 'spike-trap' ? { cropBottomRatio: 0.56, alignY: 'bottom' } : {}),
       });
       if (decalDrawn) {
-        if (dustWidth > 0) {
+        const coverFootY = getHazardBurialCoverFootY(footY, decalDest);
+        if (dustWidth > 0 && !pathEmbedTrap) {
           const apronIntensity = visualHazardId === 'spike-trap'
             ? 1.08
             : visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap'
               ? 1.2
               : 0.82;
-          drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.9, visualHazardId === 'spike-trap' ? 'rgba(209, 143, 72, 0.32)' : 'rgba(209, 143, 72, 0.24)');
-          drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, apronIntensity);
+          drawGroundDustLip(ctx, centerX, coverFootY + 2, dustWidth * 0.9, visualHazardId === 'spike-trap' ? 'rgba(209, 143, 72, 0.32)' : 'rgba(209, 143, 72, 0.24)');
+          drawHazardGroundApron(ctx, centerX, coverFootY + 4, dustWidth, section.id, apronIntensity);
         }
-        drawHazardBurialCoverFrame(ctx, centerX, footY, dustWidth, burial, section.id);
+        drawHazardBurialCoverFrame(ctx, centerX, coverFootY, dustWidth, burial, section.id);
         ctx.restore();
         return;
       }
@@ -1255,16 +1343,17 @@ export function drawHazardFrame(ctx, hazard, cameraX, current, now, deps) {
     );
     ctx.restore();
     if (hazardDrawn) {
-      if (dustWidth > 0) {
+      const coverFootY = getHazardBurialCoverFootY(footY, hazardDest);
+      if (dustWidth > 0 && !pathEmbedTrap) {
         const apronIntensity = visualHazardId === 'spike-trap'
           ? 1.08
           : visualHazardId === 'sand-pit' || visualHazardId === 'dark-gap'
             ? 1.2
             : 0.82;
-        drawGroundDustLip(ctx, centerX, footY + 2, dustWidth * 0.9, visualHazardId === 'spike-trap' ? 'rgba(209, 143, 72, 0.32)' : 'rgba(209, 143, 72, 0.24)');
-        drawHazardGroundApron(ctx, centerX, footY + 4, dustWidth, section.id, apronIntensity);
+        drawGroundDustLip(ctx, centerX, coverFootY + 2, dustWidth * 0.9, visualHazardId === 'spike-trap' ? 'rgba(209, 143, 72, 0.32)' : 'rgba(209, 143, 72, 0.24)');
+        drawHazardGroundApron(ctx, centerX, coverFootY + 4, dustWidth, section.id, apronIntensity);
       }
-      drawHazardBurialCoverFrame(ctx, centerX, footY, dustWidth, burial, section.id);
+      drawHazardBurialCoverFrame(ctx, centerX, coverFootY, dustWidth, burial, section.id);
       ctx.restore();
       return;
     }

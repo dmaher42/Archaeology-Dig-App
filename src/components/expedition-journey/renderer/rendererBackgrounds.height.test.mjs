@@ -11,40 +11,33 @@ const getDesertEntryLayerCallSource = (layerKey) => {
   return journeyRendererSource.slice(layerStart, nextLayerStart);
 };
 
-test('Desert Entry height tuning scales foundation layers and clips gameplay detail layers', () => {
+test('Desert Entry ground height tuning scales layers instead of cropping them', () => {
   const groundLayerStart = journeyRendererSource.indexOf('function drawDesertEntryGroundLayer(');
   const groundLayerEnd = journeyRendererSource.indexOf('function drawDesertEntryGroundLayerTileSeamBreakup(', groundLayerStart);
   const groundLayerSource = journeyRendererSource.slice(groundLayerStart, groundLayerEnd);
 
-  assert.match(
-    groundLayerSource,
-    /const renderHeight = Math\.max\([\s\S]*?sourceDrawHeight[\s\S]*?\);/,
-  );
+  assert.match(groundLayerSource, /const renderHeight = Math\.max\(1, height\);/);
   assert.match(groundLayerSource, /renderHeight \* sourceRatio/);
-  assert.match(
-    groundLayerSource,
-    /rect\(0, Math\.round\(y\), canvasWidth, Math\.round\(height\)\);[\s\S]*?clip\(\);/,
-  );
+  assert.doesNotMatch(groundLayerSource, /clipToDestHeight/);
+  assert.doesNotMatch(groundLayerSource, /sourceDrawOffsetY/);
 
   [
     'groundBacking',
     'templeFoundationTransition',
+    'groundLane',
+    'foregroundRubble',
+  ].forEach((layerKey) => {
+    const layerCallSource = getDesertEntryLayerCallSource(layerKey);
+    assert.doesNotMatch(layerCallSource, /sourceDrawHeight:/);
+    assert.doesNotMatch(layerCallSource, /sourceDrawOffsetY:/);
+    assert.doesNotMatch(layerCallSource, /clipToDestHeight:\s*true/);
+  });
+
+  [
     'groundTransition',
   ].forEach((layerKey) => {
     const layerCallSource = getDesertEntryLayerCallSource(layerKey);
     assert.doesNotMatch(layerCallSource, /sourceDrawHeight:/);
     assert.doesNotMatch(layerCallSource, /clipToDestHeight:\s*true/);
-  });
-
-  [
-    'groundLane',
-    'foregroundRubble',
-  ].forEach((layerKey) => {
-    const layerCallSource = getDesertEntryLayerCallSource(layerKey);
-    assert.match(
-      layerCallSource,
-      new RegExp(`sourceDrawHeight:\\s*DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS\\.${layerKey}`),
-    );
-    assert.match(layerCallSource, /clipToDestHeight:\s*true/);
   });
 });

@@ -316,7 +316,7 @@ export const EGYPT_HAZARD_DECAL_PLACEMENT = {
   warningRubble: { xPad: 20, widthPad: 46, height: 52, footInset: 18 },
 };
 export const EGYPT_HAZARD_DECAL_PLACEMENT_BY_HAZARD = {
-  'opening-seal-reset-trap': { xPad: 18, widthPad: 36, height: 42, footInset: 28 },
+  'opening-seal-reset-trap': { xPad: 14, widthPad: 28, height: 36, footInset: 30 },
   'falling-blocks': { xPad: 24, widthPad: 48, height: 112, footInset: 2 },
   'temple-falling-chip': { xPad: 22, widthPad: 44, height: 96, footInset: 0 },
   'escape-falling-chip': { xPad: 22, widthPad: 44, height: 96, footInset: 0 },

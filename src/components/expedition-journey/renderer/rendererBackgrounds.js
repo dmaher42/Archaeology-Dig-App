@@ -1,11 +1,6 @@
 import { DESERT_LAYER_TUNING, DESERT_LAYER_TUNING_DEFAULTS } from '../desertLayerTuning.js';
 
 const ruinedTempleMaskWarnings = new Set();
-const DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS = Object.freeze({
-  // Only gameplay/detail strips use fixed draw heights; environment layers scale with tuning height.
-  groundLane: 220,
-  foregroundRubble: 260,
-});
 
 const getRuinedTempleLayerFilter = (config = {}) => {
   const brightness = config.brightness ?? 1;
@@ -565,8 +560,6 @@ function drawDesertEntryGroundLayer(ctx, assets, key, dest, options = {}) {
     alpha = 1,
     filter = null,
     minTileWidth = 0,
-    sourceDrawHeight = null,
-    clipToDestHeight = false,
     grade = null,
   } = options;
   const { region, image } = layer;
@@ -574,10 +567,7 @@ function drawDesertEntryGroundLayer(ctx, assets, key, dest, options = {}) {
   if (!canvasWidth || height <= 0) return false;
 
   const sourceRatio = region.w / region.h;
-  const renderHeight = Math.max(
-    1,
-    Number.isFinite(sourceDrawHeight) ? Math.max(sourceDrawHeight, height) : height,
-  );
+  const renderHeight = Math.max(1, height);
   const layerTileWidth = Math.max(canvasWidth + 2, renderHeight * sourceRatio, minTileWidth);
   const tileOverlap = Math.max(14, Math.round(layerTileWidth * 0.018));
   const tileStep = Math.max(1, layerTileWidth - tileOverlap);
@@ -593,11 +583,6 @@ function drawDesertEntryGroundLayer(ctx, assets, key, dest, options = {}) {
   targetCtx.save();
   targetCtx.globalAlpha = alpha;
   if (filter) targetCtx.filter = filter;
-  if (clipToDestHeight) {
-    targetCtx.beginPath();
-    targetCtx.rect(0, Math.round(y), canvasWidth, Math.round(height));
-    targetCtx.clip();
-  }
   while (x > 0) {
     x -= tileStep;
     tileIndex -= 1;
@@ -983,6 +968,60 @@ function drawDesertEntryRavineGroundHandoffBlend(ctx, cameraX, deps) {
   return true;
 }
 
+function drawDesertEntryPlacedFoundationLayer(ctx, section, cameraX, assets, canvasWidth, layerKey, tuningKey) {
+  const cfg = DESERT_LAYER_TUNING[tuningKey];
+  const accentRegion = assets.atlas?.regions?.[layerKey];
+  const accentImage = accentRegion?.image ? assets.images?.[accentRegion.image] : null;
+  if (!cfg || !accentImage || !accentRegion || cfg.alpha <= 0.01) return false;
+
+  const sectionWidth = Math.max(1, section.end - section.start);
+  const accentWorldX = section.start + sectionWidth * (cfg.sectionFraction ?? 0.42);
+  const accentWidth = cfg.height * (accentRegion.w / accentRegion.h) * (cfg.widthScale ?? 1);
+  const accentX = (accentWorldX - cameraX) * (cfg.parallax ?? 0.45) + canvasWidth / 2 - accentWidth / 2;
+  if (accentX <= -accentWidth || accentX >= canvasWidth + accentWidth) return false;
+
+  const layerCanvas = hasDesertLayerToneGrade(cfg) ? createDesertLayerGradeCanvas(canvasWidth, ctx.canvas?.height || 720) : null;
+  const targetCtx = layerCanvas?.getContext?.('2d') || ctx;
+  targetCtx.save();
+  targetCtx.globalAlpha = cfg.alpha;
+  targetCtx.filter = getDesertLayerFilter(cfg, { sepia: 4 });
+  targetCtx.drawImage(
+    accentImage,
+    accentRegion.x, accentRegion.y, accentRegion.w, accentRegion.h,
+    Math.round(accentX), Math.round(cfg.y), Math.round(accentWidth), Math.round(cfg.height),
+  );
+  targetCtx.restore();
+  if (layerCanvas) {
+    applyDesertLayerToneGrade(targetCtx, layerCanvas.width, layerCanvas.height, cfg);
+    ctx.drawImage(layerCanvas, 0, 0);
+  }
+  return true;
+}
+
+function drawDesertEntryTempleFoundationStart(ctx, section, cameraX, assets, canvasWidth) {
+  return drawDesertEntryPlacedFoundationLayer(
+    ctx,
+    section,
+    cameraX,
+    assets,
+    canvasWidth,
+    'templeFoundationStart',
+    'templeFoundationStart',
+  );
+}
+
+function drawDesertEntryTempleFoundationAccent(ctx, section, cameraX, assets, canvasWidth) {
+  return drawDesertEntryPlacedFoundationLayer(
+    ctx,
+    section,
+    cameraX,
+    assets,
+    canvasWidth,
+    'templeFoundationAccent',
+    'templeFoundationAccent',
+  );
+}
+
 export function drawDesertEntryBackgroundFrame(ctx, section, cameraX, deps) {
   const {
     CANVAS_HEIGHT,
@@ -1236,7 +1275,6 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.groundBacking.alpha,
         filter: getDesertLayerFilter(T.groundBacking, { sepia: 4 }),
         grade: T.groundBacking,
-        minTileWidth: CANVAS_WIDTH * 2.8,
       },
     );
   if (backingDrawn && !isV3ProductionCandidate) {
@@ -1257,6 +1295,8 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   }
 
   let templeFoundationDrawn = false;
+  let templeFoundationStartDrawn = false;
+  let templeFoundationAccentDrawn = false;
   if (!isV3ProductionCandidate) {
     templeFoundationDrawn = drawDesertEntryGroundLayer(
       ctx,
@@ -1270,8 +1310,14 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.templeFoundationTransition.alpha,
         filter: getDesertLayerFilter(T.templeFoundationTransition, { sepia: 4 }),
         grade: T.templeFoundationTransition,
-        minTileWidth: CANVAS_WIDTH * 3.2,
       },
+    );
+    templeFoundationAccentDrawn = drawDesertEntryTempleFoundationAccent(
+      ctx,
+      section,
+      cameraX,
+      assets,
+      CANVAS_WIDTH,
     );
   }
 
@@ -1282,6 +1328,15 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
     assets,
     CANVAS_WIDTH,
   );
+  if (!isV3ProductionCandidate) {
+    templeFoundationStartDrawn = drawDesertEntryTempleFoundationStart(
+      ctx,
+      section,
+      cameraX,
+      assets,
+      CANVAS_WIDTH,
+    );
+  }
 
   if (!isV3ProductionCandidate) {
     drawDesertEntryGroundLayer(
@@ -1327,8 +1382,6 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.groundLane.alpha,
         filter: getDesertLayerFilter(T.groundLane, { sepia: 4 }),
         grade: T.groundLane,
-        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.groundLane,
-        clipToDestHeight: true,
       },
     );
   if (drawn && !isV3ProductionCandidate) {
@@ -1344,7 +1397,6 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.groundLane.alpha,
         opacity: 0.28,
         seamWidth: 104,
-        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.groundLane,
       },
     );
   }
@@ -1399,8 +1451,6 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.foregroundRubble.alpha,
         filter: getDesertLayerFilter(T.foregroundRubble, { sepia: 4 }),
         grade: T.foregroundRubble,
-        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.foregroundRubble,
-        clipToDestHeight: true,
       },
     );
   if (rubbleDrawn && !isV3ProductionCandidate) {
@@ -1416,7 +1466,6 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
         alpha: T.foregroundRubble.alpha,
         opacity: 0.18,
         seamWidth: 78,
-        sourceDrawHeight: DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS.foregroundRubble,
       },
     );
   }
@@ -1432,13 +1481,19 @@ export function drawDesertEntryGroundLaneFrame(ctx, section, cameraX, deps) {
   if (templeFoundationDrawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.desertEntryTempleFoundationTransitionActive = true;
   }
+  if (templeFoundationStartDrawn && stateRef.current.renderStats) {
+    stateRef.current.renderStats.desertEntryTempleFoundationStartActive = true;
+  }
+  if (templeFoundationAccentDrawn && stateRef.current.renderStats) {
+    stateRef.current.renderStats.desertEntryTempleFoundationAccentActive = true;
+  }
   if (rubbleDrawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.desertEntryForegroundRubbleActive = true;
   }
   if (ritualTempleDrawn && stateRef.current.renderStats) {
     stateRef.current.renderStats.desertEntryRitualTempleDepthSlot = 'between-ground-backing-and-lane';
   }
-  return drawn || backingDrawn || templeFoundationDrawn || ritualTempleDrawn || rubbleDrawn;
+  return drawn || backingDrawn || templeFoundationDrawn || templeFoundationStartDrawn || templeFoundationAccentDrawn || ritualTempleDrawn || rubbleDrawn;
 }
 
 export function drawChinaRiverValleyBackgroundFrame(ctx, cameraX, deps) {

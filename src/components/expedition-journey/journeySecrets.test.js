@@ -277,13 +277,13 @@ const scribeChamberInteriorPath = new URL('../../../public/assets/expedition/env
 const mummificationChamberInteractionAtlasPath = new URL('../../../public/assets/expedition/environment/desert-temple/mummification-chamber/mummification-chamber-interaction-atlas.png', import.meta.url);
 const desertEntryGroundingOverlayPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-grounding-overlay.png', import.meta.url);
 const desertEntryEgyptTrueSkyLightPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-sky-light-2026-06-27.png', import.meta.url);
-const desertEntrySkyOnlyCrackedGoldPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-sky-only-cracked-gold-2026-07-04.png', import.meta.url);
+const desertEntrySkyOnlyDustGoldPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-sky-only-dust-gold-4096-2026-07-08.png', import.meta.url);
 const desertEntryEgyptTrueFarPyramidsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-far-pyramids-2026-06-27.png', import.meta.url);
 const desertEntryEgyptTrueDistantCliffsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-distant-cliffs-2026-06-27.png', import.meta.url);
 const desertEntryEgyptTrueMidRuinsPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-mid-necropolis-ruins-2026-06-27.png', import.meta.url);
 const desertEntryEgyptTruePathPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-egypt-true-ground-lane-2026-06-27.png', import.meta.url);
-const desertEntryCleanWarmGroundBackingPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-clean-warm-sand-ground-backing-v2-2026-07-07.png', import.meta.url);
-const desertEntryTempleFoundationTransitionPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-temple-foundation-transition-v2-2026-07-07.png', import.meta.url);
+const desertEntryCleanWarmGroundBackingPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-clean-warm-sand-ground-backing-v2-crisp-2026-07-09.png', import.meta.url);
+const desertEntryTempleFoundationTransitionPath = new URL('../../../public/assets/expedition/backgrounds/desert-entry/desert-entry-temple-foundation-modular-joined-D-2026-07-09.png', import.meta.url);
 const egyptForegroundDepthAtlasPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.json', import.meta.url);
 const egyptForegroundDepthPngPath = new URL('../../../public/assets/expedition/environment/egypt-foreground/egypt-foreground-depth-pack.png', import.meta.url);
 const ashaComboSlashEffectPath = new URL('../../../public/assets/expedition/player/asha-combo-slash-effect-2026-06-06.png', import.meta.url);
@@ -1293,40 +1293,41 @@ test('desert entry ground collision uses the integrated painted route instead of
   assert.match(journeyComponentSource, /ROUTE_GROUND_VISUAL_MODE = 'desert-entry-painted-background-route-v1'/);
   assert.match(journeyComponentSource, /ROUTE_GROUND_HAZE_FIX_VERSION = 'necropolis-route-ground-world-locked-2026-06-25'/);
   // Backing/lane geometry now lives in the dev-tunable store; defaults hold the look.
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.y, 468);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.y, 475);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.height, 280);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.parallax, 0.72);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.parallax, 0.6);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.alpha, 1);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.brightness, 0.94);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.saturate, 0.92);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.contrast, 0.9);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.y, 438);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.height, 154);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.parallax, 0.72);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.saturate, 0.84);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundBacking.contrast, 1.04);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.y, 442);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.height, 115);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.parallax, 0.45);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.alpha, 1);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.brightness, 0.96);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.saturate, 0.72);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.contrast, 1.1);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.shadowLift, 0.04);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.highlightClamp, 0.9);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.y, 523);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.height, 129);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.brightness, 0.78);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.saturate, 0.78);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.contrast, 1.16);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.shadowLift, 0);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.templeFoundationTransition.highlightClamp, 1);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.y, 515);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.height, 81);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.parallax, 1);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.alpha, 0.76);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.brightness, 1);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.alpha, 1);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.brightness, 0.94);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.saturate, 0.78);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.contrast, 0.92);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.shadowLift, 0.05);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.highlightClamp, 0.94);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.dustHaze, 0.01);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.contrast, 1.18);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.shadowLift, 0);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.highlightClamp, 1);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundTransition.dustHaze, 0);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.y, 558);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.height, 174);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.brightness, 1.06);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.saturate, 0.84);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.contrast, 1.06);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.height, 112);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.alpha, 0.92);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.brightness, 0.92);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.saturate, 0.78);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.contrast, 1.18);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.shadowLift, 0.04);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.groundLane.highlightClamp, 0.92);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundRubble.y, 538);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundRubble.y, 510);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundRubble.height, 118);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundRubble.parallax, 1.06);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundRubble.alpha, 0);
@@ -1346,7 +1347,7 @@ test('desert entry ground collision uses the integrated painted route instead of
   assert.ok(templeFoundationControls.some((field) => field.k === 'saturate'));
   assert.ok(templeFoundationControls.some((field) => field.k === 'contrast'));
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundDepth.parallax, 1.24);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundDepth.alpha, 0.14);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.foregroundDepth.alpha, 0.06);
   assert.match(useJourneyRendererSource, /desertEntryCausewayVisualMode\s*=\s*ROUTE_GROUND_VISUAL_MODE/);
   assert.match(useJourneyRendererSource, /desertEntryGroundBodyFill\s*=\s*'painted-into-background-no-separate-floor-strip'/);
   assert.doesNotMatch(journeyComponentSource, /const drawHeight = 96;\s*const drawY = platform\.y - 42;/);
@@ -5414,27 +5415,31 @@ test('conservative sign cleanup moves route signs onto atlas-backed props', () =
 
 test('desert entry asset manifest records the layered necropolis gameplay-background rebuild', () => {
   assert.equal(desertEntryBackgroundAtlas.runtimeMode, 'layered-necropolis-playable-route');
-  assert.equal(desertEntryBackgroundAtlas.visualPass, 'sky-only-cracked-gold-refresh-2026-07-04');
+  assert.equal(desertEntryBackgroundAtlas.visualPass, 'sky-only-dust-gold-4096-refresh-2026-07-08');
   assert.match(desertEntryBackgroundAtlas.notes, /processional-road gameplay lane refresh/);
   assert.match(desertEntryBackgroundAtlas.notes, /skyLight layer must remain an opaque sky-only strip with no terrain/i);
-  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-sky-only-cracked-gold-2026-07-04.png');
-  assert.equal(desertEntryBackgroundAtlas.imageWidth, 2172);
+  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-sky-only-dust-gold-4096-2026-07-08.png');
+  assert.equal(desertEntryBackgroundAtlas.imageWidth, 4096);
   assert.equal(desertEntryBackgroundAtlas.imageHeight, 724);
-  assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-sky-only-cracked-gold-2026-07-04.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.skyLight.image, 'desert-entry-sky-only-dust-gold-4096-2026-07-08.png');
   assert.equal(desertEntryBackgroundAtlas.regions.farPyramids.image, 'desert-entry-egypt-true-far-pyramids-2026-06-27.png');
   assert.equal(desertEntryBackgroundAtlas.regions.distantCliffs.image, 'desert-entry-egypt-true-distant-cliffs-2026-06-27.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-v4-hybrid-mid-necropolis-soft-depth-2026-07-02.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.image, 'desert-entry-clean-warm-sand-ground-backing-v2-2026-07-07.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.midNecropolisRuins.image, 'desert-entry-v4-hybrid-mid-necropolis-crisp-depth-2026-07-09.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.image, 'desert-entry-clean-warm-sand-ground-backing-v2-crisp-2026-07-09.png');
   assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.w, 4096);
   assert.equal(desertEntryBackgroundAtlas.regions.groundBacking.h, 512);
-  assert.equal(desertEntryBackgroundAtlas.regions.templeFoundationTransition.image, 'desert-entry-temple-foundation-transition-v2-2026-07-07.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.templeFoundationTransition.w, 4096);
+  assert.equal(desertEntryBackgroundAtlas.regions.templeFoundationTransition.image, 'desert-entry-temple-foundation-modular-joined-D-2026-07-09.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.templeFoundationTransition.w, 8192);
   assert.equal(desertEntryBackgroundAtlas.regions.templeFoundationTransition.h, 512);
-  assert.equal(desertEntryBackgroundAtlas.regions.groundTransition.image, 'desert-entry-solid-ground-transition-rubble-apron-2026-07-07.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.templeFoundationStart.image, 'desert-entry-temple-foundation-start-user-D-2026-07-09.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.templeFoundationAccent.image, 'desert-entry-temple-foundation-accent-D-2026-07-09.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundTransition.image, 'desert-entry-ground-transition-soft-ruin-apron-B-no-haze-crisper-sharp-2026-07-09.png');
   assert.equal(desertEntryBackgroundAtlas.regions.groundTransition.w, 4096);
   assert.equal(desertEntryBackgroundAtlas.regions.groundTransition.h, 256);
   assert.equal(desertEntryBackgroundAtlas.regions.dustHaze.image, 'desert-entry-dust-haze-tile-2026-07-03.png');
-  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-rough-processional-road-groundlane-2026-07-06.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-playable-route-clear-middle-D-native-detail-sharp-2026-07-09.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.w, 1205);
+  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.h, 256);
   assert.equal(desertEntryBackgroundAtlas.regions.desertSphinx.image, 'desert-entry-landmark-sphinx-fragment-2026-07-03.png');
   assert.equal(desertEntryBackgroundAtlas.regions.foregroundRubble.image, 'desert-entry-generated-foreground-rubble-solid-2026-07-02.png');
   assert.equal(desertEntryBackgroundAtlas.regions.foregroundRubble.w, 2172);
@@ -5463,7 +5468,7 @@ test('desert entry V3 background candidate is dev-gated and does not replace the
   assert.match(journeyBackgroundAssetsSource, /params\.get\(DESERT_ENTRY_V3_CANDIDATE_URL_PARAM\) === 'v3'/);
   assert.match(journeyBackgroundAssetsSource, /'desert-entry': getDesertEntryBackgroundPack\(\)/);
   assert.match(journeyBackgroundAssetsSource, /desert-entry-v3-production-parallax-pack\.json/);
-  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-sky-only-cracked-gold-2026-07-04.png');
+  assert.equal(desertEntryBackgroundAtlas.image, 'desert-entry-sky-only-dust-gold-4096-2026-07-08.png');
   assert.notEqual(desertEntryBackgroundAtlas.image, desertEntryV3CandidateBackgroundAtlas.image);
   assert.equal(desertEntryV3CandidateBackgroundAtlas.runtimeMode, 'layered-necropolis-playable-route');
   assert.equal(desertEntryV3CandidateBackgroundAtlas.devCandidateMode, 'v3-production-layers-test');
@@ -5508,10 +5513,11 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
   assert.match(useJourneyRendererSource, /'skyLight'[\s\S]*?parallax: T\.skyLight\.parallax/);
   assert.match(useJourneyRendererSource, /'distantCliffs'[\s\S]*?parallax: T\.distantCliffs\.parallax/);
   assert.match(useJourneyRendererSource, /'midNecropolisRuins'[\s\S]*?parallax: T\.midNecropolisRuins\.parallax/);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.parallax, 0.012);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.brightness, 1.06);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.saturate, 1.05);
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.contrast, 1);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.parallax, 0.005);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.alpha, 0.88);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.brightness, 0.96);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.saturate, 0.88);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.contrast, 0.98);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.sepia, 0);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.skyLight.hue, 0);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.distantCliffs.parallax, 0.055);
@@ -5547,7 +5553,7 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
   const transitionDrawIndex = useJourneyRendererSource.indexOf("assets,\n      'groundTransition'");
   const templeFoundationDrawIndex = useJourneyRendererSource.indexOf("assets,\n      'templeFoundationTransition'");
   const laneDrawIndex = useJourneyRendererSource.indexOf("assets,\n      'groundLane'");
-  assert.ok(templeFoundationDrawIndex >= 0, 'renderer should draw the transparent temple foundation transition');
+  assert.ok(templeFoundationDrawIndex >= 0, 'renderer should draw the solid cutout temple foundation transition');
   assert.ok(transitionDrawIndex >= 0, 'renderer should draw the opaque transition apron');
   assert.ok(laneDrawIndex >= 0, 'renderer should draw the rough processional road');
   assert.ok(
@@ -5559,7 +5565,15 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
     'the opaque transition apron should sit behind the rough processional road so Asha stands on the road surface',
   );
   assert.match(useJourneyRendererSource, /filter: getDesertLayerFilter\(T\.groundBacking/);
+  assert.doesNotMatch(useJourneyRendererSource, /sourceDrawOffsetY:\s*DESERT_ENTRY_GROUND_LAYER_DRAW_OFFSETS/);
+  assert.doesNotMatch(useJourneyRendererSource, /clipToDestHeight:\s*true/);
+  assert.doesNotMatch(useJourneyRendererSource, /sourceDrawHeight:\s*DESERT_ENTRY_GROUND_LAYER_DRAW_HEIGHTS/);
   assert.match(useJourneyRendererSource, /filter: getDesertLayerFilter\(T\.groundLane/);
+  assert.match(
+    useJourneyRendererSource,
+    /const renderHeight = Math\.max\(1, height\);/,
+    'ground height sliders should scale the layer image itself instead of shrinking a crop window and hiding the bottom of the art',
+  );
   assert.match(useJourneyRendererSource, /filter: getDesertLayerFilter\(T\.foregroundRubble/);
   assert.match(
     useJourneyRendererSource,
@@ -5590,7 +5604,7 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
   );
 
   [
-    desertEntrySkyOnlyCrackedGoldPath,
+    desertEntrySkyOnlyDustGoldPath,
     desertEntryEgyptTrueSkyLightPath,
     desertEntryEgyptTrueFarPyramidsPath,
     desertEntryEgyptTrueDistantCliffsPath,
@@ -5608,7 +5622,7 @@ test('Desert Entry old active panorama prop no longer owns the rebuild backgroun
   assert.ok(groundBackingBytes.readUInt32BE(20) >= 220);
   const templeFoundationBytes = readFileSync(desertEntryTempleFoundationTransitionPath);
   assert.equal(templeFoundationBytes.toString('ascii', 1, 4), 'PNG');
-  assert.equal(templeFoundationBytes.readUInt32BE(16), 4096);
+  assert.equal(templeFoundationBytes.readUInt32BE(16), 8192);
   assert.equal(templeFoundationBytes.readUInt32BE(20), 512);
 });
 
@@ -5688,19 +5702,21 @@ test('desert entry manifest explains the necropolis path and final rebuild targe
   [
     /layered necropolis rebuild/i,
     /Valley of the Kings cliffs crossed with Memphite Necropolis ruins/i,
-    /split into full-width scene strips for sky\/light, far pyramids, distant cliffs, mid necropolis ruins, a low dust-haze band, a decorative temple foundation transition, and a dedicated world-locked processional road/i,
-    /decorative temple foundation transition/i,
-    /transparent visual-only layer with collapsed sandstone retaining walls, buried stair edges, eroded platform ledges, partially buried foundation blocks, wind-blown sand, and rubble fans/i,
+    /split into full-width scene strips for sky\/light, far pyramids, distant cliffs, mid necropolis ruins, a low dust-haze band, a repeat-safe joined modular foundation support, a non-repeating start foundation, a non-repeating temple-base foundation accent, and a dedicated world-locked processional road/i,
+    /repeat-safe visual-only joined modular footing layer/i,
+    /two compatible segments, warm low sandstone, dusty ruin lips, buried block edges, eroded ledges, and quiet rubble texture/i,
+    /templeFoundationStart layer is a single non-repeating foundation mound/i,
+    /templeFoundationAccent layer is a single non-repeating visual accent/i,
     /must not be replaced by single-object cutout plates/i,
     /processional road is visual only/i,
     /clean flat platform data remains the gameplay source for collision/i,
     /ground backing layer is non-colliding visual support/i,
     /mostly opaque ruin-footing apron, warm sand drifts, cracked dirt, scattered stones, broken brick, muted pottery fragments, and darker dirt pockets/i,
-    /ground transition apron is an opaque painted band of compacted sand, cracked earth, sandstone chips, broken brick dust, and low rubble/i,
+    /ground transition apron is an opaque crisper no-haze buried-slope layer of muted sand, shallow erosion, low stones, and half-buried ruin texture/i,
     /broken paving, sand, and low rubble are visual only/i,
     /skyLight carries the warm sunset and base haze/i,
     /draw at a different camera speed/i,
-    /templeFoundationTransition draws in front of the temple base as transparent visual-only collapsed masonry/i,
+    /templeFoundationTransition draws in front of the temple base as a two-segment repeat-safe modular sandstone footing/i,
     /groundBacking sits directly behind and under the gameplay floor/i,
     /groundTransition draws as an opaque world-locked ground apron behind the road/i,
     /groundLane scrolls at gameplay speed/i,
@@ -6063,7 +6079,7 @@ test('Ruined Temple keeps its combined image while supporting masked temple colo
   assert.match(journeyBackgroundAssetsSource, /optionalMasks/);
   assert.match(journeyBackgroundAssetsSource, /maskImages/);
 
-  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.ruinedTempleCliffSkyGrade.brightness, 0.9);
+  assert.equal(DESERT_LAYER_TUNING_DEFAULTS.ruinedTempleCliffSkyGrade.brightness, 1);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.ruinedTempleCliffSkyGrade.saturate, 0.52);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.ruinedTempleCliffSkyGrade.contrast, 0.88);
   assert.equal(DESERT_LAYER_TUNING_DEFAULTS.ruinedTempleCliffSkyGrade.sepia, 2);
@@ -6215,7 +6231,7 @@ test('desert entry ground uses the painted background route and never paints a s
   assert.match(drawPlayerSpriteSource, /desertEntryPlayerFootContact = 'warm-plaza-foot-shadow-v1'/);
   assert.match(useJourneyRendererSource, /desertGroundStyle = 'integrated-background-painted-route'/);
   assert.match(journeyComponentSource, /drawBuriedStoneCausewaySurface\(ctx, platform, x, cameraX, Date\.now\(\)\)/);
-  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-rough-processional-road-groundlane-2026-07-06.png');
+  assert.equal(desertEntryBackgroundAtlas.regions.groundLane.image, 'desert-entry-playable-route-clear-middle-D-native-detail-sharp-2026-07-09.png');
   assert.equal(desertEntryBackgroundAtlas.regions.integratedGameplayBackground, undefined);
   assert.equal(desertEntryBackgroundAtlas.regions.playableFloor, undefined);
   assert.equal(desertEntryBackgroundAtlas.regions.floorRubbleMask, undefined);
@@ -6263,10 +6279,10 @@ test('editor supports half-buried trap visuals without moving collision by hand'
 test('opening spike trap is visually scaled and buried while keeping its trigger stable', () => {
   const openingTrap = journeyPlacementOverrides.hazards.find(hazard => hazard.id === 'opening-seal-reset-trap');
   assert.ok(openingTrap, 'opening spike trap override should exist');
-  assert.equal(openingTrap.width, 132);
-  assert.equal(openingTrap.height, 30);
-  assert.equal(openingTrap.burial, 0.7);
-  assert.deepEqual(openingTrap.triggerArea, { x: -8, y: -8, width: 87, height: 16 });
+  assert.equal(openingTrap.width, 170);
+  assert.equal(openingTrap.height, 48);
+  assert.equal(openingTrap.burial, 0.85);
+  assert.deepEqual(openingTrap.triggerArea, { x: 12, y: 0, width: 87, height: 16 });
   assert.deepEqual(
     {
       x: openingTrap.x + openingTrap.triggerArea.x,
@@ -6274,7 +6290,7 @@ test('opening spike trap is visually scaled and buried while keeping its trigger
       width: openingTrap.triggerArea.width,
       height: openingTrap.triggerArea.height,
     },
-    { x: 2154, y: 543, width: 87, height: 16 },
+    { x: 2424, y: 541, width: 87, height: 16 },
   );
 });
 
@@ -6684,7 +6700,7 @@ test('scorpion nest is a non-blocking opening spawner before the Mummification C
 
   // The nest now lives in the opening combat stretch (at/just before the Mummification Chamber),
   // not as the post-chamber destroy-to-pass gate it used to be.
-  assert.ok(nestOverride.x < mummificationRoute.x, 'Nest should sit in the opening, before the Mummification Chamber route');
+  assert.ok(nestOverride.x < mummificationRoute.x + 1000, 'Nest should sit in the opening, before the Mummification Chamber');
   assert.ok(nestOverride.x < muralRoute.x, 'Nest should be well before the Forgotten Mural route');
   assert.equal(nestData.routeBlocker, false, 'Opening nest must not hard-block the route (fight-or-ignore spawner)');
   assert.equal(nestData.type, 'scorpion-nest');

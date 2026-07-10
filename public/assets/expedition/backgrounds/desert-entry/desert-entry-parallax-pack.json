@@ -1,15 +1,15 @@
 {
-  "image": "desert-entry-sky-only-cracked-gold-2026-07-04.png",
-  "imageWidth": 2172,
+  "image": "desert-entry-sky-only-dust-gold-4096-2026-07-08.png",
+  "imageWidth": 4096,
   "imageHeight": 724,
-  "visualPass": "sky-only-cracked-gold-refresh-2026-07-04",
-  "notes": "Layered necropolis rebuild, sky-only cracked-gold sunset refresh, processional-road gameplay lane refresh, clean warm-sand necropolis footing-apron ground-backing refresh, reusable temple foundation transition layer, and opaque painted ground-transition apron for the opening Egypt Journey scene. The active art direction is warm semi-realistic Valley of the Kings cliffs crossed with Memphite Necropolis ruins, with only subtle corruption marks. The background is split into full-width scene strips for sky/light, far pyramids, distant cliffs, mid necropolis ruins, a low dust-haze band, a decorative temple foundation transition, and a dedicated world-locked processional road. The skyLight layer must remain an opaque sky-only strip with no terrain, ruins, pyramids, cliffs, or visible sun disc baked into it. These active scene layers must not be replaced by single-object cutout plates. The processional road is visual only; the clean flat platform data remains the gameplay source for collision, enemies, shards, checkpoints, and gates. The temple foundation transition is a transparent visual-only layer with collapsed sandstone retaining walls, buried stair edges, eroded platform ledges, partially buried foundation blocks, wind-blown sand, and rubble fans that make the necropolis feel slowly collapsed into the landscape. The ground backing layer is non-colliding visual support with a mostly opaque ruin-footing apron, warm sand drifts, cracked dirt, scattered stones, broken brick, muted pottery fragments, and darker dirt pockets so the necropolis base reads as finished land without becoming the playable path. The ground transition apron is an opaque painted band of compacted sand, cracked earth, sandstone chips, broken brick dust, and low rubble drawn behind the rough road so the scene reads as solid ground instead of a ghosted transparent overlay.",
+  "visualPass": "sky-only-dust-gold-4096-refresh-2026-07-08",
+  "notes": "Layered necropolis rebuild, sky-only dust-gold sunset refresh, processional-road gameplay lane refresh, clean warm-sand necropolis footing-apron ground-backing refresh, joined two-segment modular temple foundation support, start-of-route foundation mound, single temple-base foundation accent, crisper no-haze buried-slope ground-transition apron, and a non-destructive sharpened active layer pass for the opening Egypt Journey scene. The active art direction is warm semi-realistic Valley of the Kings cliffs crossed with Memphite Necropolis ruins, with only subtle corruption marks. The background is split into full-width scene strips for sky/light, far pyramids, distant cliffs, mid necropolis ruins, a low dust-haze band, a repeat-safe joined modular foundation support, a non-repeating start foundation, a non-repeating temple-base foundation accent, and a dedicated world-locked processional road. The skyLight layer must remain an opaque sky-only strip with no terrain, ruins, pyramids, cliffs, or visible sun disc baked into it. These active scene layers must not be replaced by single-object cutout plates. The processional road is visual only; the clean flat platform data remains the gameplay source for collision, enemies, shards, checkpoints, and gates. The temple foundation transition is a repeat-safe visual-only joined modular footing layer with two compatible segments, warm low sandstone, dusty ruin lips, buried block edges, eroded ledges, and quiet rubble texture. The templeFoundationStart layer is a single non-repeating foundation mound used at the start of Desert Entry. The templeFoundationAccent layer is a single non-repeating visual accent used near the main temple base only, so stronger mound shapes do not tile across the whole route. The ground backing layer is non-colliding visual support with a mostly opaque ruin-footing apron, warm sand drifts, cracked dirt, scattered stones, broken brick, muted pottery fragments, and darker dirt pockets so the necropolis base reads as finished land without becoming the playable path. The ground transition apron is an opaque crisper no-haze buried-slope layer of muted sand, shallow erosion, low stones, and half-buried ruin texture drawn behind the rough road so the scene reads as grounded without becoming a second playable route.",
   "regions": {
     "skyLight": {
-      "image": "desert-entry-sky-only-cracked-gold-2026-07-04.png",
+      "image": "desert-entry-sky-only-dust-gold-4096-2026-07-08.png",
       "x": 0,
       "y": 0,
-      "w": 2172,
+      "w": 4096,
       "h": 724
     },
     "farPyramids": {
@@ -27,7 +27,7 @@
       "h": 724
     },
     "midNecropolisRuins": {
-      "image": "desert-entry-v4-hybrid-mid-necropolis-soft-depth-2026-07-02.png",
+      "image": "desert-entry-v4-hybrid-mid-necropolis-crisp-depth-2026-07-09.png",
       "x": 0,
       "y": 0,
       "w": 8132,
@@ -41,32 +41,46 @@
       "h": 512
     },
     "groundBacking": {
-      "image": "desert-entry-clean-warm-sand-ground-backing-v2-2026-07-07.png",
+      "image": "desert-entry-clean-warm-sand-ground-backing-v2-crisp-2026-07-09.png",
       "x": 0,
       "y": 0,
       "w": 4096,
       "h": 512
     },
     "templeFoundationTransition": {
-      "image": "desert-entry-temple-foundation-transition-v2-2026-07-07.png",
+      "image": "desert-entry-temple-foundation-modular-joined-D-2026-07-09.png",
+      "x": 0,
+      "y": 0,
+      "w": 8192,
+      "h": 512
+    },
+    "templeFoundationStart": {
+      "image": "desert-entry-temple-foundation-start-user-D-2026-07-09.png",
+      "x": 0,
+      "y": 0,
+      "w": 4096,
+      "h": 512
+    },
+    "templeFoundationAccent": {
+      "image": "desert-entry-temple-foundation-accent-D-2026-07-09.png",
       "x": 0,
       "y": 0,
       "w": 4096,
       "h": 512
     },
     "groundTransition": {
-      "image": "desert-entry-solid-ground-transition-rubble-apron-2026-07-07.png",
+      "image": "desert-entry-ground-transition-soft-ruin-apron-B-no-haze-crisper-sharp-2026-07-09.png",
       "x": 0,
       "y": 0,
       "w": 4096,
       "h": 256
     },
     "groundLane": {
-      "image": "desert-entry-rough-processional-road-groundlane-2026-07-06.png",
+      "image": "desert-entry-playable-route-clear-middle-D-native-detail-sharp-2026-07-09.png",
       "x": 0,
       "y": 0,
-      "w": 4096,
-      "h": 512
+      "w": 1205,
+      "h": 256
     },
     "foregroundRubble": {
       "image": "desert-entry-generated-foreground-rubble-solid-2026-07-02.png",
@@ -97,7 +111,7 @@
       "h": 865
     }
   },
-  "groundLaneNote": "Dedicated rough processional-road path layer. Drawn at parallax 1.0 (locked to the world / collision floor) so Asha runs on the same visible route that collision, enemies, shards, checkpoints, and gates use. The broken paving, sand, and low rubble are visual only; collision remains a clean flat invisible gameplay lane.",
+  "groundLaneNote": "Dedicated rough processional-road path layer. Drawn at parallax 1.0 (locked to the world / collision floor) so Asha runs on the same visible route that collision, enemies, shards, checkpoints, and gates use. The active lane uses a native-detail tileable strip so the clear centre path and side rubble keep texture in-game instead of being stretched across the whole route. The broken paving, sand, and low rubble are visual only; collision remains a clean flat invisible gameplay lane.",
   "runtimeMode": "layered-necropolis-playable-route",
-  "coordinateNote": "The active runtime uses layered PNGs. skyLight carries the warm sunset and base haze; farPyramids, distantCliffs, and midNecropolisRuins each draw at a different camera speed so the Egypt background has real depth instead of a single flat plate. dustHaze sits between the necropolis and playable road; templeFoundationTransition draws in front of the temple base as transparent visual-only collapsed masonry; groundBacking sits directly behind and under the gameplay floor as a visual-only sand body; groundTransition draws as an opaque world-locked ground apron behind the road; groundLane scrolls at gameplay speed and remains the visible source of truth for the walkable floor. Future rebuilds should preserve this full-width parallax structure with a high quality Valley of the Kings plus Memphite Necropolis set that preserves the ravine bridge and pyramid climb route."
+  "coordinateNote": "The active runtime uses layered PNGs. skyLight carries the warm sunset and base haze; farPyramids, distantCliffs, and midNecropolisRuins each draw at a different camera speed so the Egypt background has real depth instead of a single flat plate. dustHaze sits between the necropolis and playable road; templeFoundationTransition draws in front of the temple base as a two-segment repeat-safe modular sandstone footing; templeFoundationStart draws once at the start of Desert Entry; templeFoundationAccent draws once near the main temple base as a softer non-repeating support detail; groundBacking sits directly behind and under the gameplay floor as a visual-only sand body; groundTransition draws as an opaque world-locked ground apron behind the road; groundLane scrolls at gameplay speed and remains the visible source of truth for the walkable floor. Future rebuilds should preserve this full-width parallax structure with a high quality Valley of the Kings plus Memphite Necropolis set that preserves the ravine bridge and pyramid climb route."
 }
