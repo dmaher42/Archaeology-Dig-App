@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIR = ROOT / "public/assets/expedition/player/asha-reference-warrior-source"
+SOURCE_DIR = ROOT / "asset-sources/expedition/player/asha-reference-warrior-source"
 BASE_ATLAS_JSON = ROOT / "public/assets/expedition/player/asha-v5-spritesheet.json"
 TARGET_DIR = ROOT / "public/assets/expedition/player"
 TARGET_JSON = TARGET_DIR / "asha-reference-warrior-spritesheet.json"

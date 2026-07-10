@@ -10,7 +10,7 @@ from PIL import Image, ImageEnhance, ImageFilter
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIR = ROOT / "public/assets/expedition/player/asha-new-idle-source"
+SOURCE_DIR = ROOT / "asset-sources/expedition/player/asha-new-idle-source"
 SOURCE_IDLE_IMAGE = SOURCE_DIR / "asha-new-idle-raw.png"
 SOURCE_RUN_IMAGE = SOURCE_DIR / "asha-new-run-raw.png"
 SOURCE_JUMP_IMAGE = SOURCE_DIR / "asha-new-jump-raw.png"

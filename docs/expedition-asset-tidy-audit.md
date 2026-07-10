@@ -88,12 +88,12 @@ Several folders contain source images beside runtime atlases. This is useful his
 Source/reference folders or files already visible:
 
 - `public/assets/expedition/china-source/`
-- `public/assets/expedition/enemies/bes-guardian-source/`
-- `public/assets/expedition/player/asha-final-production-source/`
+- `asset-sources/expedition/enemies/bes-guardian-source/`
+- `asset-sources/expedition/player/asha-final-production-source/`
 - `public/assets/expedition/player/asha-option-a-source/`
 - source/candidate files in `bosses/`, `enemies/`, `environment/egypt-opening/`, and `player/`
 
-Recommended next step: mark these as source/reference in docs first. Move or delete only after proving they are not used by runtime, trailer, tests, or stage preview metadata.
+Source-only folders confirmed by reference audit were moved under `asset-sources/` in Phase 1 so Vite no longer copies them into the deployed site. Trailer and Stage Select dependencies remain in `public`.
 
 ### P1: Keep The Active Player Sprite Contract Explicit
 

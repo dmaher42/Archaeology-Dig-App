@@ -8,7 +8,7 @@ from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIR = ROOT / "public/assets/expedition/enemies/bes-guardian-source"
+SOURCE_DIR = ROOT / "asset-sources/expedition/enemies/bes-guardian-source"
 TARGET_DIR = ROOT / "public/assets/expedition/enemies"
 TARGET_JSON = TARGET_DIR / "bes-guardian-sprites.json"
 TARGET_PNG = TARGET_DIR / "bes-guardian-sprites.png"

@@ -9,7 +9,7 @@ from PIL import Image, ImageChops
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIR = ROOT / "public/assets/expedition/player/asha-final-production-source"
+SOURCE_DIR = ROOT / "asset-sources/expedition/player/asha-final-production-source"
 BASE_ATLAS_JSON = ROOT / "public/assets/expedition/player/asha-hooded-warrior-explorer-spritesheet.json"
 TARGET_DIR = ROOT / "public/assets/expedition/player"
 TARGET_JSON = TARGET_DIR / "asha-final-production-spritesheet.json"

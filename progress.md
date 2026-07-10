@@ -4,6 +4,11 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-11 Deployment size reduction Phase 1:
+- Moved 334.9 MB of confirmed source-only artwork, rejected candidates, build inputs, and development previews from `public/` into `asset-sources/`, keeping the files tracked without shipping them to GitHub Pages.
+- Updated the existing Asha and Bes atlas-building scripts to read from the new source location while preserving all runtime outputs, atlas filenames, dimensions, and loader paths.
+- Kept China Stage Select art and trailer-dependent Asha Option A art in `public/`; no runtime assets were compressed, resized, renamed, or removed.
+
 2026-07-06 Scorpion venom mobility fix:
 - Let scorpions keep normal patrol/chase movement while their venom spit is winding up or firing, instead of freezing in place during the spit.
 - Kept recovery and classic committed attacks planted, so the anti-air/tail-style attack and punish windows still read clearly.

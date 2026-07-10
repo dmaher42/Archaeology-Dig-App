@@ -101,8 +101,8 @@ These are authoritative inside their narrower scope:
 | `docs/museum-image-sources.md` | Current reference | Museum image sourcing and attribution notes. |
 | `docs/superpowers/specs/2026-06-04-fast-fluid-combat-design.md` | Current spec | Combat direction/specification. |
 | `docs/superpowers/plans/2026-06-04-fast-fluid-combat-slice-1.md` | Current implementation plan | Combat slice 1 plan; use only when executing that slice. |
-| `public/assets/expedition/bosses/source/scarab-queen-v2-animation-contract.md` | Current asset contract | Scarab Queen V2 animation contract. |
-| `public/assets/expedition/bosses/source/scarab-queen-v2-generation-prompts.md` | Current asset prompt reference | Scarab Queen V2 generation prompts. |
+| `asset-sources/expedition/bosses/source/scarab-queen-v2-animation-contract.md` | Current asset contract | Scarab Queen V2 animation contract. |
+| `asset-sources/expedition/bosses/source/scarab-queen-v2-generation-prompts.md` | Current asset prompt reference | Scarab Queen V2 generation prompts. |
 | `public/assets/expedition/sfx/opening/OPENING_SFX_LICENSES.md` | Current asset/license note | Opening SFX licenses. |
 | `public/assets/expedition/sfx/generated/README.md` | Current asset note | Generated SFX folder note. |
 
