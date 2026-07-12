@@ -607,6 +607,7 @@ test('journey prop editor palette includes reusable Lost Site prop registry entr
       template: {
         type: 'atmosphere-prop',
         atmosphereAssetKey: 'cracked_stone_blocks',
+        assetPath: 'assets/expedition/environment/egypt-atmosphere/props/lost-site-expedition/cracked_stone_blocks.png',
         scale: 1,
         layer: 'foreground',
         collidable: false,

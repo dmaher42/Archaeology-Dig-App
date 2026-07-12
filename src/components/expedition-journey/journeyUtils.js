@@ -500,10 +500,12 @@ const getJourneyPropRegistryTemplate = (entry = {}) => {
   };
   if (isStandaloneImage) {
     template.imageAssetKey = entry.imageAssetKey || entry.defaultImageAssetKey;
-    if (entry.assetPath) template.assetPath = entry.assetPath;
   } else {
     template.atmosphereAssetKey = entry.id;
   }
+  // Preserve the direct image path for editor-created atlas props too. The
+  // renderer can then use the source PNG while the shared atlas is unavailable.
+  if (entry.assetPath) template.assetPath = entry.assetPath;
   if (Number.isFinite(entry.defaultWidth)) template.width = entry.defaultWidth;
   if (Number.isFinite(entry.defaultHeight)) template.height = entry.defaultHeight;
   if (Number.isFinite(entry.defaultScale)) template.scale = entry.defaultScale;

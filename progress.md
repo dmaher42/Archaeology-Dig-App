@@ -4,6 +4,11 @@ Current source-of-truth note:
 - Future implementation should follow `docs/lost-site-expedition-production-bible.md`.
 - The production bible now defines implementation hierarchy, room pipelines, asset roles, and quality expectations.
 
+2026-07-12 Journey editor prop visibility fix:
+- Reproduced palette placement showing only the editor selection box while the placed prop depended on the shared atmosphere atlas.
+- Preserved each registry prop's direct PNG path in editor-created prop data and allowed atmosphere props to use that path as the existing standalone-image fallback.
+- Added a focused palette contract assertion and verified a newly placed Broken Column renders visibly in the live Journey editor; the browser-only test prop was not written to source.
+
 2026-07-11 Deployment size reduction Phase 1:
 - Moved 334.9 MB of confirmed source-only artwork, rejected candidates, build inputs, and development previews from `public/` into `asset-sources/`, keeping the files tracked without shipping them to GitHub Pages.
 - Updated the existing Asha and Bes atlas-building scripts to read from the new source location while preserving all runtime outputs, atlas filenames, dimensions, and loader paths.

@@ -881,7 +881,7 @@ export default function ExpeditionJourney({
     if (propForAsset.imageAssetKey === 'routeGateBack') return routeGateBackRef.current;
     if (propForAsset.imageAssetKey === 'routeGateSlab') return routeGateSlabRef.current;
     if (propForAsset.imageAssetKey === 'openingPyramidClimbPack') return openingPyramidClimbPackRef.current;
-    if (propForAsset.imageAssetKey && propForAsset.assetPath) {
+    if (propForAsset.assetPath && (propForAsset.imageAssetKey || propForAsset.atmosphereAssetKey)) {
       const cache = standaloneImagePropCacheRef.current;
       let entry = cache[propForAsset.assetPath];
       if (!entry) {
